@@ -90,7 +90,16 @@ class ASCIIGeneratorService {
                 }
             };
 
+            console.log('✅ Text generation complete, emitting event:', {
+                asciiLength: ascii.length,
+                lineCount: result.metadata.lineCount,
+                fontName,
+                color,
+                animation
+            });
+            console.log('📤 Emitting TEXT_GENERATION_COMPLETE event');
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_COMPLETE, result);
+            console.log('✅ Event emitted successfully');
             return result;
 
         } catch (error) {

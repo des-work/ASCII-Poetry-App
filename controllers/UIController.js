@@ -179,11 +179,17 @@ class UIController {
 
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
+            console.log('📥 TEXT_GENERATION_COMPLETE received:', {
+                hasAscii: !!result.ascii,
+                asciiLength: result.ascii?.length,
+                asciiPreview: result.ascii?.substring(0, 50),
+                metadata: result.metadata
+            });
             onGenerationEnd();
             this.displayOutput({
                 ascii: result.ascii,
-                color: result.metadata.color,
-                animation: result.metadata.animation
+                color: result.metadata?.color,
+                animation: result.metadata?.animation
             });
             this.showNotification('✨ Text art generated!', 'success');
         });
@@ -335,30 +341,55 @@ class UIController {
      */
     displayOutput(data) {
         try {
+            console.log('🖼️ displayOutput called with:', {
+                hasData: !!data,
+                hasAscii: !!data?.ascii,
+                asciiLength: data?.ascii?.length,
+                color: data?.color,
+                animation: data?.animation
+            });
+            
             const { ascii, color = 'none', animation = 'none' } = data;
             
             if (!this.dom.output) {
+                console.error('❌ Output element not found in DOM!');
                 throw new Error('Output element not found');
             }
 
+            if (!ascii) {
+                console.error('❌ No ASCII art provided to display!');
+                throw new Error('No ASCII art to display');
+            }
+
+            console.log('✅ Setting output textContent, length:', ascii.length);
             this.dom.output.textContent = ascii;
             this.dom.output.className = 'ascii-output';
 
             // Apply color
             if (color && color !== 'none') {
+                console.log('🎨 Applying color:', color);
                 this.applyColor(color);
             }
 
             // Apply animation
             if (animation && animation !== 'none') {
+                console.log('✨ Applying animation:', animation);
                 this.dom.output.classList.add(`animation-${animation}`);
             }
 
-            // this.eventBus.emit(EventBus.Events.OUTPUT_UPDATED, data);
+            console.log('✅ Output displayed successfully!');
+            console.log('📊 Output element:', {
+                exists: !!this.dom.output,
+                hasContent: !!this.dom.output.textContent,
+                contentLength: this.dom.output.textContent?.length,
+                className: this.dom.output.className,
+                visible: this.dom.output.offsetHeight > 0
+            });
             
         } catch (error) {
-            console.error('Error displaying output:', error);
-            this.eventBus.emit(EventBus.Events.ERROR_OCCURRED, { message: 'Failed to display output' });
+            console.error('❌ Error displaying output:', error);
+            console.error('Stack:', error.stack);
+            this.showNotification(`Failed to display output: ${error.message}`, 'error');
         }
     }
 
