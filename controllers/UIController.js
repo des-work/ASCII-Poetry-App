@@ -98,20 +98,44 @@ class UIController {
 
         // Main Generate Button
         if (this.dom.generateBtn) {
-            this.dom.generateBtn.addEventListener('click', () => this.handleGenerateClick());
+            console.log('✅ Attaching event listener to generate button');
+            this.dom.generateBtn.addEventListener('click', () => {
+                console.log('🖱️ Generate button clicked!');
+                this.handleGenerateClick();
+            });
+        } else {
+            console.warn('⚠️ Generate button not found!');
         }
 
         // Output controls
         if (this.dom.copyBtn) {
-            this.dom.copyBtn.addEventListener('click', () => this.copyToClipboard());
+            console.log('✅ Attaching event listener to copy button');
+            this.dom.copyBtn.addEventListener('click', () => {
+                console.log('🖱️ Copy button clicked!');
+                this.copyToClipboard();
+            });
+        } else {
+            console.warn('⚠️ Copy button not found!');
         }
 
         if (this.dom.downloadBtn) {
-            this.dom.downloadBtn.addEventListener('click', () => this.downloadOutput());
+            console.log('✅ Attaching event listener to download button');
+            this.dom.downloadBtn.addEventListener('click', () => {
+                console.log('🖱️ Download button clicked!');
+                this.downloadOutput();
+            });
+        } else {
+            console.warn('⚠️ Download button not found!');
         }
 
         if (this.dom.clearBtn) {
-            this.dom.clearBtn.addEventListener('click', () => this.clearOutput());
+            console.log('✅ Attaching event listener to clear button');
+            this.dom.clearBtn.addEventListener('click', () => {
+                console.log('🖱️ Clear button clicked!');
+                this.clearOutput();
+            });
+        } else {
+            console.warn('⚠️ Clear button not found!');
         }
 
         // Theme toggle
@@ -199,35 +223,57 @@ class UIController {
      * Handles the main "Generate" button click and dispatches to the correct service request.
      */
     handleGenerateClick() {
+        console.log('🎨 handleGenerateClick called, current mode:', this.state.currentTab);
+        
         switch (this.state.currentTab) {
             case 'text':
-                this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, {
-                    text: this.dom.textInput.value,
-                    fontName: this.dom.fontSelect.value,
-                    color: this.dom.colorSelect.value,
-                    animation: this.dom.animationSelect.value,
-                });
+                const textOptions = {
+                    text: this.dom.textInput?.value || '',
+                    fontName: this.dom.fontSelect?.value || 'standard',
+                    color: this.dom.colorSelect?.value || 'none',
+                    animation: this.dom.animationSelect?.value || 'none',
+                };
+                console.log('📤 Emitting TEXT_GENERATION request:', textOptions);
+                this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, textOptions);
                 break;
+                
             case 'image':
-                this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, {
-                    file: this.dom.imageInput.files[0],
-                    width: parseInt(this.dom.imageWidthSlider.value, 10),
-                    charSet: this.dom.imageCharsSelect.value,
+                const imageFile = this.dom.imageInput?.files?.[0];
+                if (!imageFile) {
+                    console.warn('⚠️ No image file selected');
+                    this.showNotification('Please select an image first', 'error');
+                    return;
+                }
+                const imageOptions = {
+                    file: imageFile,
+                    width: parseInt(this.dom.imageWidthSlider?.value || '80', 10),
+                    charSet: this.dom.imageCharsSelect?.value || 'standard',
+                };
+                console.log('📤 Emitting IMAGE_GENERATION request:', { 
+                    fileName: imageFile.name, 
+                    width: imageOptions.width,
+                    charSet: imageOptions.charSet
                 });
+                this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, imageOptions);
                 break;
+                
             case 'poetry':
-                 this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, {
-                    poem: this.dom.poemInput.value,
-                    fontName: this.dom.fontSelect.value,
-                    layout: this.dom.poetryLayoutSelect.value,
-                    decoration: this.dom.poetryDecorationSelect.value,
-                    color: this.dom.colorSelect.value,
-                    animation: this.dom.animationSelect.value,
-                    // keywords would be managed here
-                });
+                const poetryOptions = {
+                    poem: this.dom.poemInput?.value || '',
+                    fontName: this.dom.fontSelect?.value || 'mini',
+                    layout: this.dom.poetryLayoutSelect?.value || 'centered',
+                    decoration: this.dom.poetryDecorationSelect?.value || 'none',
+                    color: this.dom.colorSelect?.value || 'none',
+                    animation: this.dom.animationSelect?.value || 'none',
+                    keywords: [] // TODO: Implement keyword management
+                };
+                console.log('📤 Emitting POETRY_GENERATION request:', poetryOptions);
+                this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, poetryOptions);
                 break;
+                
             default:
-                console.warn(`Unknown generation mode: ${this.state.currentTab}`);
+                console.error(`❌ Unknown generation mode: ${this.state.currentTab}`);
+                this.showNotification('Unknown mode selected', 'error');
         }
     }
 

@@ -13,42 +13,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
         // Step 1: Instantiate core modules and services.
+        console.log('📦 Step 1: Creating core modules...');
         const eventBus = new EventBus();
         const fontManager = new FontManager();
         const asciiRenderer = new ASCIIRenderer();
         const inputValidator = new InputValidator(window.AppConfig?.validation || {});
+        console.log('✅ Core modules created');
 
         // The service layer contains the core business logic.
+        console.log('📦 Step 2: Creating service layer...');
         const asciiGeneratorService = new ASCIIGeneratorService(
             fontManager,
             asciiRenderer,
             inputValidator,
             eventBus
         );
+        console.log('✅ Service layer created');
 
-        // Step 2: Instantiate the UI Controller with all its dependencies.
+        // Step 3: Instantiate the UI Controller with all its dependencies.
+        console.log('📦 Step 3: Creating UI controller...');
         const uiController = new UIController(eventBus, window.AppConfig || {}, fontManager, asciiRenderer);
+        console.log('✅ UI controller created');
 
-        // Step 3: Expose core components for debugging.
-        window.app = { services: { asciiGeneratorService }, controllers: { ui: uiController } };
+        // Step 4: Expose core components for debugging.
+        window.app = { 
+            eventBus,
+            fontManager,
+            asciiRenderer,
+            inputValidator,
+            services: { asciiGeneratorService }, 
+            controllers: { ui: uiController } 
+        };
+        console.log('✅ Components exposed to window.app');
 
-        // Step 4: Log success message to the console.
-        console.log('✅ Application initialized successfully.');
-        console.log('💡 Tip: Open DevTools Console to see debug logs and use `window.app` to inspect the application state.');
+        // Step 5: Test button connections
+        console.log('🔧 Testing button connections...');
+        const generateBtn = document.getElementById('generate-main');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        
+        console.log('  Generate button:', generateBtn ? '✅ Found' : '❌ Missing');
+        console.log('  Copy button:', copyBtn ? '✅ Found' : '❌ Missing');
+        console.log('  Download button:', downloadBtn ? '✅ Found' : '❌ Missing');
+        console.log('  Clear button:', clearBtn ? '✅ Found' : '❌ Missing');
+
+        // Step 6: Log success message to the console.
+        console.log('\n' + '='.repeat(60));
+        console.log('✅ APPLICATION INITIALIZED SUCCESSFULLY');
+        console.log('='.repeat(60));
         console.log(`
   /\\_/\\  (
  ( ^.^ ) _)
    \\"/  (
  ( | | )
 (__d b__)
-ASCII Art Poetry App
-Buttons should be working!
 
-Debug commands:
-  window.app.controllers.ui - Access the UI Controller instance
-  window.app.services.asciiGeneratorService - Access the generation service
-  window.app.services.asciiGeneratorService.fontManager.getFont("standard") - Get a font
+ASCII Art Poetry App v2.0
+All systems operational!
+
+🔧 Debug Commands:
+  window.app.eventBus - Access event bus
+  window.app.fontManager - Font management
+  window.app.controllers.ui - UI controller
+  window.app.services.asciiGeneratorService - Generation service
+
+📝 Quick Test:
+  window.app.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, {
+    text: 'TEST',
+    fontName: 'standard',
+    color: 'rainbow',
+    animation: 'glow'
+  });
 `);
+        console.log('='.repeat(60) + '\n');
 
     } catch (error) {
         // This catch block handles any fatal errors during the application's startup sequence.
