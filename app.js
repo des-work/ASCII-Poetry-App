@@ -26,13 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
             eventBus
         );
 
-        // Step 2: Instantiate the UI Controller, which now manages the entire UI.
-        const uiController = new UIController(eventBus, window.AppConfig, fontManager, asciiRenderer);
+        // Step 2: Instantiate the UI Controller with all its dependencies.
+        const uiController = new UIController(eventBus, window.AppConfig || {}, fontManager, asciiRenderer);
 
         // Step 3: Expose core components for debugging.
-        window.app = { services: { asciiGeneratorService }, controllers: { uiController } };
+        window.app = { services: { asciiGeneratorService }, controllers: { ui: uiController } };
 
-        // Step 3: Log success message to the console.
+        // Step 4: Log success message to the console.
         console.log('✅ Application initialized successfully.');
         console.log('💡 Tip: Open DevTools Console to see debug logs and use `window.app` to inspect the application state.');
         console.log(`
@@ -51,7 +51,7 @@ Debug commands:
 `);
 
     } catch (error) {
-        // This catch block handles errors specifically from the ASCIIArtGenerator constructor.
+        // This catch block handles any fatal errors during the application's startup sequence.
         console.error('❌ A fatal error occurred during application initialization:', error);
 
         // Use the global error handler to display a user-friendly message.

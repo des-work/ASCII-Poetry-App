@@ -4,14 +4,15 @@
  */
 
 class UIController {
-    constructor(eventBus, config, fontManager) {
+    constructor(eventBus, config, fontManager, asciiRenderer) {
         this.eventBus = eventBus;
         this.config = config;
         this.fontManager = fontManager;
+        this.renderer = asciiRenderer;
         this.dom = {}; // Use 'dom' to be more specific than 'elements'
         this.state = {
             currentTab: 'text',
-            theme: 'dark',
+            theme: this.config?.ui?.theme?.default || 'dark',
             isLoading: false
         };
         
@@ -39,8 +40,8 @@ class UIController {
     cacheElements() {
         this.dom = {
             // Tabs
-            tabButtons: document.querySelectorAll('.tab-button'),
-            tabContents: document.querySelectorAll('.tab-content'),
+            modeButtons: document.querySelectorAll('.mode-btn'),
+            modeContents: document.querySelectorAll('.mode-content'),
             
             // Output
             output: document.getElementById('ascii-output'),
@@ -87,11 +88,11 @@ class UIController {
      * Attach DOM event listeners
      */
     attachEventListeners() {
-        // Tab switching
-        this.dom.tabButtons.forEach(button => {
+        // Mode switching
+        this.dom.modeButtons.forEach(button => {
             button.addEventListener('click', (e) => {
-                const tab = e.target.dataset.tab;
-                if (tab) this.switchTab(tab);
+                const mode = e.currentTarget.dataset.mode;
+                if (mode) this.switchMode(mode);
             });
         });
 
@@ -244,31 +245,42 @@ class UIController {
      * Switch active tab
      * @param {string} tabName - Name of the tab
      */
-    switchTab(tabName) {
+    switchMode(mode) {
         try {
-            console.log('📑 Switching to tab:', tabName);
+            if (this.state.currentTab === mode) return;
+            console.log('📑 Switching to mode:', mode);
+            this.state.currentTab = mode;
             
             // Update button states
-            this.dom.tabButtons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.tab === tabName) {
-                    btn.classList.add('active');
-                }
+            this.dom.modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
             });
 
             // Update tab content visibility
-            this.dom.tabContents.forEach(content => {
-                content.classList.remove('active');
-                if (content.id === `${tabName}-tab`) {
-                    content.classList.add('active');
-                }
+            this.dom.modeContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${mode}-mode`);
             });
-            this.state.currentTab = tabName;
-            this.eventBus.emit(EventBus.Events.TAB_CHANGED, { tab: tabName });
-            
+
+            // Show/hide poetry-specific options
+            const poetryOptions = document.querySelectorAll('.poetry-only');
+            poetryOptions.forEach(opt => {
+                opt.style.display = mode === 'poetry' ? 'flex' : 'none';
+            });
+
+            // Update font options based on mode
+            this.updateFontOptions(mode);
+
+            this.eventBus.emit(EventBus.Events.TAB_CHANGED, { tab: mode });
         } catch (error) {
-            console.error('Error switching tabs:', error);
+            console.error('Error switching mode:', error);
         }
+    }
+
+    updateFontOptions(mode) {
+        const fontOption = this.dom.fontSelect.closest('.compact-option');
+        if (!fontOption) return;
+
+        fontOption.style.display = (mode === 'image') ? 'none' : 'flex';
     }
 
     /**
@@ -599,10 +611,7 @@ class UIController {
             return;
         }
 
-        // This is a bit of a hack. The renderer should be a dependency.
-        // For now, we create a temporary one.
-        const tempRenderer = new ASCIIRenderer();
-        const asciiText = tempRenderer.renderTextWithFont('ASCII ART', font);
+        const asciiText = this.renderer.renderTextWithFont('ASCII ART', font);
         this.dom.asciiTitle.textContent = asciiText;
 
         this.state.titleFontIndex = currentFontIndex + 1;

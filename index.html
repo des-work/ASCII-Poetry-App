@@ -186,34 +186,20 @@
                 </div>
             </main>
         </div>
-    </div>
-
-    <!-- Hidden elements for backward compatibility -->
-    <div style="display: none;">
-        <!-- Keep IDs that script.js expects -->
-        <button id="generate-text"></button>
-        <button id="generate-image"></button>
-        <button id="generate-poetry"></button>
-        <select id="poetry-font-select"></select>
-        <select id="poetry-color-select"></select>
-        <select id="poetry-animation-select"></select>
-        <select id="image-color"></select>
-    </div>
+    </div>    
 
     <!-- 1. Global Error Handler (must be first) -->
     <script src="core/ErrorHandler.js"></script>
     <!-- 2. Configuration -->
     <script src="config/app.config.js"></script>
-    <!-- 3. Core Modules & Services -->
+    <!-- 3. Core Modules, Services, and Controllers -->
     <script src="core/EventBus.js"></script>
     <script src="modules/FontManager.js"></script>
     <script src="modules/ASCIIRenderer.js"></script>
     <script src="modules/InputValidator.js"></script>
-    <script src="controllers/UIController.js"></script>
     <script src="services/ASCIIGeneratorService.js"></script>
+    <script src="controllers/UIController.js"></script>
     <!-- 4. Application Bootstrapper (initializes the app) -->
     <script src="app.js"></script>
-    <!-- UI Enhancement Script -->
-    <script src="ui-enhancements.js"></script>
 </body>
 </html>

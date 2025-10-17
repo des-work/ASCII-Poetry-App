@@ -30,7 +30,23 @@ class ASCIIGeneratorService {
             }
         });
 
-        // Add listeners for IMAGE and POETRY requests here in a similar fashion.
+        this.eventBus.on(EventBus.Events.REQUEST_IMAGE_GENERATION, async (options) => {
+            try {
+                await this.generateImageASCII(options);
+            } catch (error) {
+                // Error is already handled and emitted inside the method
+                console.error('Service-level error during image generation:', error.message);
+            }
+        });
+
+        this.eventBus.on(EventBus.Events.REQUEST_POETRY_GENERATION, async (options) => {
+            try {
+                await this.generatePoetryASCII(options);
+            } catch (error) {
+                // Error is already handled and emitted inside the method
+                console.error('Service-level error during poetry generation:', error.message);
+            }
+        });
     }
 
     async generateTextASCII(options) {
