@@ -2,81 +2,182 @@
 
 class ASCIIArtGenerator {
     constructor() {
-        this.currentTheme = 'dark';
-        this.currentTitleIndex = 0;
-        this.titleFonts = ['mini', 'small', 'bubble', 'lean'];
-        this.keywords = new Set();
-        this.initializeEventListeners();
-        this.initializeTheme();
-        this.initializeAnimatedTitle();
-        this.addAsciiDecorations();
-        this.initializeKeywordSystem();
+        try {
+            // Constants
+            this.MAX_TEXT_LENGTH = 5000;
+            this.MAX_KEYWORDS = 20;
+            this.MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+            this.SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            
+            // State
+            this.currentTheme = 'dark';
+            this.currentTitleIndex = 0;
+            this.titleFonts = ['mini', 'small', 'bubble', 'lean'];
+            this.keywords = new Set();
+            this.isGenerating = false;
+            this.currentImage = null;
+            
+            // Initialize
+            this.initializeEventListeners();
+            this.initializeTheme();
+            this.initializeAnimatedTitle();
+            this.addAsciiDecorations();
+            this.initializeKeywordSystem();
+        } catch (error) {
+            console.error('Failed to initialize ASCIIArtGenerator:', error);
+            this.showNotification('❌ Failed to initialize app. Please refresh the page.');
+        }
     }
 
     initializeEventListeners() {
-        // Tab switching
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
-        });
+        try {
+            // Tab switching
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const tab = e?.target?.dataset?.tab;
+                    if (tab) this.switchTab(tab);
+                });
+            });
 
-        // Text generation
-        document.getElementById('generate-text').addEventListener('click', () => this.generateTextASCII());
-        
-        // Image generation
-        document.getElementById('generate-image').addEventListener('click', () => this.generateImageASCII());
-        
-        // Poetry generation
-        document.getElementById('generate-poetry').addEventListener('click', () => this.generatePoetryASCII());
-        
-        // Image input
-        document.getElementById('image-input').addEventListener('change', (e) => this.handleImageUpload(e));
-        
-        // Width slider
-        const widthSlider = document.getElementById('image-width');
-        const widthValue = document.getElementById('width-value');
-        widthSlider.addEventListener('input', (e) => {
-            widthValue.textContent = e.target.value;
-        });
+            // Text generation
+            const generateTextBtn = document.getElementById('generate-text');
+            if (generateTextBtn) {
+                generateTextBtn.addEventListener('click', () => this.generateTextASCII());
+            }
+            
+            // Image generation
+            const generateImageBtn = document.getElementById('generate-image');
+            if (generateImageBtn) {
+                generateImageBtn.addEventListener('click', () => this.generateImageASCII());
+            }
+            
+            // Poetry generation
+            const generatePoetryBtn = document.getElementById('generate-poetry');
+            if (generatePoetryBtn) {
+                generatePoetryBtn.addEventListener('click', () => this.generatePoetryASCII());
+            }
+            
+            // Image input
+            const imageInput = document.getElementById('image-input');
+            if (imageInput) {
+                imageInput.addEventListener('change', (e) => this.handleImageUpload(e));
+            }
+            
+            // Width slider
+            const widthSlider = document.getElementById('image-width');
+            const widthValue = document.getElementById('width-value');
+            if (widthSlider && widthValue) {
+                widthSlider.addEventListener('input', (e) => {
+                    widthValue.textContent = e.target.value;
+                });
+            }
 
-        // Output controls
-        document.getElementById('copy-btn').addEventListener('click', () => this.copyToClipboard());
-        document.getElementById('download-btn').addEventListener('click', () => this.downloadASCII());
-        document.getElementById('clear-btn').addEventListener('click', () => this.clearOutput());
+            // Output controls
+            const copyBtn = document.getElementById('copy-btn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => this.copyToClipboard());
+            }
+            
+            const downloadBtn = document.getElementById('download-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => this.downloadASCII());
+            }
+            
+            const clearBtn = document.getElementById('clear-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => this.clearOutput());
+            }
 
-        // Theme toggle
-        document.getElementById('theme-btn').addEventListener('click', () => this.toggleTheme());
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-btn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', () => this.toggleTheme());
+            }
+        } catch (error) {
+            console.error('Error initializing event listeners:', error);
+        }
     }
 
     initializeTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        this.setTheme(savedTheme);
+        try {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            this.setTheme(savedTheme);
+        } catch (error) {
+            console.error('Error initializing theme:', error);
+            this.setTheme('dark');
+        }
     }
 
     switchTab(tabName) {
-        // Update tab buttons
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        try {
+            if (!tabName || typeof tabName !== 'string') {
+                console.warn('Invalid tab name:', tabName);
+                return;
+            }
 
-        // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${tabName}-tab`).classList.add('active');
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            const tabButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const tabContent = document.getElementById(`${tabName}-tab`);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+        } catch (error) {
+            console.error('Error switching tabs:', error);
+        }
     }
 
     async generateTextASCII() {
-        const text = document.getElementById('text-input').value.trim();
-        if (!text) {
-            this.showNotification('⚠️ Please enter some text first!');
+        // Prevent concurrent generation
+        if (this.isGenerating) {
+            this.showNotification('⚠️ Please wait for current generation to complete!');
             return;
         }
 
-        const font = document.getElementById('font-select').value;
-        const color = document.getElementById('color-select').value;
-        const animation = document.getElementById('animation-select').value;
-
         try {
+            this.isGenerating = true;
+            
+            const textInput = document.getElementById('text-input');
+            const fontSelect = document.getElementById('font-select');
+            const colorSelect = document.getElementById('color-select');
+            const animationSelect = document.getElementById('animation-select');
+
+            if (!textInput || !fontSelect || !colorSelect || !animationSelect) {
+                throw new Error('Required elements not found');
+            }
+
+            const text = this.sanitizeInput(textInput.value.trim());
+            
+            // Validate input
+            if (!text) {
+                this.showNotification('⚠️ Please enter some text first!');
+                return;
+            }
+
+            if (text.length > this.MAX_TEXT_LENGTH) {
+                this.showNotification(`⚠️ Text too long! Maximum ${this.MAX_TEXT_LENGTH} characters.`);
+                return;
+            }
+
+            const font = fontSelect.value || 'standard';
+            const color = colorSelect.value || 'none';
+            const animation = animationSelect.value || 'none';
+
             this.showLoading();
             await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for effect
+            
             const asciiArt = await this.convertTextToASCII(text, font);
+            
+            if (!asciiArt) {
+                throw new Error('Failed to generate ASCII art');
+            }
+            
             this.displayASCII(asciiArt, color, animation);
             this.showNotification('✨ ASCII art generated successfully!');
         } catch (error) {
@@ -84,43 +185,85 @@ class ASCIIArtGenerator {
             this.showNotification('❌ Error generating ASCII art. Please try again.');
         } finally {
             this.hideLoading();
+            this.isGenerating = false;
         }
     }
 
-    showNotification(message) {
-        // Create notification element if it doesn't exist
-        let notification = document.getElementById('notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                background: linear-gradient(135deg, rgba(18, 18, 26, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
-                color: var(--text-primary);
-                padding: 12px 20px;
-                border-radius: 8px;
-                border: 1px solid rgba(102, 126, 234, 0.3);
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 0.85rem;
-                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-                z-index: 10000;
-                opacity: 0;
-                transition: opacity 0.3s ease, transform 0.3s ease;
-                transform: translateY(-10px);
-            `;
-            document.body.appendChild(notification);
+    sanitizeInput(input) {
+        if (typeof input !== 'string') {
+            return '';
+        }
+        // Remove potentially dangerous characters but keep ASCII art friendly ones
+        return input.replace(/[<>]/g, '');
+    }
+
+    validateImageFile(file) {
+        if (!file) {
+            return { valid: false, error: 'No file selected' };
         }
 
-        notification.textContent = message;
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateY(0)';
+        if (!this.SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+            return { 
+                valid: false, 
+                error: `Unsupported file type. Please use: ${this.SUPPORTED_IMAGE_TYPES.join(', ')}` 
+            };
+        }
 
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-10px)';
-        }, 3000);
+        if (file.size > this.MAX_IMAGE_SIZE) {
+            return { 
+                valid: false, 
+                error: `File too large. Maximum size: ${this.MAX_IMAGE_SIZE / (1024 * 1024)}MB` 
+            };
+        }
+
+        return { valid: true };
+    }
+
+    showNotification(message) {
+        try {
+            if (!message || typeof message !== 'string') {
+                console.warn('Invalid notification message:', message);
+                return;
+            }
+
+            // Create notification element if it doesn't exist
+            let notification = document.getElementById('notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    background: linear-gradient(135deg, rgba(18, 18, 26, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
+                    color: var(--text-primary);
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    border: 1px solid rgba(102, 126, 234, 0.3);
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.85rem;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                    z-index: 10000;
+                    opacity: 0;
+                    transition: opacity 0.3s ease, transform 0.3s ease;
+                    transform: translateY(-10px);
+                `;
+                document.body.appendChild(notification);
+            }
+
+            notification.textContent = message;
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+                if (notification) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-10px)';
+                }
+            }, 3000);
+        } catch (error) {
+            console.error('Error showing notification:', error);
+        }
     }
 
     async convertTextToASCII(text, font) {
@@ -519,87 +662,204 @@ class ASCIIArtGenerator {
     }
 
     handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
+        try {
+            const file = event?.target?.files?.[0];
+            if (!file) {
+                return;
+            }
+
+            // Validate file
+            const validation = this.validateImageFile(file);
+            if (!validation.valid) {
+                this.showNotification(`⚠️ ${validation.error}`);
+                event.target.value = ''; // Reset input
+                return;
+            }
+
             const reader = new FileReader();
-            reader.onload = (e) => {
-                // Image preview could be added here
-                console.log('Image loaded:', file.name);
+            
+            reader.onerror = () => {
+                console.error('Error reading file');
+                this.showNotification('❌ Error reading image file');
+                event.target.value = '';
             };
+            
+            reader.onload = (e) => {
+                try {
+                    this.currentImage = e.target.result;
+                    console.log('Image loaded successfully:', file.name);
+                    this.showNotification('✅ Image loaded successfully!');
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    this.showNotification('❌ Error processing image');
+                }
+            };
+            
             reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Error handling image upload:', error);
+            this.showNotification('❌ Error uploading image');
         }
     }
 
     copyToClipboard() {
-        const output = document.getElementById('ascii-output').textContent;
-        if (!output.trim()) {
-            this.showNotification('⚠️ No ASCII art to copy!');
-            return;
-        }
+        try {
+            const outputElement = document.getElementById('ascii-output');
+            if (!outputElement) {
+                throw new Error('Output element not found');
+            }
 
-        navigator.clipboard.writeText(output).then(() => {
-            this.showNotification('📋 Copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
+            const output = outputElement.textContent;
+            if (!output || !output.trim()) {
+                this.showNotification('⚠️ No ASCII art to copy!');
+                return;
+            }
+
+            if (!navigator.clipboard) {
+                // Fallback for browsers without clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = output;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                this.showNotification('📋 Copied to clipboard!');
+                return;
+            }
+
+            navigator.clipboard.writeText(output).then(() => {
+                this.showNotification('📋 Copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                this.showNotification('❌ Failed to copy to clipboard');
+            });
+        } catch (error) {
+            console.error('Error copying to clipboard:', error);
             this.showNotification('❌ Failed to copy to clipboard');
-        });
+        }
     }
 
     downloadASCII() {
-        const output = document.getElementById('ascii-output').textContent;
-        if (!output.trim()) {
-            this.showNotification('⚠️ No ASCII art to download!');
-            return;
-        }
+        try {
+            const outputElement = document.getElementById('ascii-output');
+            if (!outputElement) {
+                throw new Error('Output element not found');
+            }
 
-        const blob = new Blob([output], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ascii-art.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        this.showNotification('💾 Downloaded successfully!');
+            const output = outputElement.textContent;
+            if (!output || !output.trim()) {
+                this.showNotification('⚠️ No ASCII art to download!');
+                return;
+            }
+
+            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-art-${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            this.showNotification('💾 Downloaded successfully!');
+        } catch (error) {
+            console.error('Error downloading ASCII art:', error);
+            this.showNotification('❌ Failed to download');
+        }
     }
 
     clearOutput() {
-        document.getElementById('ascii-output').textContent = '';
-        document.getElementById('ascii-output').className = 'ascii-output';
+        try {
+            const outputElement = document.getElementById('ascii-output');
+            if (outputElement) {
+                outputElement.textContent = '';
+                outputElement.className = 'ascii-output';
+                this.showNotification('🗑️ Output cleared');
+            }
+        } catch (error) {
+            console.error('Error clearing output:', error);
+        }
     }
 
     toggleTheme() {
-        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-        this.setTheme(this.currentTheme);
-        localStorage.setItem('theme', this.currentTheme);
+        try {
+            this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+            this.setTheme(this.currentTheme);
+            
+            try {
+                localStorage.setItem('theme', this.currentTheme);
+            } catch (storageError) {
+                console.warn('Failed to save theme to localStorage:', storageError);
+            }
+        } catch (error) {
+            console.error('Error toggling theme:', error);
+        }
     }
 
     setTheme(theme) {
-        this.currentTheme = theme;
-        document.documentElement.setAttribute('data-theme', theme);
-        const themeBtn = document.getElementById('theme-btn');
-        themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        try {
+            if (!theme || (theme !== 'dark' && theme !== 'light')) {
+                theme = 'dark';
+            }
+            
+            this.currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            const themeBtn = document.getElementById('theme-btn');
+            if (themeBtn) {
+                themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+        } catch (error) {
+            console.error('Error setting theme:', error);
+        }
     }
 
     initializeAnimatedTitle() {
-        this.animateTitle();
-        // Change title every 3 seconds
-        setInterval(() => this.animateTitle(), 3000);
+        try {
+            this.animateTitle();
+            // Change title every 3 seconds
+            setInterval(() => {
+                try {
+                    this.animateTitle();
+                } catch (error) {
+                    console.error('Error in title animation:', error);
+                }
+            }, 3000);
+        } catch (error) {
+            console.error('Error initializing animated title:', error);
+        }
     }
 
     animateTitle() {
-        const titleElement = document.getElementById('ascii-title');
-        if (!titleElement) return;
+        try {
+            const titleElement = document.getElementById('ascii-title');
+            if (!titleElement) return;
 
-        const text = 'ASCII ART';
-        const fontName = this.titleFonts[this.currentTitleIndex];
-        const font = this.getFont(fontName);
-        
-        const asciiText = this.renderTextWithFont(text, font);
-        titleElement.textContent = asciiText;
-        
-        this.currentTitleIndex = (this.currentTitleIndex + 1) % this.titleFonts.length;
+            const text = 'ASCII ART';
+            const fontName = this.titleFonts[this.currentTitleIndex];
+            const font = this.getFont(fontName);
+            
+            if (!font) {
+                console.warn('Font not found:', fontName);
+                return;
+            }
+            
+            const asciiText = this.renderTextWithFont(text, font);
+            if (asciiText) {
+                titleElement.textContent = asciiText;
+            }
+            
+            this.currentTitleIndex = (this.currentTitleIndex + 1) % this.titleFonts.length;
+        } catch (error) {
+            console.error('Error animating title:', error);
+        }
     }
 
     addAsciiDecorations() {
@@ -677,108 +937,171 @@ class ASCIIArtGenerator {
     }
 
     initializeKeywordSystem() {
-        const keywordsInput = document.getElementById('keywords-input');
-        const autoDetectBtn = document.getElementById('auto-detect-btn');
-        
-        if (keywordsInput) {
-            keywordsInput.addEventListener('input', (e) => this.handleKeywordInput(e));
-            keywordsInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.addKeywordFromInput();
-                }
-            });
-        }
-        
-        if (autoDetectBtn) {
-            autoDetectBtn.addEventListener('click', () => this.autoDetectKeywords());
+        try {
+            const keywordsInput = document.getElementById('keywords-input');
+            const autoDetectBtn = document.getElementById('auto-detect-btn');
+            
+            if (keywordsInput) {
+                keywordsInput.addEventListener('input', (e) => this.handleKeywordInput(e));
+                keywordsInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.addKeywordFromInput();
+                    }
+                });
+            }
+            
+            if (autoDetectBtn) {
+                autoDetectBtn.addEventListener('click', () => this.autoDetectKeywords());
+            }
+        } catch (error) {
+            console.error('Error initializing keyword system:', error);
         }
     }
 
     handleKeywordInput(e) {
-        const value = e.target.value;
-        if (value.includes(',')) {
-            const keywords = value.split(',').map(k => k.trim()).filter(k => k);
-            keywords.forEach(keyword => this.addKeyword(keyword));
-            e.target.value = '';
+        try {
+            const value = e?.target?.value;
+            if (!value) return;
+            
+            if (value.includes(',')) {
+                const keywords = value.split(',')
+                    .map(k => this.sanitizeInput(k.trim()))
+                    .filter(k => k && k.length > 0);
+                    
+                keywords.forEach(keyword => this.addKeyword(keyword));
+                e.target.value = '';
+            }
+        } catch (error) {
+            console.error('Error handling keyword input:', error);
         }
     }
 
     addKeywordFromInput() {
-        const input = document.getElementById('keywords-input');
-        const keyword = input.value.trim();
-        if (keyword) {
-            this.addKeyword(keyword);
-            input.value = '';
+        try {
+            const input = document.getElementById('keywords-input');
+            if (!input) return;
+            
+            const keyword = this.sanitizeInput(input.value.trim());
+            if (keyword) {
+                this.addKeyword(keyword);
+                input.value = '';
+            }
+        } catch (error) {
+            console.error('Error adding keyword from input:', error);
         }
     }
 
     addKeyword(keyword) {
-        if (!keyword || this.keywords.has(keyword.toLowerCase())) return;
-        
-        this.keywords.add(keyword.toLowerCase());
-        this.renderKeywordChips();
+        try {
+            if (!keyword || typeof keyword !== 'string') return;
+            
+            const cleanKeyword = keyword.toLowerCase();
+            
+            if (this.keywords.has(cleanKeyword)) {
+                this.showNotification('⚠️ Keyword already added!');
+                return;
+            }
+            
+            if (this.keywords.size >= this.MAX_KEYWORDS) {
+                this.showNotification(`⚠️ Maximum ${this.MAX_KEYWORDS} keywords allowed!`);
+                return;
+            }
+            
+            this.keywords.add(cleanKeyword);
+            this.renderKeywordChips();
+        } catch (error) {
+            console.error('Error adding keyword:', error);
+        }
     }
 
     removeKeyword(keyword) {
-        this.keywords.delete(keyword.toLowerCase());
-        this.renderKeywordChips();
+        try {
+            if (!keyword) return;
+            this.keywords.delete(keyword.toLowerCase());
+            this.renderKeywordChips();
+        } catch (error) {
+            console.error('Error removing keyword:', error);
+        }
     }
 
     renderKeywordChips() {
-        const container = document.getElementById('keyword-chips');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        this.keywords.forEach(keyword => {
-            const chip = document.createElement('div');
-            chip.className = 'keyword-chip';
-            chip.innerHTML = `
-                <span>${keyword}</span>
-                <span class="remove" data-keyword="${keyword}">×</span>
-            `;
+        try {
+            const container = document.getElementById('keyword-chips');
+            if (!container) return;
             
-            chip.querySelector('.remove').addEventListener('click', () => {
-                this.removeKeyword(keyword);
+            container.innerHTML = '';
+            
+            this.keywords.forEach(keyword => {
+                try {
+                    const chip = document.createElement('div');
+                    chip.className = 'keyword-chip';
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = keyword;
+                    
+                    const removeSpan = document.createElement('span');
+                    removeSpan.className = 'remove';
+                    removeSpan.textContent = '×';
+                    removeSpan.setAttribute('data-keyword', keyword);
+                    removeSpan.addEventListener('click', () => {
+                        this.removeKeyword(keyword);
+                    });
+                    
+                    chip.appendChild(textSpan);
+                    chip.appendChild(removeSpan);
+                    container.appendChild(chip);
+                } catch (chipError) {
+                    console.error('Error creating chip:', chipError);
+                }
             });
-            
-            container.appendChild(chip);
-        });
+        } catch (error) {
+            console.error('Error rendering keyword chips:', error);
+        }
     }
 
     autoDetectKeywords() {
-        const poem = document.getElementById('poem-input').value;
-        if (!poem) {
-            this.showNotification('⚠️ Please enter a poem first!');
-            return;
-        }
-
-        // Common words to exclude
-        const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'can', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'this', 'that', 'these', 'those']);
-
-        // Extract words and find significant ones
-        const words = poem.toLowerCase().match(/\b[a-z]+\b/g) || [];
-        const wordCount = {};
-        
-        words.forEach(word => {
-            if (!commonWords.has(word) && word.length > 3) {
-                wordCount[word] = (wordCount[word] || 0) + 1;
+        try {
+            const poemInput = document.getElementById('poem-input');
+            if (!poemInput) {
+                throw new Error('Poem input element not found');
             }
-        });
 
-        // Get top keywords (words that appear more than once or are longer)
-        const detectedKeywords = Object.keys(wordCount)
-            .filter(word => wordCount[word] > 1 || word.length > 6)
-            .slice(0, 5);
+            const poem = poemInput.value;
+            if (!poem || !poem.trim()) {
+                this.showNotification('⚠️ Please enter a poem first!');
+                return;
+            }
 
-        if (detectedKeywords.length === 0) {
-            this.showNotification('ℹ️ No significant keywords detected. Try adding them manually!');
-            return;
+            // Common words to exclude
+            const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'can', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'this', 'that', 'these', 'those', 'your', 'my', 'his', 'her', 'its', 'our', 'their', 'who', 'what', 'where', 'when', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such']);
+
+            // Extract words and find significant ones
+            const words = poem.toLowerCase().match(/\b[a-z]+\b/g) || [];
+            const wordCount = {};
+            
+            words.forEach(word => {
+                if (!commonWords.has(word) && word.length > 3) {
+                    wordCount[word] = (wordCount[word] || 0) + 1;
+                }
+            });
+
+            // Get top keywords (words that appear more than once or are longer)
+            const detectedKeywords = Object.keys(wordCount)
+                .filter(word => wordCount[word] > 1 || word.length > 6)
+                .slice(0, Math.min(5, this.MAX_KEYWORDS - this.keywords.size));
+
+            if (detectedKeywords.length === 0) {
+                this.showNotification('ℹ️ No significant keywords detected. Try adding them manually!');
+                return;
+            }
+
+            detectedKeywords.forEach(keyword => this.addKeyword(keyword));
+            this.showNotification(`✨ Detected ${detectedKeywords.length} keywords!`);
+        } catch (error) {
+            console.error('Error auto-detecting keywords:', error);
+            this.showNotification('❌ Error detecting keywords');
         }
-
-        detectedKeywords.forEach(keyword => this.addKeyword(keyword));
-        this.showNotification(`✨ Detected ${detectedKeywords.length} keywords!`);
     }
 
     // ASCII Font Definitions
