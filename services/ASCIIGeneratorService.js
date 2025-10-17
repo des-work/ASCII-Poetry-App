@@ -295,7 +295,7 @@ class ASCIIGeneratorService {
 
         // Add top decoration
         if (decoration === 'borders') {
-            result += this.renderer.createBorder('top', 40) + '\n\n';
+            result += this.renderer.addBorder('', 'single').split('\n')[0] + '\n\n'; // A bit of a hack to get just the top border
         } else if (decoration === 'flowers') {
             result += '  🌸 '.repeat(15) + '\n\n';
         } else if (decoration === 'stars') {
@@ -317,7 +317,7 @@ class ASCIIGeneratorService {
 
         // Add bottom decoration
         if (decoration === 'borders') {
-            result += '\n' + this.renderer.createBorder('bottom', 40);
+            result += '\n' + this.renderer.addBorder('', 'single').split('\n')[2]; // A bit of a hack to get just the bottom border
         } else if (decoration === 'flowers') {
             result += '\n  🌸 '.repeat(15);
         } else if (decoration === 'stars') {

@@ -344,57 +344,11 @@ class UIController {
      * @param {Object} result - Generation result
      */
     displayPoetryOutput(result) {
-        try {
-            const { ascii, metadata } = result;
-            const { layout, color, animation, decoration } = metadata;
-
-            this.dom.output.textContent = ascii;
-            this.dom.output.className = 'ascii-output';
-
-            // Apply layout
-            if (layout && layout !== 'centered') {
-                this.dom.output.classList.add(`poetry-layout-${layout}`);
-            }
-
-            // Apply decoration
-            if (decoration && decoration !== 'none') {
-                this.dom.output.classList.add(`poetry-decoration-${decoration}`);
-            }
-
-            // Apply color
-            if (color && color !== 'none') {
-                this.applyColor(color);
-            }
-
-            // Apply animation
-            if (animation && animation !== 'none') {
-                this.dom.output.classList.add(`animation-${animation}`);
-            }
-
-        } catch (error) {
-            console.error('Error displaying poetry output:', error);
-        }
+        // The standard displayOutput is sufficient for poetry as well.
+        // The renderer handles all styling.
+        this.displayOutput(result);
     }
 
-    /**
-     * Apply gradient effect
-     */
-    applyGradientEffect() {
-        this.dom.output.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
-        this.dom.output.style.webkitBackgroundClip = 'text';
-        this.dom.output.style.webkitTextFillColor = 'transparent';
-        this.dom.output.style.backgroundClip = 'text';
-    }
-
-    /**
-     * Show loading indicator
-     */
-    showLoading() {
-        if (this.dom.loading) {
-            this.dom.loading.style.display = 'block';
-            this.state.isLoading = true;
-        }
-    }
 
     /**
      * Hide loading indicator
