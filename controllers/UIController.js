@@ -168,6 +168,10 @@ class UIController {
      * Subscribe to event bus events
      */
     subscribeToEvents() {
+        console.log('👂 UIController.subscribeToEvents() called');
+        console.log('  EventBus instance:', this.eventBus);
+        console.log('  EventBus.Events:', EventBus.Events);
+        
         // Notification events
         this.eventBus.on(EventBus.Events.NOTIFICATION_SHOW, (data) => {
             this.showNotification(data.message, data.type);
@@ -197,6 +201,8 @@ class UIController {
             onGenerationEnd();
             this.showNotification(`❌ ${error.message}`, 'error');
         });
+        
+        console.log('✅ Text generation event listeners registered');
 
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => {
@@ -223,6 +229,9 @@ class UIController {
             onGenerationEnd();
             this.showNotification(`❌ ${error.message}`, 'error');
         });
+        
+        console.log('✅ All event listeners registered. Total events:', Object.keys(this.eventBus.events).length);
+        console.log('📋 Registered events:', Object.keys(this.eventBus.events));
     }
 
     /**
