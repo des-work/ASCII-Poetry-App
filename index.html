@@ -257,6 +257,13 @@
         </div>
     </div>
 
+    <!-- Error Handler (must load first for resilience) -->
+    <script src="core/ErrorHandler.js"></script>
+    
+    <!-- Core Application Script -->
     <script src="script.js"></script>
+    
+    <!-- Application Bootstrapper (ensures everything works) -->
+    <script src="app.js"></script>
 </body>
 </html>

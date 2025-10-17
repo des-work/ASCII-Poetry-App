@@ -1960,7 +1960,5 @@ class ASCIIArtGenerator {
     }
 }
 
-// Initialize the app when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new ASCIIArtGenerator();
-});
+// Note: Initialization moved to app.js for better control and error handling
+// The ASCIIArtGenerator class is defined here and instantiated by app.js
