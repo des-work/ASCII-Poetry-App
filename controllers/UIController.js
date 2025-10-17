@@ -332,30 +332,7 @@ class UIController {
      */
     displayOutput(data) {
         try {
-            const { ascii, color = 'none', animation = 'none' } = data;
-            
-            if (!this.dom.output) {
-                throw new Error('Output element not found');
-            }
-
-            if (!ascii) {
-                console.error('❌ No ASCII art provided to display!');
-                throw new Error('No ASCII art to display');
-            }
-
-            this.dom.output.textContent = ascii;
-            this.dom.output.className = 'ascii-output';
-
-            // Apply color
-            if (color && color !== 'none') {
-                this.applyColor(color);
-            }
-
-            // Apply animation
-            if (animation && animation !== 'none') {
-                this.dom.output.classList.add(`animation-${animation}`);
-            }
-            
+            this.renderer.renderToElement(this.dom.output, data);
         } catch (error) {
             console.error('❌ Error displaying output:', error);
             console.error('Stack:', error.stack);
@@ -398,48 +375,6 @@ class UIController {
         } catch (error) {
             console.error('Error displaying poetry output:', error);
         }
-    }
-
-    /**
-     * Apply color to output
-     * @param {string} color - Color name
-     */
-    applyColor(color) {
-        const colorMap = {
-            red: '#ff6b6b',
-            green: '#51cf66',
-            blue: '#4dabf7',
-            yellow: '#ffd43b',
-            purple: '#cc5de8',
-            cyan: '#22b8cf',
-            magenta: '#ff6b9d',
-            gold: '#ffd700',
-            silver: '#c0c0c0'
-        };
-
-        if (colorMap[color]) {
-            this.dom.output.style.color = colorMap[color];
-        } else if (color === 'rainbow') {
-            this.applyRainbowEffect();
-        } else if (color === 'gradient') {
-            this.applyGradientEffect();
-        }
-    }
-
-    /**
-     * Apply rainbow effect
-     */
-    applyRainbowEffect() {
-        const text = this.dom.output.textContent;
-        const colors = ['#ff6b6b', '#ffd43b', '#51cf66', '#4dabf7', '#cc5de8', '#ff6b9d'];
-        let html = '';
-
-        for (let i = 0; i < text.length; i++) {
-            const color = colors[i % colors.length];
-            html += `<span style="color: ${color}">${text[i]}</span>`;
-        }
-
-        this.dom.output.innerHTML = html;
     }
 
     /**
