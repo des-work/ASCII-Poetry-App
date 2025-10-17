@@ -5,10 +5,12 @@ class ASCIIArtGenerator {
         this.currentTheme = 'dark';
         this.currentTitleIndex = 0;
         this.titleFonts = ['mini', 'small', 'bubble', 'lean'];
+        this.keywords = new Set();
         this.initializeEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
         this.addAsciiDecorations();
+        this.initializeKeywordSystem();
     }
 
     initializeEventListeners() {
@@ -375,48 +377,103 @@ class ASCIIArtGenerator {
     }
 
     async convertPoetryToASCII(poem, font, layout, decoration) {
-        const lines = poem.split('\n').filter(line => line.trim() !== '');
+        const lines = poem.split('\n');
         const selectedFont = this.getFont(font);
         
         let result = '';
         
         // Add decoration at the top if specified
         if (decoration === 'borders') {
-            result += this.createBorder('top') + '\n';
+            result += this.createBorder('top') + '\n\n';
         } else if (decoration === 'flowers') {
-            result += '🌸 '.repeat(20) + '\n';
+            result += '  🌸 '.repeat(15) + '\n\n';
         } else if (decoration === 'stars') {
-            result += '✨ '.repeat(20) + '\n';
+            result += '  ✨ '.repeat(15) + '\n\n';
         } else if (decoration === 'hearts') {
-            result += '💖 '.repeat(20) + '\n';
+            result += '  💖 '.repeat(15) + '\n\n';
         }
         
         // Process each line of the poem
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line === '') {
+            const line = lines[i];
+            if (!line.trim()) {
                 result += '\n';
                 continue;
             }
             
-            const asciiLine = this.renderTextWithFont(line.toUpperCase(), selectedFont);
-            result += asciiLine + '\n';
-            
-            // Add spacing between stanzas
-            if (i < lines.length - 1 && lines[i + 1].trim() === '') {
-                result += '\n';
-            }
+            // Transform line with keywords
+            const transformedLine = this.transformLineWithKeywords(line, selectedFont);
+            result += transformedLine + '\n';
         }
         
         // Add decoration at the bottom if specified
         if (decoration === 'borders') {
-            result += this.createBorder('bottom');
+            result += '\n' + this.createBorder('bottom');
         } else if (decoration === 'flowers') {
-            result += '🌸 '.repeat(20);
+            result += '\n  🌸 '.repeat(15);
         } else if (decoration === 'stars') {
-            result += '✨ '.repeat(20);
+            result += '\n  ✨ '.repeat(15);
         } else if (decoration === 'hearts') {
-            result += '💖 '.repeat(20);
+            result += '\n  💖 '.repeat(15);
+        }
+        
+        return result;
+    }
+
+    transformLineWithKeywords(line, font) {
+        if (this.keywords.size === 0) {
+            // No keywords, return normal text
+            return '  ' + line;
+        }
+
+        // Split line into words while preserving punctuation
+        const words = line.split(/(\s+)/);
+        let transformedLine = [];
+        
+        words.forEach(word => {
+            if (!word.trim()) {
+                transformedLine.push(word);
+                return;
+            }
+            
+            // Check if word (without punctuation) is a keyword
+            const cleanWord = word.replace(/[^\w]/g, '').toLowerCase();
+            const isKeyword = this.keywords.has(cleanWord);
+            
+            if (isKeyword) {
+                // Transform keyword to ASCII
+                const asciiWord = this.renderSmallASCII(word.toUpperCase(), font);
+                transformedLine.push(asciiWord);
+            } else {
+                // Keep as normal text with spacing
+                transformedLine.push('  ' + word);
+            }
+        });
+        
+        return transformedLine.join('');
+    }
+
+    renderSmallASCII(word, font) {
+        // Create a compact ASCII version for keywords
+        const chars = word.split('');
+        let result = '';
+        
+        // Get the height of the font
+        const height = font.A ? font.A.length : 3;
+        
+        for (let row = 0; row < height; row++) {
+            for (let char of chars) {
+                const upperChar = char.toUpperCase();
+                if (font[upperChar] && font[upperChar][row]) {
+                    result += font[upperChar][row];
+                } else if (char === ' ') {
+                    result += ' '.repeat(font.A ? font.A[row].length : 3);
+                } else {
+                    // For punctuation or unsupported chars, use the char itself
+                    result += char + ' ';
+                }
+            }
+            if (row < height - 1) result += '\n';
         }
         
         return result;
@@ -451,7 +508,12 @@ class ASCIIArtGenerator {
             serif: this.getSerifFont(),
             sans: this.getSansFont(),
             decorative: this.getDecorativeFont(),
-            artistic: this.getArtisticFont()
+            artistic: this.getArtisticFont(),
+            '3d': this.get3DFont(),
+            star: this.getStarFont(),
+            dot: this.getDotFont(),
+            wavy: this.getWavyFont(),
+            pixel: this.getPixelFont()
         };
         return fonts[fontName] || fonts.standard;
     }
@@ -612,6 +674,111 @@ class ASCIIArtGenerator {
     hideLoading() {
         const loading = document.getElementById('loading-indicator');
         if (loading) loading.style.display = 'none';
+    }
+
+    initializeKeywordSystem() {
+        const keywordsInput = document.getElementById('keywords-input');
+        const autoDetectBtn = document.getElementById('auto-detect-btn');
+        
+        if (keywordsInput) {
+            keywordsInput.addEventListener('input', (e) => this.handleKeywordInput(e));
+            keywordsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addKeywordFromInput();
+                }
+            });
+        }
+        
+        if (autoDetectBtn) {
+            autoDetectBtn.addEventListener('click', () => this.autoDetectKeywords());
+        }
+    }
+
+    handleKeywordInput(e) {
+        const value = e.target.value;
+        if (value.includes(',')) {
+            const keywords = value.split(',').map(k => k.trim()).filter(k => k);
+            keywords.forEach(keyword => this.addKeyword(keyword));
+            e.target.value = '';
+        }
+    }
+
+    addKeywordFromInput() {
+        const input = document.getElementById('keywords-input');
+        const keyword = input.value.trim();
+        if (keyword) {
+            this.addKeyword(keyword);
+            input.value = '';
+        }
+    }
+
+    addKeyword(keyword) {
+        if (!keyword || this.keywords.has(keyword.toLowerCase())) return;
+        
+        this.keywords.add(keyword.toLowerCase());
+        this.renderKeywordChips();
+    }
+
+    removeKeyword(keyword) {
+        this.keywords.delete(keyword.toLowerCase());
+        this.renderKeywordChips();
+    }
+
+    renderKeywordChips() {
+        const container = document.getElementById('keyword-chips');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        this.keywords.forEach(keyword => {
+            const chip = document.createElement('div');
+            chip.className = 'keyword-chip';
+            chip.innerHTML = `
+                <span>${keyword}</span>
+                <span class="remove" data-keyword="${keyword}">×</span>
+            `;
+            
+            chip.querySelector('.remove').addEventListener('click', () => {
+                this.removeKeyword(keyword);
+            });
+            
+            container.appendChild(chip);
+        });
+    }
+
+    autoDetectKeywords() {
+        const poem = document.getElementById('poem-input').value;
+        if (!poem) {
+            this.showNotification('⚠️ Please enter a poem first!');
+            return;
+        }
+
+        // Common words to exclude
+        const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'can', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'this', 'that', 'these', 'those']);
+
+        // Extract words and find significant ones
+        const words = poem.toLowerCase().match(/\b[a-z]+\b/g) || [];
+        const wordCount = {};
+        
+        words.forEach(word => {
+            if (!commonWords.has(word) && word.length > 3) {
+                wordCount[word] = (wordCount[word] || 0) + 1;
+            }
+        });
+
+        // Get top keywords (words that appear more than once or are longer)
+        const detectedKeywords = Object.keys(wordCount)
+            .filter(word => wordCount[word] > 1 || word.length > 6)
+            .slice(0, 5);
+
+        if (detectedKeywords.length === 0) {
+            this.showNotification('ℹ️ No significant keywords detected. Try adding them manually!');
+            return;
+        }
+
+        detectedKeywords.forEach(keyword => this.addKeyword(keyword));
+        this.showNotification(`✨ Detected ${detectedKeywords.length} keywords!`);
     }
 
     // ASCII Font Definitions
@@ -1221,6 +1388,167 @@ class ASCIIArtGenerator {
             Y: ['◆       ◆', ' ◆     ◆ ', '  ◆   ◆  ', '   ◆ ◆   ', '    ◆    ', '    ◆    ', '    ◆    '],
             Z: ['◆◆◆◆◆◆◆◆◆', '       ◆ ', '      ◆  ', '     ◆   ', '    ◆    ', '   ◆     ', '◆◆◆◆◆◆◆◆◆'],
             ' ': ['         ', '         ', '         ', '         ', '         ', '         ', '         ']
+        };
+    }
+
+    // Additional Font Styles
+    get3DFont() {
+        return {
+            A: ['  ___  ', ' / _ \\ ', '/ /_\\ \\', '|  _  |', '| | | |', '\\_| |_/'],
+            B: ['______ ', '| ___ \\', '| |_/ /', '| ___ \\', '| |_/ /', '\\____/ '],
+            C: [' _____ ', '/  __ \\', '| /  \\/', '| |    ', '| \\__/\\', ' \\____/'],
+            D: ['______ ', '|  _  \\', '| | | |', '| | | |', '| |/ / ', '|___/  '],
+            E: [' _____ ', '|  ___|', '| |__  ', '|  __| ', '| |___ ', '\\____/ '],
+            F: [' _____ ', '|  ___|', '| |__  ', '|  __| ', '| |    ', '\\_|    '],
+            G: [' _____ ', '|  __ \\', '| |  \\/','| | __ ', '| |_\\ \\', ' \\____/'],
+            H: ['_   _ ', '| | | |', '| |_| |', '|  _  |', '| | | |', '\\_| |_/'],
+            I: ['_____ ', '|_   _|', '  | |  ', '  | |  ', ' _| |_ ', ' \\___/ '],
+            J: ['     _ ', '    | |', '    | |', '    | |', '/\\__/ /', '\\____/ '],
+            K: ['_   __', '| | / /', '| |/ / ', '|    \\ ', '| |\\  \\', '\\_| \\_/'],
+            L: ['_     ', '| |    ', '| |    ', '| |    ', '| |____', '\\_____/'],
+            M: ['___  ___', '|  \\/  |', '| .  . |', '| |\\/| |', '| |  | |', '\\_|  |_/'],
+            N: ['_   _ ', '| \\ | |', '|  \\| |', '| . ` |', '| |\\  |', '\\_| \\_/'],
+            O: [' _____ ', '|  _  |', '| | | |', '| | | |', '\\ \\_/ /', ' \\___/ '],
+            P: ['______ ', '| ___ \\', '| |_/ /', '|  __/ ', '| |    ', '\\_|    '],
+            Q: [' _____ ', '|  _  |', '| | | |', '| | | |', '\\ \\/' \\/\\', ' \\_/\\_/'],
+            R: ['______ ', '| ___ \\', '| |_/ /', '|    / ', '| |\\ \\ ', '\\_| \\_|'],
+            S: [' _____ ', '/  ___|', '\\ `--. ', ' `--. \\', '/\\__/ /', '\\____/ '],
+            T: ['_____ ', '|_   _|', '  | |  ', '  | |  ', '  | |  ', '  \\_/  '],
+            U: ['_   _ ', '| | | |', '| | | |', '| | | |', '| |_| |', ' \\___/ '],
+            V: ['_   _ ', '| | | |', '| | | |', '| | | |', '\\ \\_/ /', ' \\___/ '],
+            W: ['_    _ ', '| |  | |', '| |  | |', '| |/\\| |', '\\  /\\  /', ' \\/  \\/ '],
+            X: ['__   __', '\\ \\ / /', ' \\ V / ', ' /   \\ ', '/ /^\\ \\', '\\/   \\/'],
+            Y: ['__   __', '\\ \\ / /', ' \\ V / ', '  \\ /  ', '  | |  ', '  \\_/  '],
+            Z: ['_____ ', '|___  |', '   / / ', '  / /  ', './ /___', '\\_____/'],
+            ' ': ['       ', '       ', '       ', '       ', '       ', '       ']
+        };
+    }
+
+    getStarFont() {
+        return {
+            A: ['  ★  ', ' ★ ★ ', '★   ★', '★★★★★', '★   ★', '★   ★'],
+            B: ['★★★★ ', '★   ★', '★★★★ ', '★   ★', '★   ★', '★★★★ '],
+            C: [' ★★★★', '★    ', '★    ', '★    ', '★    ', ' ★★★★'],
+            D: ['★★★★ ', '★   ★', '★   ★', '★   ★', '★   ★', '★★★★ '],
+            E: ['★★★★★', '★    ', '★★★★ ', '★    ', '★    ', '★★★★★'],
+            F: ['★★★★★', '★    ', '★★★★ ', '★    ', '★    ', '★    '],
+            G: [' ★★★★', '★    ', '★    ', '★  ★★', '★   ★', ' ★★★★'],
+            H: ['★   ★', '★   ★', '★★★★★', '★   ★', '★   ★', '★   ★'],
+            I: ['★★★★★', '  ★  ', '  ★  ', '  ★  ', '  ★  ', '★★★★★'],
+            J: ['★★★★★', '    ★', '    ★', '    ★', '★   ★', ' ★★★ '],
+            K: ['★   ★', '★  ★ ', '★★★  ', '★  ★ ', '★   ★', '★   ★'],
+            L: ['★    ', '★    ', '★    ', '★    ', '★    ', '★★★★★'],
+            M: ['★   ★', '★★ ★★', '★ ★ ★', '★   ★', '★   ★', '★   ★'],
+            N: ['★   ★', '★★  ★', '★ ★ ★', '★  ★★', '★   ★', '★   ★'],
+            O: [' ★★★ ', '★   ★', '★   ★', '★   ★', '★   ★', ' ★★★ '],
+            P: ['★★★★ ', '★   ★', '★★★★ ', '★    ', '★    ', '★    '],
+            Q: [' ★★★ ', '★   ★', '★   ★', '★ ★ ★', '★  ★★', ' ★★★★'],
+            R: ['★★★★ ', '★   ★', '★★★★ ', '★  ★ ', '★   ★', '★   ★'],
+            S: [' ★★★★', '★    ', ' ★★★★', '    ★', '    ★', ' ★★★★'],
+            T: ['★★★★★', '  ★  ', '  ★  ', '  ★  ', '  ★  ', '  ★  '],
+            U: ['★   ★', '★   ★', '★   ★', '★   ★', '★   ★', ' ★★★ '],
+            V: ['★   ★', '★   ★', '★   ★', ' ★ ★ ', ' ★ ★ ', '  ★  '],
+            W: ['★   ★', '★   ★', '★   ★', '★ ★ ★', '★★ ★★', '★   ★'],
+            X: ['★   ★', ' ★ ★ ', '  ★  ', '  ★  ', ' ★ ★ ', '★   ★'],
+            Y: ['★   ★', '★   ★', ' ★ ★ ', '  ★  ', '  ★  ', '  ★  '],
+            Z: ['★★★★★', '    ★', '   ★ ', '  ★  ', ' ★   ', '★★★★★'],
+            ' ': ['     ', '     ', '     ', '     ', '     ', '     ']
+        };
+    }
+
+    getDotFont() {
+        return {
+            A: ['  •  ', ' • • ', '•   •', '•••••', '•   •', '•   •'],
+            B: ['•••• ', '•   •', '•••• ', '•   •', '•   •', '•••• '],
+            C: [' ••••', '•    ', '•    ', '•    ', '•    ', ' ••••'],
+            D: ['•••• ', '•   •', '•   •', '•   •', '•   •', '•••• '],
+            E: ['•••••', '•    ', '•••• ', '•    ', '•    ', '•••••'],
+            F: ['•••••', '•    ', '•••• ', '•    ', '•    ', '•    '],
+            G: [' ••••', '•    ', '•    ', '•  ••', '•   •', ' ••••'],
+            H: ['•   •', '•   •', '•••••', '•   •', '•   •', '•   •'],
+            I: ['•••••', '  •  ', '  •  ', '  •  ', '  •  ', '•••••'],
+            J: ['•••••', '    •', '    •', '    •', '•   •', ' ••• '],
+            K: ['•   •', '•  • ', '••   ', '•  • ', '•   •', '•   •'],
+            L: ['•    ', '•    ', '•    ', '•    ', '•    ', '•••••'],
+            M: ['•   •', '•• ••', '• • •', '•   •', '•   •', '•   •'],
+            N: ['•   •', '••  •', '• • •', '•  ••', '•   •', '•   •'],
+            O: [' ••• ', '•   •', '•   •', '•   •', '•   •', ' ••• '],
+            P: ['•••• ', '•   •', '•••• ', '•    ', '•    ', '•    '],
+            Q: [' ••• ', '•   •', '•   •', '• • •', '•  ••', ' ••••'],
+            R: ['•••• ', '•   •', '•••• ', '•  • ', '•   •', '•   •'],
+            S: [' ••••', '•    ', ' ••••', '    •', '    •', ' ••••'],
+            T: ['•••••', '  •  ', '  •  ', '  •  ', '  •  ', '  •  '],
+            U: ['•   •', '•   •', '•   •', '•   •', '•   •', ' ••• '],
+            V: ['•   •', '•   •', '•   •', ' • • ', ' • • ', '  •  '],
+            W: ['•   •', '•   •', '•   •', '• • •', '•• ••', '•   •'],
+            X: ['•   •', ' • • ', '  •  ', '  •  ', ' • • ', '•   •'],
+            Y: ['•   •', '•   •', ' • • ', '  •  ', '  •  ', '  •  '],
+            Z: ['•••••', '    •', '   • ', '  •  ', ' •   ', '•••••'],
+            ' ': ['     ', '     ', '     ', '     ', '     ', '     ']
+        };
+    }
+
+    getWavyFont() {
+        return {
+            A: ['  ≈≈  ', ' ≈≈≈≈ ', '≈≈  ≈≈', '≈≈≈≈≈≈', '≈≈  ≈≈', '≈≈  ≈≈'],
+            B: ['≈≈≈≈≈ ', '≈≈  ≈≈', '≈≈≈≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈≈≈≈ '],
+            C: [' ≈≈≈≈≈', '≈≈    ', '≈≈    ', '≈≈    ', '≈≈    ', ' ≈≈≈≈≈'],
+            D: ['≈≈≈≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈≈≈≈ '],
+            E: ['≈≈≈≈≈≈', '≈≈    ', '≈≈≈≈≈ ', '≈≈    ', '≈≈    ', '≈≈≈≈≈≈'],
+            F: ['≈≈≈≈≈≈', '≈≈    ', '≈≈≈≈≈ ', '≈≈    ', '≈≈    ', '≈≈    '],
+            G: [' ≈≈≈≈≈', '≈≈    ', '≈≈    ', '≈≈ ≈≈≈', '≈≈  ≈≈', ' ≈≈≈≈≈'],
+            H: ['≈≈  ≈≈', '≈≈  ≈≈', '≈≈≈≈≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈'],
+            I: ['≈≈≈≈≈≈', '  ≈≈  ', '  ≈≈  ', '  ≈≈  ', '  ≈≈  ', '≈≈≈≈≈≈'],
+            J: ['≈≈≈≈≈≈', '    ≈≈', '    ≈≈', '    ≈≈', '≈≈  ≈≈', ' ≈≈≈≈ '],
+            K: ['≈≈  ≈≈', '≈≈ ≈≈ ', '≈≈≈≈  ', '≈≈ ≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈'],
+            L: ['≈≈    ', '≈≈    ', '≈≈    ', '≈≈    ', '≈≈    ', '≈≈≈≈≈≈'],
+            M: ['≈≈  ≈≈', '≈≈≈≈≈≈', '≈≈ ≈≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈'],
+            N: ['≈≈  ≈≈', '≈≈≈ ≈≈', '≈≈≈≈≈≈', '≈≈ ≈≈≈', '≈≈  ≈≈', '≈≈  ≈≈'],
+            O: [' ≈≈≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', ' ≈≈≈≈ '],
+            P: ['≈≈≈≈≈ ', '≈≈  ≈≈', '≈≈≈≈≈ ', '≈≈    ', '≈≈    ', '≈≈    '],
+            Q: [' ≈≈≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈ ≈≈≈', '≈≈  ≈≈', ' ≈≈≈≈ '],
+            R: ['≈≈≈≈≈ ', '≈≈  ≈≈', '≈≈≈≈≈ ', '≈≈ ≈≈ ', '≈≈  ≈≈', '≈≈  ≈≈'],
+            S: [' ≈≈≈≈≈', '≈≈    ', ' ≈≈≈≈≈', '    ≈≈', '    ≈≈', ' ≈≈≈≈≈'],
+            T: ['≈≈≈≈≈≈', '  ≈≈  ', '  ≈≈  ', '  ≈≈  ', '  ≈≈  ', '  ≈≈  '],
+            U: ['≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', ' ≈≈≈≈ '],
+            V: ['≈≈  ≈≈', '≈≈  ≈≈', '≈≈  ≈≈', ' ≈≈≈≈ ', ' ≈≈≈≈ ', '  ≈≈  '],
+            W: ['≈≈  ≈≈', '≈≈  ≈≈', '≈≈ ≈≈≈', '≈≈≈≈≈≈', '≈≈  ≈≈', '≈≈  ≈≈'],
+            X: ['≈≈  ≈≈', ' ≈≈≈≈ ', '  ≈≈  ', '  ≈≈  ', ' ≈≈≈≈ ', '≈≈  ≈≈'],
+            Y: ['≈≈  ≈≈', '≈≈  ≈≈', ' ≈≈≈≈ ', '  ≈≈  ', '  ≈≈  ', '  ≈≈  '],
+            Z: ['≈≈≈≈≈≈', '    ≈≈', '   ≈≈ ', '  ≈≈  ', ' ≈≈   ', '≈≈≈≈≈≈'],
+            ' ': ['      ', '      ', '      ', '      ', '      ', '      ']
+        };
+    }
+
+    getPixelFont() {
+        return {
+            A: ['  ▓  ', ' ▓ ▓ ', '▓▓▓▓▓', '▓   ▓', '▓   ▓'],
+            B: ['▓▓▓▓ ', '▓   ▓', '▓▓▓▓ ', '▓   ▓', '▓▓▓▓ '],
+            C: [' ▓▓▓▓', '▓    ', '▓    ', '▓    ', ' ▓▓▓▓'],
+            D: ['▓▓▓▓ ', '▓   ▓', '▓   ▓', '▓   ▓', '▓▓▓▓ '],
+            E: ['▓▓▓▓▓', '▓    ', '▓▓▓▓ ', '▓    ', '▓▓▓▓▓'],
+            F: ['▓▓▓▓▓', '▓    ', '▓▓▓▓ ', '▓    ', '▓    '],
+            G: [' ▓▓▓▓', '▓    ', '▓  ▓▓', '▓   ▓', ' ▓▓▓▓'],
+            H: ['▓   ▓', '▓   ▓', '▓▓▓▓▓', '▓   ▓', '▓   ▓'],
+            I: ['▓▓▓▓▓', '  ▓  ', '  ▓  ', '  ▓  ', '▓▓▓▓▓'],
+            J: ['▓▓▓▓▓', '    ▓', '    ▓', '▓   ▓', ' ▓▓▓ '],
+            K: ['▓   ▓', '▓  ▓ ', '▓▓▓  ', '▓  ▓ ', '▓   ▓'],
+            L: ['▓    ', '▓    ', '▓    ', '▓    ', '▓▓▓▓▓'],
+            M: ['▓   ▓', '▓▓ ▓▓', '▓ ▓ ▓', '▓   ▓', '▓   ▓'],
+            N: ['▓   ▓', '▓▓  ▓', '▓ ▓ ▓', '▓  ▓▓', '▓   ▓'],
+            O: [' ▓▓▓ ', '▓   ▓', '▓   ▓', '▓   ▓', ' ▓▓▓ '],
+            P: ['▓▓▓▓ ', '▓   ▓', '▓▓▓▓ ', '▓    ', '▓    '],
+            Q: [' ▓▓▓ ', '▓   ▓', '▓   ▓', '▓  ▓▓', ' ▓▓▓▓'],
+            R: ['▓▓▓▓ ', '▓   ▓', '▓▓▓▓ ', '▓  ▓ ', '▓   ▓'],
+            S: [' ▓▓▓▓', '▓    ', ' ▓▓▓▓', '    ▓', ' ▓▓▓▓'],
+            T: ['▓▓▓▓▓', '  ▓  ', '  ▓  ', '  ▓  ', '  ▓  '],
+            U: ['▓   ▓', '▓   ▓', '▓   ▓', '▓   ▓', ' ▓▓▓ '],
+            V: ['▓   ▓', '▓   ▓', '▓   ▓', ' ▓ ▓ ', '  ▓  '],
+            W: ['▓   ▓', '▓   ▓', '▓ ▓ ▓', '▓▓ ▓▓', '▓   ▓'],
+            X: ['▓   ▓', ' ▓ ▓ ', '  ▓  ', ' ▓ ▓ ', '▓   ▓'],
+            Y: ['▓   ▓', ' ▓ ▓ ', '  ▓  ', '  ▓  ', '  ▓  '],
+            Z: ['▓▓▓▓▓', '    ▓', '   ▓ ', '  ▓  ', '▓▓▓▓▓'],
+            ' ': ['     ', '     ', '     ', '     ', '     ']
         };
     }
 }

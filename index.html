@@ -35,12 +35,27 @@
                                 <option value="standard">Standard</option>
                                 <option value="block">Block</option>
                                 <option value="bubble">Bubble</option>
-                                <option value="lean">Lean</option>
                                 <option value="mini">Mini</option>
-                                <option value="script">Script</option>
-                                <option value="slant">Slant</option>
                                 <option value="small">Small</option>
+                                <option value="lean">Lean</option>
+                                <option value="slant">Slant</option>
+                                <option value="script">Script</option>
                                 <option value="big">Big</option>
+                                <option value="elegant">Elegant ♠</option>
+                                <option value="romantic">Romantic ♥</option>
+                                <option value="classic">Classic █</option>
+                                <option value="modern">Modern ▲</option>
+                                <option value="calligraphy">Calligraphy ╔</option>
+                                <option value="gothic">Gothic ░</option>
+                                <option value="serif">Serif</option>
+                                <option value="sans">Sans ▄</option>
+                                <option value="decorative">Decorative ◊</option>
+                                <option value="artistic">Artistic ◆</option>
+                                <option value="3d">3D Effect</option>
+                                <option value="star">Stars ★</option>
+                                <option value="dot">Dots •</option>
+                                <option value="wavy">Wavy ≈</option>
+                                <option value="pixel">Pixel ▓</option>
                             </select>
                         </div>
 
@@ -120,29 +135,44 @@
                     <label for="poem-input">Enter your poem:</label>
                     <textarea id="poem-input" placeholder="Enter your beautiful poem here...&#10;&#10;Example:&#10;Roses are red,&#10;Violets are blue,&#10;Sugar is sweet,&#10;And so are you."></textarea>
                     
+                    <div class="keyword-section">
+                        <label for="keywords-input">
+                            Select Keywords to Transform (comma-separated):
+                            <span class="hint">Click words in your poem or type them here</span>
+                        </label>
+                        <input type="text" id="keywords-input" placeholder="e.g., love, heart, dream, forever">
+                        <div id="keyword-chips" class="keyword-chips"></div>
+                        <button id="auto-detect-btn" class="secondary-btn">Auto-Detect Keywords</button>
+                    </div>
+                    
                     <div class="options">
                         <div class="option-group">
-                            <label for="poetry-font-select">Font Style:</label>
+                            <label for="poetry-font-select">Font Style for Keywords:</label>
                             <select id="poetry-font-select">
                                 <option value="standard">Standard</option>
                                 <option value="block">Block</option>
                                 <option value="bubble">Bubble</option>
-                                <option value="lean">Lean</option>
-                                <option value="mini">Mini</option>
-                                <option value="script">Script</option>
-                                <option value="slant">Slant</option>
+                                <option value="mini" selected>Mini</option>
                                 <option value="small">Small</option>
+                                <option value="lean">Lean</option>
+                                <option value="slant">Slant</option>
+                                <option value="script">Script</option>
                                 <option value="big">Big</option>
-                                <option value="elegant">Elegant</option>
-                                <option value="romantic">Romantic</option>
-                                <option value="classic">Classic</option>
-                                <option value="modern">Modern</option>
-                                <option value="calligraphy">Calligraphy</option>
-                                <option value="gothic">Gothic</option>
+                                <option value="elegant">Elegant ♠</option>
+                                <option value="romantic">Romantic ♥</option>
+                                <option value="classic">Classic █</option>
+                                <option value="modern">Modern ▲</option>
+                                <option value="calligraphy">Calligraphy ╔</option>
+                                <option value="gothic">Gothic ░</option>
                                 <option value="serif">Serif</option>
-                                <option value="sans">Sans</option>
-                                <option value="decorative">Decorative</option>
-                                <option value="artistic">Artistic</option>
+                                <option value="sans">Sans ▄</option>
+                                <option value="decorative">Decorative ◊</option>
+                                <option value="artistic">Artistic ◆</option>
+                                <option value="3d">3D Effect</option>
+                                <option value="star">Stars ★</option>
+                                <option value="dot">Dots •</option>
+                                <option value="wavy">Wavy ≈</option>
+                                <option value="pixel">Pixel ▓</option>
                             </select>
                         </div>
 
