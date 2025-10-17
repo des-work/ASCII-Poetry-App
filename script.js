@@ -12,7 +12,7 @@ class ASCIIArtGenerator {
             // State
             this.currentTheme = 'dark';
             this.currentTitleIndex = 0;
-            this.titleFonts = ['mini', 'small', 'bubble', 'lean'];
+            this.titleFonts = ['block', '3d', 'star', 'pixel', 'bubble', 'slant', 'gothic'];
             this.keywords = new Set();
             this.isGenerating = false;
             this.currentImage = null;
@@ -908,14 +908,14 @@ class ASCIIArtGenerator {
     initializeAnimatedTitle() {
         try {
             this.animateTitle();
-            // Change title every 3 seconds
+            // Change title every 4 seconds for more dramatic effect
             setInterval(() => {
                 try {
                     this.animateTitle();
                 } catch (error) {
                     console.error('Error in title animation:', error);
                 }
-            }, 3000);
+            }, 4000);
         } catch (error) {
             console.error('Error initializing animated title:', error);
         }
