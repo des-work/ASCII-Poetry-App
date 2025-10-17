@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 4: Finalize subscriptions after all components are created.
         // This ensures the UIController listens for events emitted by the service.
+        // This is the critical fix to ensure the UI receives generation results.
+        console.log('📦 Step 4: Finalizing event subscriptions...');
         uiController.subscribeToEvents();
         console.log('✅ Event subscriptions finalized');
 
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             controllers: { ui: uiController } 
         };
         console.log('✅ Components exposed to window.app');
-
+        
         // Step 5: Test button connections
         console.log('🔧 Testing button connections...');
         const generateBtn = document.getElementById('generate-main');

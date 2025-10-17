@@ -30,7 +30,6 @@ class UIController {
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
-        this.subscribeToEvents();
         console.log('🕹️ UIController initialized');
     }
 
