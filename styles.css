@@ -302,6 +302,27 @@ header p {
     50% { text-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
 }
 
+@keyframes fade {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes typewriter {
+    0% { width: 0; }
+    100% { width: 100%; }
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
 .animation-blink {
     animation: blink 1s infinite;
 }
@@ -312,6 +333,95 @@ header p {
 
 .animation-glow {
     animation: glow 2s infinite;
+}
+
+.animation-fade {
+    animation: fade 3s infinite;
+}
+
+.animation-typewriter {
+    animation: typewriter 2s steps(40, end);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.animation-floating {
+    animation: floating 3s ease-in-out infinite;
+}
+
+.animation-scroll {
+    animation: scroll 10s linear infinite;
+}
+
+/* Poetry-specific styles */
+.poetry-layout-centered {
+    text-align: center;
+}
+
+.poetry-layout-left-aligned {
+    text-align: left;
+}
+
+.poetry-layout-right-aligned {
+    text-align: right;
+}
+
+.poetry-layout-justified {
+    text-align: justify;
+}
+
+.poetry-layout-stanza {
+    text-align: center;
+    line-height: 1.8;
+}
+
+.poetry-layout-artistic {
+    text-align: center;
+    line-height: 2;
+    letter-spacing: 1px;
+}
+
+/* Poetry decorations */
+.poetry-decoration-borders {
+    border: 2px solid var(--accent);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.poetry-decoration-flowers::before {
+    content: "🌸 ";
+}
+
+.poetry-decoration-flowers::after {
+    content: " 🌸";
+}
+
+.poetry-decoration-stars::before {
+    content: "✨ ";
+}
+
+.poetry-decoration-stars::after {
+    content: " ✨";
+}
+
+.poetry-decoration-hearts::before {
+    content: "💖 ";
+}
+
+.poetry-decoration-hearts::after {
+    content: " 💖";
+}
+
+.poetry-decoration-ornate {
+    border: 3px double var(--accent);
+    padding: 25px;
+    border-radius: 15px;
+    background: linear-gradient(45deg, transparent, var(--shadow), transparent);
+}
+
+.poetry-decoration-minimal {
+    border-left: 4px solid var(--accent);
+    padding-left: 20px;
 }
 
 /* Theme Toggle */
