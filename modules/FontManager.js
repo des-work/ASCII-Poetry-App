@@ -69,12 +69,15 @@ class FontManager {
         }
         
         // Fallback to standard font
-        if (fontName !== 'standard' && !this.fontCache.has('standard')) {
+        console.warn(`⚠️ Font "${fontName}" not found. Falling back to "standard".`);
+        if (!this.fontCache.has('standard')) {
             const standardFont = this.getStandardFont();
             this.fontCache.set('standard', standardFont);
+            console.log(`📦 Loaded font: standard (cached for future use)`);
             return standardFont;
         }
         
+        // Return the already cached standard font
         return this.fontCache.get('standard');
     }
 

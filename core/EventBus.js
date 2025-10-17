@@ -6,12 +6,12 @@
 class EventBus {
     constructor() {
         if (EventBus.instance) {
-            console.log('♻️ EventBus: Returning existing instance');
+            // console.log('♻️ EventBus: Returning existing instance'); // This can be noisy
             return EventBus.instance;
         }
         this.events = {};
         EventBus.instance = this;
-        console.log('🚌 EventBus: New instance created');
+        console.log('🚌 EventBus created');
     }
 
     /**
@@ -25,7 +25,7 @@ class EventBus {
             this.events[event] = [];
         }
         this.events[event].push(callback);
-        console.log(`👂 EventBus: Listener registered for "${event}" (total: ${this.events[event].length})`);
+        // console.log(`👂 EventBus: Listener registered for "${event}"`); // Can be too verbose
         // Return an unsubscribe function
         return () => this.off(event, callback);
     }
@@ -52,23 +52,19 @@ class EventBus {
      * @param {*} [data] - The data to pass to the callbacks.
      */
     emit(event, data) {
-        console.log(`📢 EventBus.emit("${event}") called`);
-        
         if (!this.events[event]) {
-            console.warn(`⚠️ No listeners registered for event: "${event}"`);
-            console.log('📋 Available events:', Object.keys(this.events));
+            // It's common for some events to have no listeners, so a warning can be noisy.
+            // console.warn(`⚠️ EventBus: No listeners for event "${event}"`);
             return;
         }
         
         const listenerCount = this.events[event].length;
-        console.log(`✅ Found ${listenerCount} listener(s) for "${event}"`);
+        // console.log(`📢 EventBus: Emitting "${event}" to ${listenerCount} listener(s)`);
         
         // Use a slice to prevent issues if a callback unsubscribes during iteration
         this.events[event].slice().forEach((callback, index) => {
             try {
-                console.log(`  🎯 Calling listener #${index + 1} for "${event}"`);
                 callback(data);
-                console.log(`  ✅ Listener #${index + 1} completed`);
             } catch (error) {
                 console.error(`  ❌ Error in listener #${index + 1} for "${event}":`, error);
                 console.error('  Stack:', error.stack);

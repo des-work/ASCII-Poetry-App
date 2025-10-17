@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const uiController = new UIController(eventBus, window.AppConfig || {}, fontManager, asciiRenderer);
         console.log('✅ UI controller created');
 
+        // Step 4: Finalize subscriptions after all components are created.
+        // This ensures the UIController listens for events emitted by the service.
+        uiController.subscribeToEvents();
+        console.log('✅ Event subscriptions finalized');
+
         // Step 4: Expose core components for debugging.
         window.app = { 
             eventBus,
@@ -58,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('  Download button:', downloadBtn ? '✅ Found' : '❌ Missing');
         console.log('  Clear button:', clearBtn ? '✅ Found' : '❌ Missing');
 
-        // Step 6: Log success message to the console.
+        // Step 7: Log success message to the console.
         console.log('\n' + '='.repeat(60));
         console.log('✅ APPLICATION INITIALIZED SUCCESSFULLY');
         console.log('='.repeat(60));

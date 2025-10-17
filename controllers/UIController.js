@@ -168,10 +168,6 @@ class UIController {
      * Subscribe to event bus events
      */
     subscribeToEvents() {
-        console.log('👂 UIController.subscribeToEvents() called');
-        console.log('  EventBus instance:', this.eventBus);
-        console.log('  EventBus.Events:', EventBus.Events);
-        
         // Notification events
         this.eventBus.on(EventBus.Events.NOTIFICATION_SHOW, (data) => {
             this.showNotification(data.message, data.type);
@@ -183,12 +179,7 @@ class UIController {
 
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
-            console.log('📥 TEXT_GENERATION_COMPLETE received:', {
-                hasAscii: !!result.ascii,
-                asciiLength: result.ascii?.length,
-                asciiPreview: result.ascii?.substring(0, 50),
-                metadata: result.metadata
-            });
+            console.log('📥 UIController received TEXT_GENERATION_COMPLETE');
             onGenerationEnd();
             this.displayOutput({
                 ascii: result.ascii,
@@ -201,8 +192,6 @@ class UIController {
             onGenerationEnd();
             this.showNotification(`❌ ${error.message}`, 'error');
         });
-        
-        console.log('✅ Text generation event listeners registered');
 
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => {
@@ -229,9 +218,6 @@ class UIController {
             onGenerationEnd();
             this.showNotification(`❌ ${error.message}`, 'error');
         });
-        
-        console.log('✅ All event listeners registered. Total events:', Object.keys(this.eventBus.events).length);
-        console.log('📋 Registered events:', Object.keys(this.eventBus.events));
     }
 
     /**
@@ -239,7 +225,7 @@ class UIController {
      */
     handleGenerateClick() {
         console.log('🎨 handleGenerateClick called, current mode:', this.state.currentTab);
-        
+
         switch (this.state.currentTab) {
             case 'text':
                 const textOptions = {
@@ -248,10 +234,10 @@ class UIController {
                     color: this.dom.colorSelect?.value || 'none',
                     animation: this.dom.animationSelect?.value || 'none',
                 };
-                console.log('📤 Emitting TEXT_GENERATION request:', textOptions);
+                console.log('📤 Emitting REQUEST_TEXT_GENERATION');
                 this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, textOptions);
                 break;
-                
+
             case 'image':
                 const imageFile = this.dom.imageInput?.files?.[0];
                 if (!imageFile) {
@@ -264,14 +250,10 @@ class UIController {
                     width: parseInt(this.dom.imageWidthSlider?.value || '80', 10),
                     charSet: this.dom.imageCharsSelect?.value || 'standard',
                 };
-                console.log('📤 Emitting IMAGE_GENERATION request:', { 
-                    fileName: imageFile.name, 
-                    width: imageOptions.width,
-                    charSet: imageOptions.charSet
-                });
+                console.log('📤 Emitting REQUEST_IMAGE_GENERATION');
                 this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, imageOptions);
                 break;
-                
+
             case 'poetry':
                 const poetryOptions = {
                     poem: this.dom.poemInput?.value || '',
@@ -282,10 +264,10 @@ class UIController {
                     animation: this.dom.animationSelect?.value || 'none',
                     keywords: [] // TODO: Implement keyword management
                 };
-                console.log('📤 Emitting POETRY_GENERATION request:', poetryOptions);
+                console.log('📤 Emitting REQUEST_POETRY_GENERATION');
                 this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, poetryOptions);
                 break;
-                
+
             default:
                 console.error(`❌ Unknown generation mode: ${this.state.currentTab}`);
                 this.showNotification('Unknown mode selected', 'error');
@@ -350,18 +332,9 @@ class UIController {
      */
     displayOutput(data) {
         try {
-            console.log('🖼️ displayOutput called with:', {
-                hasData: !!data,
-                hasAscii: !!data?.ascii,
-                asciiLength: data?.ascii?.length,
-                color: data?.color,
-                animation: data?.animation
-            });
-            
             const { ascii, color = 'none', animation = 'none' } = data;
             
             if (!this.dom.output) {
-                console.error('❌ Output element not found in DOM!');
                 throw new Error('Output element not found');
             }
 
@@ -370,30 +343,18 @@ class UIController {
                 throw new Error('No ASCII art to display');
             }
 
-            console.log('✅ Setting output textContent, length:', ascii.length);
             this.dom.output.textContent = ascii;
             this.dom.output.className = 'ascii-output';
 
             // Apply color
             if (color && color !== 'none') {
-                console.log('🎨 Applying color:', color);
                 this.applyColor(color);
             }
 
             // Apply animation
             if (animation && animation !== 'none') {
-                console.log('✨ Applying animation:', animation);
                 this.dom.output.classList.add(`animation-${animation}`);
             }
-
-            console.log('✅ Output displayed successfully!');
-            console.log('📊 Output element:', {
-                exists: !!this.dom.output,
-                hasContent: !!this.dom.output.textContent,
-                contentLength: this.dom.output.textContent?.length,
-                className: this.dom.output.className,
-                visible: this.dom.output.offsetHeight > 0
-            });
             
         } catch (error) {
             console.error('❌ Error displaying output:', error);
