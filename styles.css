@@ -6,20 +6,23 @@
 }
 
 :root {
-    --bg-primary: #000000;
-    --bg-secondary: #0a0a0a;
-    --bg-tertiary: #141414;
-    --text-primary: #00ff88;
-    --text-secondary: #00cc6a;
-    --accent: #00ff88;
-    --accent-hover: #00ffcc;
-    --accent-glow: #ff00ff;
-    --border: #00ff8844;
-    --shadow: rgba(0, 255, 136, 0.3);
-    --neon-green: #00ff88;
-    --neon-cyan: #00ffff;
-    --neon-magenta: #ff00ff;
-    --neon-pink: #ff0088;
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a28;
+    --text-primary: #e0e0e8;
+    --text-secondary: #a0a0b0;
+    --accent-1: #667eea;
+    --accent-2: #764ba2;
+    --accent-3: #f093fb;
+    --accent-4: #4facfe;
+    --accent-5: #43e97b;
+    --accent-6: #fa709a;
+    --border: rgba(200, 200, 240, 0.15);
+    --shadow: rgba(102, 126, 234, 0.2);
+    --gradient-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-soft: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-glow: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
 [data-theme="light"] {
@@ -52,9 +55,9 @@ body::before {
     width: 100%;
     height: 100%;
     background: 
-        linear-gradient(90deg, transparent 0%, var(--neon-green)05 50%, transparent 100%),
-        radial-gradient(circle at 20% 50%, var(--neon-magenta)03 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, var(--neon-cyan)03 0%, transparent 50%);
+        radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(249, 147, 251, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.05) 0%, transparent 50%);
     pointer-events: none;
     z-index: -1;
 }
@@ -71,28 +74,24 @@ header {
     margin-bottom: 40px;
     position: relative;
     padding: 40px 20px;
-    border: 2px solid var(--border);
-    border-radius: 20px;
-    background: var(--bg-secondary);
-    box-shadow: 
-        0 0 20px var(--shadow),
-        inset 0 0 20px rgba(0, 255, 136, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 header::before,
 header::after {
-    content: '◆═══════════════◆';
+    content: '─────────────────';
     display: block;
     font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    opacity: 0.6;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-header::after {
-    content: '◆═══════════════◆';
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    opacity: 0.5;
 }
 
 header h1 {
@@ -100,12 +99,11 @@ header h1 {
     font-weight: 700;
     margin: 20px 0;
     font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-    text-shadow: 
-        0 0 10px var(--neon-green),
-        0 0 20px var(--neon-green),
-        0 0 30px var(--neon-green);
-    animation: neonGlow 2s ease-in-out infinite alternate;
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
 }
 
 #ascii-title {
@@ -113,29 +111,24 @@ header h1 {
     line-height: 1.2;
     white-space: pre;
     display: inline-block;
-    color: var(--accent);
+    background: var(--gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 header p {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-family: 'JetBrains Mono', monospace;
-    text-shadow: 0 0 5px var(--neon-green);
 }
 
-@keyframes neonGlow {
+@keyframes subtleGlow {
     0%, 100% {
-        text-shadow: 
-            0 0 5px var(--neon-green),
-            0 0 10px var(--neon-green),
-            0 0 15px var(--neon-green);
+        filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
     }
     50% {
-        text-shadow: 
-            0 0 10px var(--neon-green),
-            0 0 20px var(--neon-green),
-            0 0 30px var(--neon-green),
-            0 0 40px var(--neon-cyan);
+        filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.5));
     }
 }
 
@@ -148,64 +141,51 @@ header p {
 .tabs {
     display: flex;
     margin-bottom: 30px;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 1px solid var(--border);
     background: var(--bg-secondary);
-    border-radius: 15px 15px 0 0;
-    padding: 10px;
-    gap: 10px;
-    box-shadow: 0 0 15px var(--shadow);
+    border-radius: 12px 12px 0 0;
+    padding: 8px;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .tab-button {
     background: transparent;
-    border: 2px solid transparent;
-    padding: 15px 30px;
-    font-size: 1.1rem;
+    border: 1px solid transparent;
+    padding: 12px 24px;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.3s ease;
-    border-radius: 10px;
+    border-radius: 8px;
     font-family: 'JetBrains Mono', monospace;
     position: relative;
-    overflow: hidden;
-}
-
-.tab-button::before {
-    content: '>';
-    position: absolute;
-    left: 10px;
-    opacity: 0;
-    transition: all 0.3s ease;
 }
 
 .tab-button:hover {
-    color: var(--accent);
+    color: var(--text-primary);
     background: var(--bg-tertiary);
     border-color: var(--border);
-    box-shadow: 0 0 10px var(--shadow);
-}
-
-.tab-button:hover::before {
-    opacity: 1;
-    left: 5px;
 }
 
 .tab-button.active {
-    color: var(--accent);
-    background: var(--bg-tertiary);
-    border-color: var(--accent);
-    box-shadow: 
-        0 0 15px var(--shadow),
-        inset 0 0 10px rgba(0, 255, 136, 0.1);
-    text-shadow: 0 0 5px var(--neon-green);
+    color: var(--text-primary);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    border-color: var(--accent-1);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.tab-button.active::before {
-    content: '▶';
-    opacity: 1;
-    left: 5px;
-    color: var(--accent);
+.tab-button:nth-child(1).active {
+    border-color: var(--accent-1);
+}
+
+.tab-button:nth-child(2).active {
+    border-color: var(--accent-4);
+}
+
+.tab-button:nth-child(3).active {
+    border-color: var(--accent-3);
 }
 
 /* Tab Content */
@@ -219,57 +199,33 @@ header p {
 
 /* Input Section */
 .input-section {
-    background: var(--bg-secondary);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
     padding: 30px;
-    border-radius: 15px;
+    border-radius: 12px;
     margin-bottom: 30px;
-    border: 2px solid var(--border);
-    box-shadow: 
-        0 4px 20px var(--shadow),
-        inset 0 0 20px rgba(0, 255, 136, 0.05);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
 .input-section::before {
-    content: '╔═══════════════════════════════════════════════════════════╗';
+    content: '';
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--border);
-    opacity: 0.3;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.input-section::after {
-    content: '╚═══════════════════════════════════════════════════════════╝';
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--border);
-    opacity: 0.3;
-    overflow: hidden;
-    white-space: nowrap;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-main);
+    opacity: 0.5;
+    border-radius: 12px 12px 0 0;
 }
 
 .input-section label {
     display: block;
     margin-bottom: 10px;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--text-primary);
     font-family: 'JetBrains Mono', monospace;
-    text-shadow: 0 0 5px var(--neon-green);
-}
-
-.input-section label::before {
-    content: '▸ ';
-    color: var(--accent);
 }
 
 #text-input,
@@ -277,31 +233,28 @@ header p {
     width: 100%;
     min-height: 120px;
     padding: 15px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg-primary);
-    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(10, 10, 15, 0.5);
+    color: var(--text-primary);
     font-family: 'JetBrains Mono', monospace;
     font-size: 1rem;
     resize: vertical;
     transition: all 0.3s ease;
-    box-shadow: inset 0 0 10px rgba(0, 255, 136, 0.1);
 }
 
 #text-input:focus,
 #poem-input:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 
-        0 0 15px var(--shadow),
-        inset 0 0 15px rgba(0, 255, 136, 0.15);
-    text-shadow: 0 0 2px var(--neon-green);
+    border-color: var(--accent-1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: rgba(10, 10, 15, 0.8);
 }
 
 #text-input::placeholder,
 #poem-input::placeholder {
     color: var(--text-secondary);
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 #image-input {
@@ -342,10 +295,10 @@ header p {
 .option-group select,
 .option-group input[type="range"] {
     padding: 10px;
-    border: 2px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--bg-primary);
-    color: var(--accent);
+    background: rgba(10, 10, 15, 0.5);
+    color: var(--text-primary);
     font-size: 0.9rem;
     font-family: 'JetBrains Mono', monospace;
     transition: all 0.3s ease;
@@ -354,20 +307,20 @@ header p {
 
 .option-group select:hover,
 .option-group input[type="range"]:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px var(--shadow);
+    border-color: var(--accent-1);
+    background: rgba(10, 10, 15, 0.7);
 }
 
 .option-group select:focus,
 .option-group input[type="range"]:focus {
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 15px var(--shadow);
+    border-color: var(--accent-1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .option-group select option {
     background: var(--bg-secondary);
-    color: var(--accent);
+    color: var(--text-primary);
 }
 
 #image-width {
@@ -385,58 +338,44 @@ header p {
 .generate-btn {
     width: 100%;
     padding: 15px 30px;
-    background: var(--bg-primary);
-    color: var(--accent);
-    border: 2px solid var(--accent);
-    border-radius: 10px;
-    font-size: 1.1rem;
+    background: var(--gradient-main);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
     font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px var(--shadow);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     position: relative;
     overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .generate-btn::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: var(--accent);
-    transform: translate(-50%, -50%);
-    transition: width 0.5s, height 0.5s;
-    z-index: -1;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
 .generate-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px var(--shadow),
-        0 0 30px var(--shadow);
-    color: var(--bg-primary);
-    text-shadow: none;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    filter: brightness(1.1);
 }
 
 .generate-btn:hover::before {
-    width: 300%;
-    height: 300%;
+    left: 100%;
 }
 
 .generate-btn:active {
     transform: translateY(0);
-}
-
-.generate-btn::after {
-    content: '⚡';
-    margin-left: 10px;
-    animation: bounce 1s ease-in-out infinite;
 }
 
 @keyframes bounce {
@@ -446,55 +385,43 @@ header p {
 
 /* Output Section */
 .output-section {
-    background: var(--bg-secondary);
-    border-radius: 15px;
-    border: 2px solid var(--border);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-radius: 12px;
+    border: 1px solid var(--border);
     overflow: hidden;
-    box-shadow: 
-        0 4px 20px var(--shadow),
-        inset 0 0 20px rgba(0, 255, 136, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
 .output-section::before {
-    content: '┌────────────────────────────────────────────────────────────┐';
+    content: '';
     position: absolute;
-    top: 5px;
+    top: 0;
     left: 0;
     right: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--border);
-    text-align: center;
-    opacity: 0.3;
-    pointer-events: none;
+    height: 2px;
+    background: var(--gradient-accent);
+    opacity: 0.5;
 }
 
 .output-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 30px;
-    background: var(--bg-primary);
-    border-bottom: 2px solid var(--border);
-    position: relative;
-}
-
-.output-header::before {
-    content: '▼';
-    position: absolute;
-    left: 10px;
-    color: var(--accent);
-    font-size: 1.2rem;
-    animation: pulse 2s ease-in-out infinite;
+    padding: 20px 30px;
+    background: rgba(10, 10, 15, 0.5);
+    border-bottom: 1px solid var(--border);
 }
 
 .output-header h3 {
-    color: var(--accent);
-    font-size: 1.3rem;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.2rem;
     font-family: 'JetBrains Mono', monospace;
-    text-shadow: 0 0 10px var(--neon-green);
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
 .output-controls {
@@ -504,52 +431,38 @@ header p {
 
 .control-btn {
     padding: 8px 16px;
-    background: var(--bg-tertiary);
-    color: var(--accent);
-    border: 2px solid var(--border);
-    border-radius: 8px;
+    background: rgba(10, 10, 15, 0.5);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.9rem;
     font-family: 'JetBrains Mono', monospace;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.control-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: var(--accent);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.4s, height 0.4s;
-    z-index: 0;
 }
 
 .control-btn:hover {
-    color: var(--bg-primary);
-    border-color: var(--accent);
-    box-shadow: 0 0 15px var(--shadow);
-    transform: translateY(-2px);
+    background: var(--bg-tertiary);
+    border-color: var(--accent-1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.control-btn:hover::before {
-    width: 200%;
-    height: 200%;
+.control-btn:nth-child(1):hover {
+    border-color: var(--accent-4);
 }
 
-.control-btn span {
-    position: relative;
-    z-index: 1;
+.control-btn:nth-child(2):hover {
+    border-color: var(--accent-5);
+}
+
+.control-btn:nth-child(3):hover {
+    border-color: var(--accent-6);
 }
 
 .ascii-output {
     padding: 30px;
-    background: var(--bg-primary);
+    background: rgba(10, 10, 15, 0.5);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.8rem;
     line-height: 1.2;
@@ -557,21 +470,21 @@ header p {
     word-break: break-all;
     max-height: 500px;
     overflow-y: auto;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    margin: 20px;
-    box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.1);
-    color: var(--accent);
-    text-shadow: 0 0 3px var(--neon-green);
+    border: none;
+    border-radius: 0 0 12px 12px;
+    margin: 0;
+    color: var(--text-primary);
     position: relative;
 }
 
 .ascii-output:empty::before {
-    content: '┌─────────────────────────────────────────────────────┐\n│  ⚡ Your ASCII art will appear here...             │\n│                                                     │\n│  ▸ Enter text or upload an image                   │\n│  ▸ Choose your style and options                   │\n│  ▸ Click generate to create magic! ✨              │\n│                                                     │\n└─────────────────────────────────────────────────────┘';
+    content: '──────────────────────────────────────\n\n  Your ASCII art will appear here\n\n  • Enter text or upload an image\n  • Choose your style and options\n  • Click generate to create magic\n\n──────────────────────────────────────';
     color: var(--text-secondary);
-    opacity: 0.5;
+    opacity: 0.4;
     white-space: pre;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    text-align: center;
+    display: block;
 }
 
 /* Animations */
@@ -725,18 +638,20 @@ header p {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    border: none;
+    border: 1px solid var(--border);
     background: var(--bg-secondary);
     color: var(--text-primary);
     font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px var(--shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 #theme-btn:hover {
-    transform: scale(1.1);
-    background: var(--accent);
+    transform: scale(1.05);
+    background: var(--bg-tertiary);
+    border-color: var(--accent-1);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsive Design */

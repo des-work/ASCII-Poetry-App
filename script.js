@@ -93,28 +93,31 @@ class ASCIIArtGenerator {
             notification.id = 'notification';
             notification.style.cssText = `
                 position: fixed;
-                top: 20px;
+                top: 80px;
                 right: 20px;
-                background: var(--bg-secondary);
-                color: var(--accent);
-                padding: 15px 25px;
-                border-radius: 10px;
-                border: 2px solid var(--accent);
+                background: linear-gradient(135deg, rgba(18, 18, 26, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
+                color: var(--text-primary);
+                padding: 12px 20px;
+                border-radius: 8px;
+                border: 1px solid rgba(102, 126, 234, 0.3);
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.9rem;
-                box-shadow: 0 0 20px var(--shadow);
+                font-size: 0.85rem;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
                 z-index: 10000;
                 opacity: 0;
-                transition: opacity 0.3s ease;
+                transition: opacity 0.3s ease, transform 0.3s ease;
+                transform: translateY(-10px);
             `;
             document.body.appendChild(notification);
         }
 
         notification.textContent = message;
         notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
 
         setTimeout(() => {
             notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-10px)';
         }, 3000);
     }
 
@@ -584,17 +587,17 @@ class ASCIIArtGenerator {
     addCornerDecorations() {
         const corners = `
             <div class="corner-decorations" style="position: fixed; pointer-events: none; z-index: 1;">
-                <div style="position: fixed; top: 10px; left: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
-                    ┌─────
+                <div style="position: fixed; top: 10px; left: 10px; font-family: 'JetBrains Mono', monospace; opacity: 0.2; font-size: 0.9rem; background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    ╭─
                 </div>
-                <div style="position: fixed; top: 10px; right: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
-                    ─────┐
+                <div style="position: fixed; top: 10px; right: 10px; font-family: 'JetBrains Mono', monospace; opacity: 0.2; font-size: 0.9rem; background: var(--gradient-soft); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    ─╮
                 </div>
-                <div style="position: fixed; bottom: 10px; left: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
-                    └─────
+                <div style="position: fixed; bottom: 10px; left: 10px; font-family: 'JetBrains Mono', monospace; opacity: 0.2; font-size: 0.9rem; background: var(--gradient-glow); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    ╰─
                 </div>
-                <div style="position: fixed; bottom: 10px; right: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
-                    ─────┘
+                <div style="position: fixed; bottom: 10px; right: 10px; font-family: 'JetBrains Mono', monospace; opacity: 0.2; font-size: 0.9rem; background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    ─╯
                 </div>
             </div>
         `;
