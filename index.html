@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 ASCII Art Generator</h1>
+            <p>Transform text and images into beautiful ASCII art with colors and animations</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="text">Text to ASCII</button>
+                <button class="tab-button" data-tab="image">Image to ASCII</button>
+            </div>
+
+            <!-- Text to ASCII Section -->
+            <div id="text-tab" class="tab-content active">
+                <div class="input-section">
+                    <label for="text-input">Enter your text:</label>
+                    <textarea id="text-input" placeholder="Type your text here..."></textarea>
+                    
+                    <div class="options">
+                        <div class="option-group">
+                            <label for="font-select">Font Style:</label>
+                            <select id="font-select">
+                                <option value="standard">Standard</option>
+                                <option value="block">Block</option>
+                                <option value="bubble">Bubble</option>
+                                <option value="lean">Lean</option>
+                                <option value="mini">Mini</option>
+                                <option value="script">Script</option>
+                                <option value="slant">Slant</option>
+                                <option value="small">Small</option>
+                                <option value="big">Big</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="color-select">Color:</label>
+                            <select id="color-select">
+                                <option value="none">No Color</option>
+                                <option value="red">Red</option>
+                                <option value="green">Green</option>
+                                <option value="blue">Blue</option>
+                                <option value="yellow">Yellow</option>
+                                <option value="purple">Purple</option>
+                                <option value="cyan">Cyan</option>
+                                <option value="magenta">Magenta</option>
+                                <option value="rainbow">Rainbow</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="animation-select">Animation:</label>
+                            <select id="animation-select">
+                                <option value="none">None</option>
+                                <option value="blink">Blink</option>
+                                <option value="scroll">Scroll</option>
+                                <option value="wave">Wave</option>
+                                <option value="glow">Glow</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generate-text" class="generate-btn">Generate ASCII Art</button>
+                </div>
+            </div>
+
+            <!-- Image to ASCII Section -->
+            <div id="image-tab" class="tab-content">
+                <div class="input-section">
+                    <label for="image-input">Upload an image:</label>
+                    <input type="file" id="image-input" accept="image/*">
+                    
+                    <div class="options">
+                        <div class="option-group">
+                            <label for="image-width">Width (characters):</label>
+                            <input type="range" id="image-width" min="20" max="200" value="80">
+                            <span id="width-value">80</span>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="image-chars">Character Set:</label>
+                            <select id="image-chars">
+                                <option value="standard">@#%&*+=~-:,.`</option>
+                                <option value="blocks">█▓▒░</option>
+                                <option value="dots">●○◯</option>
+                                <option value="simple">#*+.</option>
+                                <option value="detailed">@#$%&*+=~-:,.`</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="image-color">Color Mode:</label>
+                            <select id="image-color">
+                                <option value="none">No Color</option>
+                                <option value="grayscale">Grayscale</option>
+                                <option value="color">Full Color</option>
+                                <option value="invert">Invert</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="generate-image" class="generate-btn">Generate ASCII Art</button>
+                </div>
+            </div>
+
+            <!-- Output Section -->
+            <div class="output-section">
+                <div class="output-header">
+                    <h3>ASCII Art Output</h3>
+                    <div class="output-controls">
+                        <button id="copy-btn" class="control-btn">📋 Copy</button>
+                        <button id="download-btn" class="control-btn">💾 Download</button>
+                        <button id="clear-btn" class="control-btn">🗑️ Clear</button>
+                    </div>
+                </div>
+                <div id="ascii-output" class="ascii-output"></div>
+            </div>
+        </div>
+
+        <!-- Theme Toggle -->
+        <div class="theme-toggle">
+            <button id="theme-btn">🌙</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
