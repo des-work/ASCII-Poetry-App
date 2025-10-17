@@ -3,8 +3,12 @@
 class ASCIIArtGenerator {
     constructor() {
         this.currentTheme = 'dark';
+        this.currentTitleIndex = 0;
+        this.titleFonts = ['mini', 'small', 'bubble', 'lean'];
         this.initializeEventListeners();
         this.initializeTheme();
+        this.initializeAnimatedTitle();
+        this.addAsciiDecorations();
     }
 
     initializeEventListeners() {
@@ -59,7 +63,7 @@ class ASCIIArtGenerator {
     async generateTextASCII() {
         const text = document.getElementById('text-input').value.trim();
         if (!text) {
-            alert('Please enter some text first!');
+            this.showNotification('⚠️ Please enter some text first!');
             return;
         }
 
@@ -68,12 +72,50 @@ class ASCIIArtGenerator {
         const animation = document.getElementById('animation-select').value;
 
         try {
+            this.showLoading();
+            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for effect
             const asciiArt = await this.convertTextToASCII(text, font);
             this.displayASCII(asciiArt, color, animation);
+            this.showNotification('✨ ASCII art generated successfully!');
         } catch (error) {
             console.error('Error generating ASCII art:', error);
-            alert('Error generating ASCII art. Please try again.');
+            this.showNotification('❌ Error generating ASCII art. Please try again.');
+        } finally {
+            this.hideLoading();
         }
+    }
+
+    showNotification(message) {
+        // Create notification element if it doesn't exist
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--bg-secondary);
+                color: var(--accent);
+                padding: 15px 25px;
+                border-radius: 10px;
+                border: 2px solid var(--accent);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.9rem;
+                box-shadow: 0 0 20px var(--shadow);
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            document.body.appendChild(notification);
+        }
+
+        notification.textContent = message;
+        notification.style.opacity = '1';
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+        }, 3000);
     }
 
     async convertTextToASCII(text, font) {
@@ -116,7 +158,7 @@ class ASCIIArtGenerator {
     async generateImageASCII() {
         const fileInput = document.getElementById('image-input');
         if (!fileInput.files[0]) {
-            alert('Please select an image first!');
+            this.showNotification('⚠️ Please select an image first!');
             return;
         }
 
@@ -125,18 +167,22 @@ class ASCIIArtGenerator {
         const colorMode = document.getElementById('image-color').value;
 
         try {
+            this.showLoading();
             const asciiArt = await this.convertImageToASCII(fileInput.files[0], width, charSet, colorMode);
             this.displayASCII(asciiArt, 'none', 'none');
+            this.showNotification('✨ Image converted to ASCII art!');
         } catch (error) {
             console.error('Error generating ASCII art:', error);
-            alert('Error generating ASCII art. Please try again.');
+            this.showNotification('❌ Error generating ASCII art. Please try again.');
+        } finally {
+            this.hideLoading();
         }
     }
 
     async generatePoetryASCII() {
         const poem = document.getElementById('poem-input').value.trim();
         if (!poem) {
-            alert('Please enter a poem first!');
+            this.showNotification('⚠️ Please enter a poem first!');
             return;
         }
 
@@ -147,11 +193,16 @@ class ASCIIArtGenerator {
         const decoration = document.getElementById('poetry-decoration').value;
 
         try {
+            this.showLoading();
+            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for effect
             const asciiArt = await this.convertPoetryToASCII(poem, font, layout, decoration);
             this.displayPoetryASCII(asciiArt, color, animation, layout, decoration);
+            this.showNotification('✨ Poetry art created beautifully!');
         } catch (error) {
             console.error('Error generating poetry ASCII art:', error);
-            alert('Error generating poetry ASCII art. Please try again.');
+            this.showNotification('❌ Error generating poetry ASCII art. Please try again.');
+        } finally {
+            this.hideLoading();
         }
     }
 
@@ -417,27 +468,22 @@ class ASCIIArtGenerator {
     copyToClipboard() {
         const output = document.getElementById('ascii-output').textContent;
         if (!output.trim()) {
-            alert('No ASCII art to copy!');
+            this.showNotification('⚠️ No ASCII art to copy!');
             return;
         }
 
         navigator.clipboard.writeText(output).then(() => {
-            const btn = document.getElementById('copy-btn');
-            const originalText = btn.textContent;
-            btn.textContent = '✅ Copied!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
+            this.showNotification('📋 Copied to clipboard!');
         }).catch(err => {
             console.error('Failed to copy: ', err);
-            alert('Failed to copy to clipboard');
+            this.showNotification('❌ Failed to copy to clipboard');
         });
     }
 
     downloadASCII() {
         const output = document.getElementById('ascii-output').textContent;
         if (!output.trim()) {
-            alert('No ASCII art to download!');
+            this.showNotification('⚠️ No ASCII art to download!');
             return;
         }
 
@@ -450,6 +496,7 @@ class ASCIIArtGenerator {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        this.showNotification('💾 Downloaded successfully!');
     }
 
     clearOutput() {
@@ -468,6 +515,100 @@ class ASCIIArtGenerator {
         document.documentElement.setAttribute('data-theme', theme);
         const themeBtn = document.getElementById('theme-btn');
         themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    initializeAnimatedTitle() {
+        this.animateTitle();
+        // Change title every 3 seconds
+        setInterval(() => this.animateTitle(), 3000);
+    }
+
+    animateTitle() {
+        const titleElement = document.getElementById('ascii-title');
+        if (!titleElement) return;
+
+        const text = 'ASCII ART';
+        const fontName = this.titleFonts[this.currentTitleIndex];
+        const font = this.getFont(fontName);
+        
+        const asciiText = this.renderTextWithFont(text, font);
+        titleElement.textContent = asciiText;
+        
+        this.currentTitleIndex = (this.currentTitleIndex + 1) % this.titleFonts.length;
+    }
+
+    addAsciiDecorations() {
+        // Add loading indicator
+        this.createLoadingIndicator();
+        
+        // Add corner decorations
+        this.addCornerDecorations();
+    }
+
+    createLoadingIndicator() {
+        const loadingHTML = `
+            <div id="loading-indicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;">
+                <div style="font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 2rem; text-align: center;">
+                    <div class="loading-ascii">
+                        ⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏
+                    </div>
+                    <p style="font-size: 1rem; margin-top: 20px;">Generating...</p>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+        
+        // Add CSS for loading animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .loading-ascii {
+                animation: loading-spin 1s steps(10) infinite;
+            }
+            @keyframes loading-spin {
+                0% { content: '⠋'; }
+                10% { content: '⠙'; }
+                20% { content: '⠹'; }
+                30% { content: '⠸'; }
+                40% { content: '⠼'; }
+                50% { content: '⠴'; }
+                60% { content: '⠦'; }
+                70% { content: '⠧'; }
+                80% { content: '⠇'; }
+                90% { content: '⠏'; }
+                100% { content: '⠋'; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    addCornerDecorations() {
+        const corners = `
+            <div class="corner-decorations" style="position: fixed; pointer-events: none; z-index: 1;">
+                <div style="position: fixed; top: 10px; left: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
+                    ┌─────
+                </div>
+                <div style="position: fixed; top: 10px; right: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
+                    ─────┐
+                </div>
+                <div style="position: fixed; bottom: 10px; left: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
+                    └─────
+                </div>
+                <div style="position: fixed; bottom: 10px; right: 10px; color: var(--border); font-family: 'JetBrains Mono', monospace; opacity: 0.3;">
+                    ─────┘
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', corners);
+    }
+
+    showLoading() {
+        const loading = document.getElementById('loading-indicator');
+        if (loading) loading.style.display = 'block';
+    }
+
+    hideLoading() {
+        const loading = document.getElementById('loading-indicator');
+        if (loading) loading.style.display = 'none';
     }
 
     // ASCII Font Definitions
