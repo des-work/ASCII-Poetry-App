@@ -21,41 +21,27 @@ class ASCIIGeneratorService {
     subscribeToRequests() {
         if (!this.eventBus) return;
 
-        this.eventBus.on(EventBus.Events.REQUEST_TEXT_GENERATION, async (options) => {
-            try {
-                await this.generateTextASCII(options);
-            } catch (error) {
-                // Error is already handled and emitted inside the method
-                console.error('Service-level error during text generation:', error.message);
-            }
-        });
+        this.eventBus.on(EventBus.Events.REQUEST_TEXT_GENERATION, (options) => 
+            this.generateTextASCII(options).catch(err => {
+                console.error('Unhandled error in generateTextASCII:', err.message);
+            })
+        );
 
-        this.eventBus.on(EventBus.Events.REQUEST_IMAGE_GENERATION, async (options) => {
-            try {
-                await this.generateImageASCII(options);
-            } catch (error) {
-                // Error is already handled and emitted inside the method
-                console.error('Service-level error during image generation:', error.message);
-            }
-        });
+        this.eventBus.on(EventBus.Events.REQUEST_IMAGE_GENERATION, (options) =>
+            this.generateImageASCII(options).catch(err => {
+                console.error('Unhandled error in generateImageASCII:', err.message);
+            })
+        );
 
-        this.eventBus.on(EventBus.Events.REQUEST_POETRY_GENERATION, async (options) => {
-            try {
-                await this.generatePoetryASCII(options);
-            } catch (error) {
-                // Error is already handled and emitted inside the method
-                console.error('Service-level error during poetry generation:', error.message);
-            }
-        });
+        this.eventBus.on(EventBus.Events.REQUEST_POETRY_GENERATION, (options) =>
+            this.generatePoetryASCII(options).catch(err => {
+                console.error('Unhandled error in generatePoetryASCII:', err.message);
+            })
+        );
     }
 
     async generateTextASCII(options) {
         const { text, fontName = 'standard', color = 'none', animation = 'none' } = options;
-
-        // Prevent concurrent generation
-        if (this.isGenerating) {
-            throw new Error('Generation already in progress');
-        }
 
         try {
             this.isGenerating = true;
