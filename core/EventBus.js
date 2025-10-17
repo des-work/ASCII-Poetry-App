@@ -24,6 +24,7 @@ class EventBus {
             this.events[event] = [];
         }
         this.events[event].push(callback);
+        console.log(`👂 EventBus: Listener registered for "${event}" (total: ${this.events[event].length})`);
         // Return an unsubscribe function
         return () => this.off(event, callback);
     }
@@ -50,17 +51,30 @@ class EventBus {
      * @param {*} [data] - The data to pass to the callbacks.
      */
     emit(event, data) {
+        console.log(`📢 EventBus.emit("${event}") called`);
+        
         if (!this.events[event]) {
+            console.warn(`⚠️ No listeners registered for event: "${event}"`);
+            console.log('📋 Available events:', Object.keys(this.events));
             return;
         }
+        
+        const listenerCount = this.events[event].length;
+        console.log(`✅ Found ${listenerCount} listener(s) for "${event}"`);
+        
         // Use a slice to prevent issues if a callback unsubscribes during iteration
-        this.events[event].slice().forEach(callback => {
+        this.events[event].slice().forEach((callback, index) => {
             try {
+                console.log(`  🎯 Calling listener #${index + 1} for "${event}"`);
                 callback(data);
+                console.log(`  ✅ Listener #${index + 1} completed`);
             } catch (error) {
-                console.error(`Error in event handler for "${event}":`, error);
+                console.error(`  ❌ Error in listener #${index + 1} for "${event}":`, error);
+                console.error('  Stack:', error.stack);
             }
         });
+        
+        console.log(`✅ Event "${event}" processing complete`);
     }
 
     /**
