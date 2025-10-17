@@ -10,6 +10,7 @@ class ASCIIGeneratorService {
         this.validator = validator;
         this.eventBus = eventBus;
         this.isGenerating = false;
+        this.subscribeToRequests();
     }
 
     /**
@@ -17,6 +18,21 @@ class ASCIIGeneratorService {
      * @param {Object} options - Generation options
      * @returns {Promise<Object>} Result with ascii art and metadata
      */
+    subscribeToRequests() {
+        if (!this.eventBus) return;
+
+        this.eventBus.on(EventBus.Events.REQUEST_TEXT_GENERATION, async (options) => {
+            try {
+                await this.generateTextASCII(options);
+            } catch (error) {
+                // Error is already handled and emitted inside the method
+                console.error('Service-level error during text generation:', error.message);
+            }
+        });
+
+        // Add listeners for IMAGE and POETRY requests here in a similar fashion.
+    }
+
     async generateTextASCII(options) {
         const { text, fontName = 'standard', color = 'none', animation = 'none' } = options;
 
@@ -356,4 +372,3 @@ class ASCIIGeneratorService {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ASCIIGeneratorService;
 }
-

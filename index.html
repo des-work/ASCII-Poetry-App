@@ -200,12 +200,19 @@
         <select id="image-color"></select>
     </div>
 
-    <!-- Core Application Script -->
-    <script src="script.js"></script>
-    
-    <!-- Application Bootstrapper (ensures everything works) -->
+    <!-- 1. Global Error Handler (must be first) -->
+    <script src="core/ErrorHandler.js"></script>
+    <!-- 2. Configuration -->
+    <script src="config/app.config.js"></script>
+    <!-- 3. Core Modules & Services -->
+    <script src="core/EventBus.js"></script>
+    <script src="modules/FontManager.js"></script>
+    <script src="modules/ASCIIRenderer.js"></script>
+    <script src="modules/InputValidator.js"></script>
+    <script src="controllers/UIController.js"></script>
+    <script src="services/ASCIIGeneratorService.js"></script>
+    <!-- 4. Application Bootstrapper (initializes the app) -->
     <script src="app.js"></script>
-    
     <!-- UI Enhancement Script -->
     <script src="ui-enhancements.js"></script>
 </body>

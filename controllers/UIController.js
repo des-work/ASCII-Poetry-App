@@ -4,10 +4,11 @@
  */
 
 class UIController {
-    constructor(eventBus, config) {
+    constructor(eventBus, config, fontManager) {
         this.eventBus = eventBus;
         this.config = config;
-        this.elements = {};
+        this.fontManager = fontManager;
+        this.dom = {}; // Use 'dom' to be more specific than 'elements'
         this.state = {
             currentTab: 'text',
             theme: 'dark',
@@ -15,7 +16,10 @@ class UIController {
         };
         
         this.initialize();
+        // Expose for debugging
+        window.ui = this;
     }
+
 
     /**
      * Initialize UI controller
@@ -23,34 +27,59 @@ class UIController {
     initialize() {
         this.cacheElements();
         this.attachEventListeners();
+        this.initializeTheme();
+        this.initializeAnimatedTitle();
         this.subscribeToEvents();
-        console.log('✅ UIController initialized');
+        console.log('🕹️ UIController initialized');
     }
 
     /**
      * Cache DOM elements for performance
      */
     cacheElements() {
-        this.elements = {
+        this.dom = {
             // Tabs
             tabButtons: document.querySelectorAll('.tab-button'),
             tabContents: document.querySelectorAll('.tab-content'),
             
             // Output
             output: document.getElementById('ascii-output'),
-            outputSection: document.querySelector('.output-section'),
             
             // Controls
+            generateBtn: document.getElementById('generate-main'),
             copyBtn: document.getElementById('copy-btn'),
             downloadBtn: document.getElementById('download-btn'),
             clearBtn: document.getElementById('clear-btn'),
             themeBtn: document.getElementById('theme-btn'),
             
+            // Inputs
+            textInput: document.getElementById('text-input'),
+            imageInput: document.getElementById('image-input'),
+            poemInput: document.getElementById('poem-input'),
+
+            // Options
+            fontSelect: document.getElementById('font-select'),
+            colorSelect: document.getElementById('color-select'),
+            animationSelect: document.getElementById('animation-select'),
+            imageWidthSlider: document.getElementById('image-width'),
+            imageWidthValue: document.getElementById('width-value'),
+            imageCharsSelect: document.getElementById('image-chars'),
+            poetryLayoutSelect: document.getElementById('poetry-layout'),
+            poetryDecorationSelect: document.getElementById('poetry-decoration'),
+
+            // Keyword System
+            keywordsInput: document.getElementById('keywords-input'),
+            autoDetectBtn: document.getElementById('auto-detect-btn'),
+            keywordChipsContainer: document.getElementById('keyword-chips'),
+
             // Loading
             loading: document.getElementById('loading-indicator'),
             
             // Notification
-            notification: document.getElementById('notification')
+            notification: document.getElementById('notification'),
+
+            // Title
+            asciiTitle: document.getElementById('ascii-title'),
         };
     }
 
@@ -59,29 +88,54 @@ class UIController {
      */
     attachEventListeners() {
         // Tab switching
-        this.elements.tabButtons.forEach(button => {
+        this.dom.tabButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 const tab = e.target.dataset.tab;
                 if (tab) this.switchTab(tab);
             });
         });
 
+        // Main Generate Button
+        if (this.dom.generateBtn) {
+            this.dom.generateBtn.addEventListener('click', () => this.handleGenerateClick());
+        }
+
         // Output controls
-        if (this.elements.copyBtn) {
-            this.elements.copyBtn.addEventListener('click', () => this.copyToClipboard());
+        if (this.dom.copyBtn) {
+            this.dom.copyBtn.addEventListener('click', () => this.copyToClipboard());
         }
 
-        if (this.elements.downloadBtn) {
-            this.elements.downloadBtn.addEventListener('click', () => this.downloadOutput());
+        if (this.dom.downloadBtn) {
+            this.dom.downloadBtn.addEventListener('click', () => this.downloadOutput());
         }
 
-        if (this.elements.clearBtn) {
-            this.elements.clearBtn.addEventListener('click', () => this.clearOutput());
+        if (this.dom.clearBtn) {
+            this.dom.clearBtn.addEventListener('click', () => this.clearOutput());
         }
 
         // Theme toggle
-        if (this.elements.themeBtn) {
-            this.elements.themeBtn.addEventListener('click', () => this.toggleTheme());
+        if (this.dom.themeBtn) {
+            this.dom.themeBtn.addEventListener('click', () => this.toggleTheme());
+        }
+
+        // Image width slider
+        if (this.dom.imageWidthSlider) {
+            this.dom.imageWidthSlider.addEventListener('input', (e) => {
+                if (this.dom.imageWidthValue) {
+                    this.dom.imageWidthValue.textContent = e.target.value;
+                }
+            });
+        }
+
+        // Keyword input handling
+        if (this.dom.keywordsInput) {
+            this.dom.keywordsInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    // In a full implementation, this would emit an event.
+                    // For now, it might call a method on a keyword manager.
+                }
+            });
         }
     }
 
@@ -89,45 +143,101 @@ class UIController {
      * Subscribe to event bus events
      */
     subscribeToEvents() {
-        // Loading events
-        this.eventBus.on(EventBus.Events.LOADING_START, () => this.showLoading());
-        this.eventBus.on(EventBus.Events.LOADING_END, () => this.hideLoading());
-        
         // Notification events
         this.eventBus.on(EventBus.Events.NOTIFICATION_SHOW, (data) => {
             this.showNotification(data.message, data.type);
         });
         
-        // Output events
-        this.eventBus.on(EventBus.Events.OUTPUT_UPDATED, (data) => {
-            this.displayOutput(data);
-        });
-        
         // Generation complete events
+        const onGenerationStart = () => this.showLoading();
+        const onGenerationEnd = () => this.hideLoading();
+
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
+            onGenerationEnd();
             this.displayOutput({
                 ascii: result.ascii,
                 color: result.metadata.color,
                 animation: result.metadata.animation
             });
+            this.showNotification('✨ Text art generated!', 'success');
         });
-        
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (error) => {
+            onGenerationEnd();
+            this.showNotification(`❌ ${error.message}`, 'error');
+        });
+
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => {
+            onGenerationEnd();
             this.displayOutput({
                 ascii: result.ascii,
                 color: 'none',
                 animation: 'none'
             });
+            this.showNotification('✨ Image art generated!', 'success');
         });
-        
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (error) => {
+            onGenerationEnd();
+            this.showNotification(`❌ ${error.message}`, 'error');
+        });
+
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => {
+            onGenerationEnd();
             this.displayPoetryOutput(result);
+            this.showNotification('✨ Poetry art generated!', 'success');
         });
-        
-        // Error events
-        this.eventBus.on(EventBus.Events.ERROR_OCCURRED, (data) => {
-            this.showNotification(data.message, 'error');
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => {
+            onGenerationEnd();
+            this.showNotification(`❌ ${error.message}`, 'error');
         });
+    }
+
+    /**
+     * Handles the main "Generate" button click and dispatches to the correct service request.
+     */
+    handleGenerateClick() {
+        switch (this.state.currentTab) {
+            case 'text':
+                this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, {
+                    text: this.dom.textInput.value,
+                    fontName: this.dom.fontSelect.value,
+                    color: this.dom.colorSelect.value,
+                    animation: this.dom.animationSelect.value,
+                });
+                break;
+            case 'image':
+                this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, {
+                    file: this.dom.imageInput.files[0],
+                    width: parseInt(this.dom.imageWidthSlider.value, 10),
+                    charSet: this.dom.imageCharsSelect.value,
+                });
+                break;
+            case 'poetry':
+                 this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, {
+                    poem: this.dom.poemInput.value,
+                    fontName: this.dom.fontSelect.value,
+                    layout: this.dom.poetryLayoutSelect.value,
+                    decoration: this.dom.poetryDecorationSelect.value,
+                    color: this.dom.colorSelect.value,
+                    animation: this.dom.animationSelect.value,
+                    // keywords would be managed here
+                });
+                break;
+            default:
+                console.warn(`Unknown generation mode: ${this.state.currentTab}`);
+        }
+    }
+
+    initializeTheme() {
+        try {
+            const savedTheme = localStorage.getItem(this.config?.storage?.keys?.theme || 'theme') || this.config?.ui?.theme?.default || 'dark';
+            this.setTheme(savedTheme);
+        } catch (error) {
+            console.error('Error initializing theme:', error);
+            this.setTheme('dark'); // Fallback
+        }
     }
 
     /**
@@ -139,21 +249,20 @@ class UIController {
             console.log('📑 Switching to tab:', tabName);
             
             // Update button states
-            this.elements.tabButtons.forEach(btn => {
+            this.dom.tabButtons.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.tab === tabName) {
                     btn.classList.add('active');
                 }
             });
 
-            // Update tab content
-            this.elements.tabContents.forEach(content => {
+            // Update tab content visibility
+            this.dom.tabContents.forEach(content => {
                 content.classList.remove('active');
                 if (content.id === `${tabName}-tab`) {
                     content.classList.add('active');
                 }
             });
-
             this.state.currentTab = tabName;
             this.eventBus.emit(EventBus.Events.TAB_CHANGED, { tab: tabName });
             
@@ -170,12 +279,12 @@ class UIController {
         try {
             const { ascii, color = 'none', animation = 'none' } = data;
             
-            if (!this.elements.output) {
+            if (!this.dom.output) {
                 throw new Error('Output element not found');
             }
 
-            this.elements.output.textContent = ascii;
-            this.elements.output.className = 'ascii-output';
+            this.dom.output.textContent = ascii;
+            this.dom.output.className = 'ascii-output';
 
             // Apply color
             if (color && color !== 'none') {
@@ -184,10 +293,10 @@ class UIController {
 
             // Apply animation
             if (animation && animation !== 'none') {
-                this.elements.output.classList.add(`animation-${animation}`);
+                this.dom.output.classList.add(`animation-${animation}`);
             }
 
-            this.eventBus.emit(EventBus.Events.OUTPUT_UPDATED, data);
+            // this.eventBus.emit(EventBus.Events.OUTPUT_UPDATED, data);
             
         } catch (error) {
             console.error('Error displaying output:', error);
@@ -204,17 +313,17 @@ class UIController {
             const { ascii, metadata } = result;
             const { layout, color, animation, decoration } = metadata;
 
-            this.elements.output.textContent = ascii;
-            this.elements.output.className = 'ascii-output';
+            this.dom.output.textContent = ascii;
+            this.dom.output.className = 'ascii-output';
 
             // Apply layout
             if (layout && layout !== 'centered') {
-                this.elements.output.classList.add(`poetry-layout-${layout}`);
+                this.dom.output.classList.add(`poetry-layout-${layout}`);
             }
 
             // Apply decoration
             if (decoration && decoration !== 'none') {
-                this.elements.output.classList.add(`poetry-decoration-${decoration}`);
+                this.dom.output.classList.add(`poetry-decoration-${decoration}`);
             }
 
             // Apply color
@@ -224,7 +333,7 @@ class UIController {
 
             // Apply animation
             if (animation && animation !== 'none') {
-                this.elements.output.classList.add(`animation-${animation}`);
+                this.dom.output.classList.add(`animation-${animation}`);
             }
 
         } catch (error) {
@@ -250,7 +359,7 @@ class UIController {
         };
 
         if (colorMap[color]) {
-            this.elements.output.style.color = colorMap[color];
+            this.dom.output.style.color = colorMap[color];
         } else if (color === 'rainbow') {
             this.applyRainbowEffect();
         } else if (color === 'gradient') {
@@ -262,7 +371,7 @@ class UIController {
      * Apply rainbow effect
      */
     applyRainbowEffect() {
-        const text = this.elements.output.textContent;
+        const text = this.dom.output.textContent;
         const colors = ['#ff6b6b', '#ffd43b', '#51cf66', '#4dabf7', '#cc5de8', '#ff6b9d'];
         let html = '';
 
@@ -271,25 +380,25 @@ class UIController {
             html += `<span style="color: ${color}">${text[i]}</span>`;
         }
 
-        this.elements.output.innerHTML = html;
+        this.dom.output.innerHTML = html;
     }
 
     /**
      * Apply gradient effect
      */
     applyGradientEffect() {
-        this.elements.output.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
-        this.elements.output.style.webkitBackgroundClip = 'text';
-        this.elements.output.style.webkitTextFillColor = 'transparent';
-        this.elements.output.style.backgroundClip = 'text';
+        this.dom.output.style.background = 'linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
+        this.dom.output.style.webkitBackgroundClip = 'text';
+        this.dom.output.style.webkitTextFillColor = 'transparent';
+        this.dom.output.style.backgroundClip = 'text';
     }
 
     /**
      * Show loading indicator
      */
     showLoading() {
-        if (this.elements.loading) {
-            this.elements.loading.style.display = 'block';
+        if (this.dom.loading) {
+            this.dom.loading.style.display = 'block';
             this.state.isLoading = true;
         }
     }
@@ -298,8 +407,8 @@ class UIController {
      * Hide loading indicator
      */
     hideLoading() {
-        if (this.elements.loading) {
-            this.elements.loading.style.display = 'none';
+        if (this.dom.loading) {
+            this.dom.loading.style.display = 'none';
             this.state.isLoading = false;
         }
     }
@@ -311,7 +420,7 @@ class UIController {
      */
     showNotification(message, type = 'info') {
         try {
-            let notification = this.elements.notification;
+            let notification = this.dom.notification;
             
             if (!notification) {
                 notification = document.createElement('div');
@@ -334,7 +443,7 @@ class UIController {
                     transform: translateY(-10px);
                 `;
                 document.body.appendChild(notification);
-                this.elements.notification = notification;
+                this.dom.notification = notification;
             }
 
             notification.textContent = message;
@@ -360,7 +469,7 @@ class UIController {
      */
     async copyToClipboard() {
         try {
-            const output = this.elements.output?.textContent;
+            const output = this.dom.output?.textContent;
             
             if (!output || !output.trim()) {
                 this.showNotification('⚠️ No ASCII art to copy!', 'warning');
@@ -395,7 +504,7 @@ class UIController {
      */
     downloadOutput() {
         try {
-            const output = this.elements.output?.textContent;
+            const output = this.dom.output?.textContent;
             
             if (!output || !output.trim()) {
                 this.showNotification('⚠️ No ASCII art to download!', 'warning');
@@ -429,9 +538,9 @@ class UIController {
      */
     clearOutput() {
         try {
-            if (this.elements.output) {
-                this.elements.output.textContent = '';
-                this.elements.output.className = 'ascii-output';
+            if (this.dom.output) {
+                this.dom.output.textContent = '';
+                this.dom.output.className = 'ascii-output';
                 this.showNotification('🗑️ Output cleared', 'info');
                 this.eventBus.emit(EventBus.Events.OUTPUT_CLEARED);
             }
@@ -445,16 +554,13 @@ class UIController {
      */
     toggleTheme() {
         try {
-            this.state.theme = this.state.theme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', this.state.theme);
-            
-            if (this.elements.themeBtn) {
-                this.elements.themeBtn.textContent = this.state.theme === 'dark' ? '🌙' : '☀️';
-            }
+            const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
+            this.setTheme(newTheme);
 
             // Save to localStorage
             try {
-                localStorage.setItem(this.config.storage.keys.theme, this.state.theme);
+                const themeKey = this.config?.storage?.keys?.theme || 'theme';
+                localStorage.setItem(themeKey, newTheme);
             } catch (storageError) {
                 console.warn('Failed to save theme preference:', storageError);
             }
@@ -464,6 +570,42 @@ class UIController {
         } catch (error) {
             console.error('Error toggling theme:', error);
         }
+    }
+
+    setTheme(theme) {
+        this.state.theme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        if (this.dom.themeBtn) {
+            this.dom.themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+    }
+
+    initializeAnimatedTitle() {
+        const interval = this.config?.ascii?.titleRotationInterval || 4000;
+        this.animateTitle();
+        setInterval(() => this.animateTitle(), interval);
+    }
+
+    animateTitle() {
+        if (!this.dom.asciiTitle) return;
+
+        const titleFonts = this.config?.ascii?.titleFonts || ['standard'];
+        const currentFontIndex = (this.state.titleFontIndex || 0) % titleFonts.length;
+        const fontName = titleFonts[currentFontIndex];
+        
+        const font = this.fontManager.getFont(fontName);
+        if (!font) {
+            console.warn(`Title font "${fontName}" not found.`);
+            return;
+        }
+
+        // This is a bit of a hack. The renderer should be a dependency.
+        // For now, we create a temporary one.
+        const tempRenderer = new ASCIIRenderer();
+        const asciiText = tempRenderer.renderTextWithFont('ASCII ART', font);
+        this.dom.asciiTitle.textContent = asciiText;
+
+        this.state.titleFontIndex = currentFontIndex + 1;
     }
 
     /**
@@ -479,4 +621,3 @@ class UIController {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIController;
 }
-

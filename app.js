@@ -1,70 +1,68 @@
 /**
- * Application Bootstrap
- * Initializes and coordinates all components
- * Maintains backward compatibility while using new architecture
+ * Application Bootstrapper
+ *
+ * This script initializes the entire application in a controlled sequence,
+ * ensuring all dependencies are ready and providing robust error handling
+ * for a resilient startup process.
  */
 
-// Wait for DOM to be ready
+console.log('🚀 Initializing ASCII Art Poetry Application...');
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Initializing ASCII Art Poetry Application...');
-    
+    // The global errorHandler is loaded first in index.html and is already active.
+
     try {
-        // Initialize the original working application
-        // This ensures buttons work immediately
-        const app = new ASCIIArtGenerator();
-        
-        // Store globally for debugging
-        window.app = app;
-        
-        console.log('✅ Application initialized successfully');
-        console.log('💡 Tip: Open DevTools Console to see debug logs');
-        
+        // Step 1: Instantiate core modules and services.
+        const eventBus = new EventBus();
+        const fontManager = new FontManager();
+        const asciiRenderer = new ASCIIRenderer();
+        const inputValidator = new InputValidator(window.AppConfig?.validation || {});
+
+        // The service layer contains the core business logic.
+        const asciiGeneratorService = new ASCIIGeneratorService(
+            fontManager,
+            asciiRenderer,
+            inputValidator,
+            eventBus
+        );
+
+        // Step 2: Instantiate the UI Controller, which now manages the entire UI.
+        const uiController = new UIController(eventBus, window.AppConfig, fontManager, asciiRenderer);
+
+        // Step 3: Expose core components for debugging.
+        window.app = { services: { asciiGeneratorService }, controllers: { uiController } };
+
+        // Step 3: Log success message to the console.
+        console.log('✅ Application initialized successfully.');
+        console.log('💡 Tip: Open DevTools Console to see debug logs and use `window.app` to inspect the application state.');
+        console.log(`
+  /\\_/\\  (
+ ( ^.^ ) _)
+   \\"/  (
+ ( | | )
+(__d b__)
+ASCII Art Poetry App
+Buttons should be working!
+
+Debug commands:
+  window.app.controllers.ui - Access the UI Controller instance
+  window.app.services.asciiGeneratorService - Access the generation service
+  window.app.services.asciiGeneratorService.fontManager.getFont("standard") - Get a font
+`);
+
     } catch (error) {
-        console.error('❌ Failed to initialize application:', error);
-        
-        // Show user-friendly error
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            font-family: monospace;
-            z-index: 99999;
-            max-width: 500px;
-        `;
-        errorDiv.innerHTML = `
-            <h2>⚠️ Application Error</h2>
-            <p>The application failed to initialize. Please refresh the page.</p>
-            <p style="font-size: 0.8em; opacity: 0.7;">Error: ${error.message}</p>
-            <button onclick="location.reload()" style="
-                background: white;
-                color: red;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                margin-top: 10px;
-                font-weight: bold;
-            ">Refresh Page</button>
-        `;
-        document.body.appendChild(errorDiv);
+        // This catch block handles errors specifically from the ASCIIArtGenerator constructor.
+        console.error('❌ A fatal error occurred during application initialization:', error);
+
+        // Use the global error handler to display a user-friendly message.
+        if (window.errorHandler) {
+            window.errorHandler.showErrorNotification({
+                type: 'Initialization Failure',
+                message: 'The application could not start. Please try refreshing the page. If the problem persists, check the console for details.'
+            });
+        } else {
+            // Fallback if the global error handler itself failed.
+            alert('A fatal error occurred. Please refresh the page.');
+        }
     }
 });
-
-// Expose for debugging in production
-window.addEventListener('load', () => {
-    console.log('%c ASCII Art Poetry App ', 'background: #667eea; color: white; font-size: 20px; padding: 10px;');
-    console.log('%c Buttons should be working! ', 'background: #51cf66; color: white; font-size: 16px; padding: 5px;');
-    console.log('');
-    console.log('Debug commands:');
-    console.log('  window.app - Access main application instance');
-    console.log('  window.app.getFont("standard") - Get a font');
-    console.log('  window.app.keywords - View current keywords');
-    console.log('');
-});
-
