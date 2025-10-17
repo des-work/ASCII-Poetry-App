@@ -6,11 +6,12 @@
 class EventBus {
     constructor() {
         if (EventBus.instance) {
+            console.log('♻️ EventBus: Returning existing instance');
             return EventBus.instance;
         }
         this.events = {};
         EventBus.instance = this;
-        console.log('🚌 EventBus initialized');
+        console.log('🚌 EventBus: New instance created');
     }
 
     /**
