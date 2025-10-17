@@ -31,10 +31,13 @@ class ASCIIArtGenerator {
 
     initializeEventListeners() {
         try {
+            console.log('🔧 Initializing event listeners...');
+            
             // Tab switching
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const tab = e?.target?.dataset?.tab;
+                    console.log('📑 Tab clicked:', tab);
                     if (tab) this.switchTab(tab);
                 });
             });
@@ -42,19 +45,37 @@ class ASCIIArtGenerator {
             // Text generation
             const generateTextBtn = document.getElementById('generate-text');
             if (generateTextBtn) {
-                generateTextBtn.addEventListener('click', () => this.generateTextASCII());
+                console.log('✅ Text generate button found');
+                generateTextBtn.addEventListener('click', () => {
+                    console.log('🎨 Generate Text ASCII button clicked!');
+                    this.generateTextASCII();
+                });
+            } else {
+                console.error('❌ Text generate button NOT found');
             }
             
             // Image generation
             const generateImageBtn = document.getElementById('generate-image');
             if (generateImageBtn) {
-                generateImageBtn.addEventListener('click', () => this.generateImageASCII());
+                console.log('✅ Image generate button found');
+                generateImageBtn.addEventListener('click', () => {
+                    console.log('🖼️ Generate Image ASCII button clicked!');
+                    this.generateImageASCII();
+                });
+            } else {
+                console.error('❌ Image generate button NOT found');
             }
             
             // Poetry generation
             const generatePoetryBtn = document.getElementById('generate-poetry');
             if (generatePoetryBtn) {
-                generatePoetryBtn.addEventListener('click', () => this.generatePoetryASCII());
+                console.log('✅ Poetry generate button found');
+                generatePoetryBtn.addEventListener('click', () => {
+                    console.log('📝 Generate Poetry ASCII button clicked!');
+                    this.generatePoetryASCII();
+                });
+            } else {
+                console.error('❌ Poetry generate button NOT found');
             }
             
             // Image input
@@ -93,8 +114,10 @@ class ASCIIArtGenerator {
             if (themeBtn) {
                 themeBtn.addEventListener('click', () => this.toggleTheme());
             }
+            
+            console.log('✅ Event listeners initialized successfully');
         } catch (error) {
-            console.error('Error initializing event listeners:', error);
+            console.error('❌ Error initializing event listeners:', error);
         }
     }
 
@@ -134,14 +157,18 @@ class ASCIIArtGenerator {
     }
 
     async generateTextASCII() {
+        console.log('🎨 generateTextASCII called');
+        
         // Prevent concurrent generation
         if (this.isGenerating) {
+            console.warn('⚠️ Already generating...');
             this.showNotification('⚠️ Please wait for current generation to complete!');
             return;
         }
 
         try {
             this.isGenerating = true;
+            console.log('🚀 Starting text generation...');
             
             const textInput = document.getElementById('text-input');
             const fontSelect = document.getElementById('font-select');
@@ -304,53 +331,110 @@ class ASCIIArtGenerator {
     }
 
     async generateImageASCII() {
-        const fileInput = document.getElementById('image-input');
-        if (!fileInput.files[0]) {
-            this.showNotification('⚠️ Please select an image first!');
+        console.log('🖼️ generateImageASCII called');
+        
+        // Prevent concurrent generation
+        if (this.isGenerating) {
+            console.warn('⚠️ Already generating...');
+            this.showNotification('⚠️ Please wait for current generation to complete!');
             return;
         }
 
-        const width = parseInt(document.getElementById('image-width').value);
-        const charSet = document.getElementById('image-chars').value;
-        const colorMode = document.getElementById('image-color').value;
-
         try {
+            this.isGenerating = true;
+            console.log('🚀 Starting image generation...');
+            
+            const fileInput = document.getElementById('image-input');
+            if (!fileInput || !fileInput.files[0]) {
+                this.showNotification('⚠️ Please select an image first!');
+                this.isGenerating = false;
+                return;
+            }
+
+            const widthInput = document.getElementById('image-width');
+            const charSetSelect = document.getElementById('image-chars');
+            const colorModeSelect = document.getElementById('image-color');
+            
+            if (!widthInput || !charSetSelect || !colorModeSelect) {
+                throw new Error('Required image input elements not found');
+            }
+
+            const width = parseInt(widthInput.value);
+            const charSet = charSetSelect.value;
+            const colorMode = colorModeSelect.value;
+
+            console.log(`📊 Image settings: width=${width}, charSet=${charSet}, colorMode=${colorMode}`);
+
             this.showLoading();
             const asciiArt = await this.convertImageToASCII(fileInput.files[0], width, charSet, colorMode);
             this.displayASCII(asciiArt, 'none', 'none');
             this.showNotification('✨ Image converted to ASCII art!');
+            console.log('✅ Image generation complete');
         } catch (error) {
-            console.error('Error generating ASCII art:', error);
+            console.error('❌ Error generating image ASCII:', error);
             this.showNotification('❌ Error generating ASCII art. Please try again.');
         } finally {
             this.hideLoading();
+            this.isGenerating = false;
         }
     }
 
     async generatePoetryASCII() {
-        const poem = document.getElementById('poem-input').value.trim();
-        if (!poem) {
-            this.showNotification('⚠️ Please enter a poem first!');
+        console.log('📝 generatePoetryASCII called');
+        
+        // Prevent concurrent generation
+        if (this.isGenerating) {
+            console.warn('⚠️ Already generating...');
+            this.showNotification('⚠️ Please wait for current generation to complete!');
             return;
         }
 
-        const font = document.getElementById('poetry-font-select').value;
-        const layout = document.getElementById('poetry-layout').value;
-        const color = document.getElementById('poetry-color-select').value;
-        const animation = document.getElementById('poetry-animation-select').value;
-        const decoration = document.getElementById('poetry-decoration').value;
-
         try {
+            this.isGenerating = true;
+            console.log('🚀 Starting poetry generation...');
+            
+            const poemInput = document.getElementById('poem-input');
+            if (!poemInput) {
+                throw new Error('Poem input element not found');
+            }
+
+            const poem = poemInput.value.trim();
+            if (!poem) {
+                this.showNotification('⚠️ Please enter a poem first!');
+                this.isGenerating = false;
+                return;
+            }
+
+            const fontSelect = document.getElementById('poetry-font-select');
+            const layoutSelect = document.getElementById('poetry-layout');
+            const colorSelect = document.getElementById('poetry-color-select');
+            const animationSelect = document.getElementById('poetry-animation-select');
+            const decorationSelect = document.getElementById('poetry-decoration');
+
+            if (!fontSelect || !layoutSelect || !colorSelect || !animationSelect || !decorationSelect) {
+                throw new Error('Required poetry input elements not found');
+            }
+
+            const font = fontSelect.value;
+            const layout = layoutSelect.value;
+            const color = colorSelect.value;
+            const animation = animationSelect.value;
+            const decoration = decorationSelect.value;
+
+            console.log(`📊 Poetry settings: font=${font}, layout=${layout}, color=${color}, keywords=${this.keywords.size}`);
+
             this.showLoading();
             await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for effect
             const asciiArt = await this.convertPoetryToASCII(poem, font, layout, decoration);
             this.displayPoetryASCII(asciiArt, color, animation, layout, decoration);
             this.showNotification('✨ Poetry art created beautifully!');
+            console.log('✅ Poetry generation complete');
         } catch (error) {
-            console.error('Error generating poetry ASCII art:', error);
+            console.error('❌ Error generating poetry ASCII:', error);
             this.showNotification('❌ Error generating poetry ASCII art. Please try again.');
         } finally {
             this.hideLoading();
+            this.isGenerating = false;
         }
     }
 
