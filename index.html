@@ -8,253 +8,196 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
+    <div class="app-container">
+        <!-- Compact Header -->
+        <header class="compact-header">
             <h1 id="ascii-title">ASCII ART</h1>
-            <p>▸ Transform text and images into beautiful ASCII art with colors and animations ◂</p>
+            <div class="header-controls">
+                <button id="theme-btn" class="icon-btn" title="Toggle Theme">🌙</button>
+            </div>
         </header>
 
-        <div class="main-content">
-            <!-- Navigation Tabs -->
-            <div class="tabs">
-                <button class="tab-button active" data-tab="text">Text to ASCII</button>
-                <button class="tab-button" data-tab="image">Image to ASCII</button>
-                <button class="tab-button" data-tab="poetry">Poetry Art</button>
-            </div>
+        <!-- Two Column Layout -->
+        <div class="main-grid">
+            <!-- Left Sidebar: Compact Input Section -->
+            <aside class="input-panel">
+                <div class="panel-header">
+                    <h2>Create</h2>
+                </div>
 
-            <!-- Text to ASCII Section -->
-            <div id="text-tab" class="tab-content active">
-                <div class="input-section">
-                    <label for="text-input">Enter your text:</label>
-                    <textarea id="text-input" placeholder="Type your text here..."></textarea>
-                    
-                    <div class="options">
-                        <div class="option-group">
-                            <label for="font-select">Font Style:</label>
-                            <select id="font-select">
-                                <option value="standard">Standard</option>
-                                <option value="block">Block</option>
-                                <option value="bubble">Bubble</option>
-                                <option value="mini">Mini</option>
-                                <option value="small">Small</option>
-                                <option value="lean">Lean</option>
-                                <option value="slant">Slant</option>
-                                <option value="script">Script</option>
-                                <option value="big">Big</option>
-                                <option value="elegant">Elegant ♠</option>
-                                <option value="romantic">Romantic ♥</option>
-                                <option value="classic">Classic █</option>
-                                <option value="modern">Modern ▲</option>
-                                <option value="calligraphy">Calligraphy ╔</option>
-                                <option value="gothic">Gothic ░</option>
-                                <option value="serif">Serif</option>
-                                <option value="sans">Sans ▄</option>
-                                <option value="decorative">Decorative ◊</option>
-                                <option value="artistic">Artistic ◆</option>
-                                <option value="3d">3D Effect</option>
-                                <option value="star">Stars ★</option>
-                                <option value="dot">Dots •</option>
-                                <option value="wavy">Wavy ≈</option>
-                                <option value="pixel">Pixel ▓</option>
-                            </select>
-                        </div>
+                <!-- Mode Selector (Compact Tabs) -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="text" title="Text to ASCII">
+                        <span class="mode-icon">T</span>
+                        <span class="mode-label">Text</span>
+                    </button>
+                    <button class="mode-btn" data-mode="image" title="Image to ASCII">
+                        <span class="mode-icon">🖼</span>
+                        <span class="mode-label">Image</span>
+                    </button>
+                    <button class="mode-btn" data-mode="poetry" title="Poetry Art">
+                        <span class="mode-icon">📝</span>
+                        <span class="mode-label">Poetry</span>
+                    </button>
+                </div>
 
-                        <div class="option-group">
-                            <label for="color-select">Color:</label>
-                            <select id="color-select">
-                                <option value="none">No Color</option>
-                                <option value="red">Red</option>
-                                <option value="green">Green</option>
-                                <option value="blue">Blue</option>
-                                <option value="yellow">Yellow</option>
-                                <option value="purple">Purple</option>
-                                <option value="cyan">Cyan</option>
-                                <option value="magenta">Magenta</option>
-                                <option value="rainbow">Rainbow</option>
-                            </select>
-                        </div>
-
-                        <div class="option-group">
-                            <label for="animation-select">Animation:</label>
-                            <select id="animation-select">
-                                <option value="none">None</option>
-                                <option value="blink">Blink</option>
-                                <option value="scroll">Scroll</option>
-                                <option value="wave">Wave</option>
-                                <option value="glow">Glow</option>
-                            </select>
-                        </div>
+                <!-- Dynamic Input Area -->
+                <div class="input-area">
+                    <!-- Text Mode -->
+                    <div id="text-mode" class="mode-content active">
+                        <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
                     </div>
 
-                    <button id="generate-text" class="generate-btn">Generate ASCII Art</button>
-                </div>
-            </div>
-
-            <!-- Image to ASCII Section -->
-            <div id="image-tab" class="tab-content">
-                <div class="input-section">
-                    <label for="image-input">Upload an image:</label>
-                    <input type="file" id="image-input" accept="image/*">
-                    
-                    <div class="options">
-                        <div class="option-group">
-                            <label for="image-width">Width (characters):</label>
+                    <!-- Image Mode -->
+                    <div id="image-mode" class="mode-content">
+                        <div class="file-upload">
+                            <input type="file" id="image-input" accept="image/*" hidden>
+                            <label for="image-input" class="upload-label">
+                                <span class="upload-icon">📁</span>
+                                <span>Choose Image</span>
+                            </label>
+                            <span id="file-name" class="file-name"></span>
+                        </div>
+                        <div class="compact-option">
+                            <label>Width:</label>
                             <input type="range" id="image-width" min="20" max="200" value="80">
                             <span id="width-value">80</span>
                         </div>
-
-                        <div class="option-group">
-                            <label for="image-chars">Character Set:</label>
+                        <div class="compact-option">
+                            <label>Characters:</label>
                             <select id="image-chars">
-                                <option value="standard">@#%&*+=~-:,.`</option>
-                                <option value="blocks">█▓▒░</option>
-                                <option value="dots">●○◯</option>
-                                <option value="simple">#*+.</option>
-                                <option value="detailed">@#$%&*+=~-:,.`</option>
-                            </select>
-                        </div>
-
-                        <div class="option-group">
-                            <label for="image-color">Color Mode:</label>
-                            <select id="image-color">
-                                <option value="none">No Color</option>
-                                <option value="grayscale">Grayscale</option>
-                                <option value="color">Full Color</option>
-                                <option value="invert">Invert</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button id="generate-image" class="generate-btn">Generate ASCII Art</button>
-                </div>
-            </div>
-
-            <!-- Poetry to ASCII Section -->
-            <div id="poetry-tab" class="tab-content">
-                <div class="input-section">
-                    <label for="poem-input">Enter your poem:</label>
-                    <textarea id="poem-input" placeholder="Enter your beautiful poem here...&#10;&#10;Example:&#10;Roses are red,&#10;Violets are blue,&#10;Sugar is sweet,&#10;And so are you."></textarea>
-                    
-                    <div class="keyword-section">
-                        <label for="keywords-input">
-                            Select Keywords to Transform (comma-separated):
-                            <span class="hint">Click words in your poem or type them here</span>
-                        </label>
-                        <input type="text" id="keywords-input" placeholder="e.g., love, heart, dream, forever">
-                        <div id="keyword-chips" class="keyword-chips"></div>
-                        <button id="auto-detect-btn" class="secondary-btn">Auto-Detect Keywords</button>
-                    </div>
-                    
-                    <div class="options">
-                        <div class="option-group">
-                            <label for="poetry-font-select">Font Style for Keywords:</label>
-                            <select id="poetry-font-select">
                                 <option value="standard">Standard</option>
+                                <option value="blocks">Blocks</option>
+                                <option value="dots">Dots</option>
+                                <option value="simple">Simple</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Poetry Mode -->
+                    <div id="poetry-mode" class="mode-content">
+                        <textarea id="poem-input" placeholder="Enter your poem..." rows="4"></textarea>
+                        <div class="compact-option">
+                            <label>Keywords:</label>
+                            <input type="text" id="keywords-input" placeholder="love, heart, dream">
+                        </div>
+                        <button id="auto-detect-btn" class="compact-btn">Auto-Detect Keywords</button>
+                        <div id="keyword-chips" class="keyword-chips"></div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Options -->
+                <details class="options-details" open>
+                    <summary>Options</summary>
+                    <div class="compact-options">
+                        <div class="compact-option" id="font-option">
+                            <label>Font:</label>
+                            <select id="font-select">
+                                <option value="standard">Standard</option>
+                                <option value="mini">Mini</option>
+                                <option value="small">Small</option>
                                 <option value="block">Block</option>
                                 <option value="bubble">Bubble</option>
-                                <option value="mini" selected>Mini</option>
-                                <option value="small">Small</option>
-                                <option value="lean">Lean</option>
-                                <option value="slant">Slant</option>
-                                <option value="script">Script</option>
-                                <option value="big">Big</option>
-                                <option value="elegant">Elegant ♠</option>
-                                <option value="romantic">Romantic ♥</option>
-                                <option value="classic">Classic █</option>
-                                <option value="modern">Modern ▲</option>
-                                <option value="calligraphy">Calligraphy ╔</option>
-                                <option value="gothic">Gothic ░</option>
-                                <option value="serif">Serif</option>
-                                <option value="sans">Sans ▄</option>
-                                <option value="decorative">Decorative ◊</option>
-                                <option value="artistic">Artistic ◆</option>
-                                <option value="3d">3D Effect</option>
+                                <option value="3d">3D</option>
                                 <option value="star">Stars ★</option>
                                 <option value="dot">Dots •</option>
-                                <option value="wavy">Wavy ≈</option>
                                 <option value="pixel">Pixel ▓</option>
                             </select>
                         </div>
 
-                        <div class="option-group">
-                            <label for="poetry-layout">Layout Style:</label>
-                            <select id="poetry-layout">
-                                <option value="centered">Centered</option>
-                                <option value="left-aligned">Left Aligned</option>
-                                <option value="right-aligned">Right Aligned</option>
-                                <option value="justified">Justified</option>
-                                <option value="stanza">Stanza Format</option>
-                                <option value="artistic">Artistic Layout</option>
-                            </select>
-                        </div>
-
-                        <div class="option-group">
-                            <label for="poetry-color-select">Color Theme:</label>
-                            <select id="poetry-color-select">
-                                <option value="none">No Color</option>
-                                <option value="red">Red</option>
-                                <option value="green">Green</option>
-                                <option value="blue">Blue</option>
-                                <option value="purple">Purple</option>
-                                <option value="gold">Gold</option>
-                                <option value="silver">Silver</option>
+                        <div class="compact-option">
+                            <label>Color:</label>
+                            <select id="color-select">
+                                <option value="none">None</option>
                                 <option value="rainbow">Rainbow</option>
                                 <option value="gradient">Gradient</option>
-                                <option value="romantic">Romantic</option>
-                                <option value="mystical">Mystical</option>
+                                <option value="blue">Blue</option>
+                                <option value="purple">Purple</option>
+                                <option value="green">Green</option>
+                                <option value="red">Red</option>
+                                <option value="gold">Gold</option>
                             </select>
                         </div>
 
-                        <div class="option-group">
-                            <label for="poetry-animation-select">Animation:</label>
-                            <select id="poetry-animation-select">
+                        <div class="compact-option">
+                            <label>Animation:</label>
+                            <select id="animation-select">
                                 <option value="none">None</option>
-                                <option value="blink">Blink</option>
-                                <option value="scroll">Scroll</option>
-                                <option value="wave">Wave</option>
                                 <option value="glow">Glow</option>
-                                <option value="fade">Fade In/Out</option>
+                                <option value="wave">Wave</option>
+                                <option value="fade">Fade</option>
                                 <option value="typewriter">Typewriter</option>
-                                <option value="floating">Floating</option>
                             </select>
                         </div>
 
-                        <div class="option-group">
-                            <label for="poetry-decoration">Decoration:</label>
+                        <!-- Poetry-specific options -->
+                        <div class="compact-option poetry-only" style="display: none;">
+                            <label>Layout:</label>
+                            <select id="poetry-layout">
+                                <option value="centered">Centered</option>
+                                <option value="left-aligned">Left</option>
+                                <option value="artistic">Artistic</option>
+                            </select>
+                        </div>
+
+                        <div class="compact-option poetry-only" style="display: none;">
+                            <label>Decoration:</label>
                             <select id="poetry-decoration">
                                 <option value="none">None</option>
                                 <option value="borders">Borders</option>
-                                <option value="flowers">Flowers</option>
-                                <option value="stars">Stars</option>
-                                <option value="hearts">Hearts</option>
-                                <option value="ornate">Ornate</option>
-                                <option value="minimal">Minimal</option>
+                                <option value="flowers">Flowers 🌸</option>
+                                <option value="stars">Stars ✨</option>
+                                <option value="hearts">Hearts 💖</option>
                             </select>
                         </div>
                     </div>
+                </details>
 
-                    <button id="generate-poetry" class="generate-btn">Create Poetry Art</button>
+                <!-- Main Generate Button -->
+                <button id="generate-main" class="main-generate-btn">
+                    <span class="btn-icon">✨</span>
+                    <span class="btn-text">Generate ASCII Art</span>
+                </button>
+
+                <!-- Secondary Action Buttons (Compact) -->
+                <div class="secondary-actions">
+                    <button id="copy-btn" class="action-btn" title="Copy to Clipboard">
+                        <span>📋</span>
+                    </button>
+                    <button id="download-btn" class="action-btn" title="Download">
+                        <span>💾</span>
+                    </button>
+                    <button id="clear-btn" class="action-btn" title="Clear Output">
+                        <span>🗑️</span>
+                    </button>
                 </div>
-            </div>
+            </aside>
 
-            <!-- Output Section -->
-            <div class="output-section">
+            <!-- Right Panel: Maximized Output Display -->
+            <main class="output-panel">
                 <div class="output-header">
-                    <h3>ASCII Art Output</h3>
-                    <div class="output-controls">
-                        <button id="copy-btn" class="control-btn">📋 Copy</button>
-                        <button id="download-btn" class="control-btn">💾 Download</button>
-                        <button id="clear-btn" class="control-btn">🗑️ Clear</button>
+                    <h2>Output</h2>
+                    <div class="output-info">
+                        <span id="output-stats"></span>
                     </div>
                 </div>
-                <div id="ascii-output" class="ascii-output"></div>
-            </div>
+                <div class="output-container">
+                    <pre id="ascii-output" class="ascii-output"></pre>
+                </div>
+            </main>
         </div>
+    </div>
 
-        <!-- Theme Toggle -->
-        <div class="theme-toggle">
-            <button id="theme-btn">🌙</button>
-        </div>
+    <!-- Hidden elements for backward compatibility -->
+    <div style="display: none;">
+        <!-- Keep IDs that script.js expects -->
+        <button id="generate-text"></button>
+        <button id="generate-image"></button>
+        <button id="generate-poetry"></button>
+        <select id="poetry-font-select"></select>
+        <select id="poetry-color-select"></select>
+        <select id="poetry-animation-select"></select>
+        <select id="image-color"></select>
     </div>
 
     <!-- Error Handler (must load first for resilience) -->
@@ -265,5 +208,8 @@
     
     <!-- Application Bootstrapper (ensures everything works) -->
     <script src="app.js"></script>
+    
+    <!-- UI Enhancement Script -->
+    <script src="ui-enhancements.js"></script>
 </body>
 </html>
