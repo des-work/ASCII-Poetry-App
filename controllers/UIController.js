@@ -210,7 +210,11 @@ class UIController {
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => {
             onGenerationEnd();
-            this.displayPoetryOutput(result);
+            this.displayOutput({
+                ascii: result.ascii,
+                color: result.metadata?.color,
+                animation: result.metadata?.animation
+            });
             this.showNotification('✨ Poetry art generated!', 'success');
         });
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => {
@@ -337,16 +341,6 @@ class UIController {
             console.error('Stack:', error.stack);
             this.showNotification(`Failed to display output: ${error.message}`, 'error');
         }
-    }
-
-    /**
-     * Display poetry-specific output
-     * @param {Object} result - Generation result
-     */
-    displayPoetryOutput(result) {
-        // The standard displayOutput is sufficient for poetry as well.
-        // The renderer handles all styling.
-        this.displayOutput(result);
     }
 
 

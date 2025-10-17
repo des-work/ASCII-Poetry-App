@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         uiController.subscribeToEvents();
         console.log('✅ Event subscriptions finalized');
 
-        // Step 4: Expose core components for debugging.
+        // Step 5: Expose core components for debugging.
         window.app = { 
             eventBus,
             fontManager,
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         console.log('✅ Components exposed to window.app');
         
-        // Step 5: Test button connections
+        // Step 6: Test button connections
         console.log('🔧 Testing button connections...');
         const generateBtn = document.getElementById('generate-main');
         const copyBtn = document.getElementById('copy-btn');

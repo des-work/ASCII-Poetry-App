@@ -153,6 +153,25 @@ class ASCIIRenderer {
     }
 
     /**
+     * Creates a single line for a border (top or bottom).
+     * @param {'top'|'bottom'} position - The position of the border line.
+     * @param {number} width - The inner width of the border.
+     * @param {string} style - Border style: 'single', 'double', 'rounded', 'heavy'.
+     * @returns {string} The border line string.
+     */
+    createBorderLine(position, width, style = 'single') {
+        const borders = {
+            single: { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─' },
+            double: { tl: '╔', tr: '╗', bl: '╚', br: '╝', h: '═' },
+            rounded: { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─' },
+            heavy: { tl: '┏', tr: '┓', bl: '┗', br: '┛', h: '━' }
+        };
+        const border = borders[style] || borders.single;
+        const [start, end, char] = position === 'top' ? [border.tl, border.tr, border.h] : [border.bl, border.br, border.h];
+        return start + char.repeat(width) + end;
+    }
+
+    /**
      * Apply color classes to ASCII art
      * @param {string} text - Text to colorize
      * @param {string} colorScheme - Color scheme name
@@ -262,6 +281,37 @@ class ASCIIRenderer {
             element.style.webkitTextFillColor = 'transparent';
             element.style.backgroundClip = 'text';
         }
+    }
+
+    /**
+     * Renders a compact ASCII version of a word, typically for keywords.
+     * @param {string} word - The word to render.
+     * @param {Object} font - The font object to use.
+     * @returns {string} The rendered ASCII word.
+     */
+    renderSmallASCII(word, font) {
+        if (!word || !font) return '';
+
+        const chars = word.split('');
+        let result = '';
+        const height = font.A ? font.A.length : 3;
+        const charWidth = font.A ? font.A[0].length : 3;
+
+        for (let row = 0; row < height; row++) {
+            for (let char of chars) {
+                const upperChar = char.toUpperCase();
+                if (font[upperChar] && font[upperChar][row]) {
+                    result += font[upperChar][row];
+                } else if (char === ' ') {
+                    result += ' '.repeat(charWidth);
+                } else {
+                    // Fallback for punctuation or unsupported characters
+                    result += (char + ' '.repeat(charWidth - 1));
+                }
+            }
+            if (row < height - 1) result += '\n';
+        }
+        return result;
     }
 
     /**

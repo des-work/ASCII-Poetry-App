@@ -43,6 +43,12 @@ class ASCIIGeneratorService {
     async generateTextASCII(options) {
         const { text, fontName = 'standard', color = 'none', animation = 'none' } = options;
 
+        // Prevent concurrent generation
+        if (this.isGenerating) {
+            this.eventBus.emit(EventBus.Events.NOTIFICATION_SHOW, { message: '⚠️ Please wait for the current generation to complete!', type: 'warning' });
+            return;
+        }
+
         try {
             this.isGenerating = true;
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_START, { text, fontName });
@@ -105,7 +111,8 @@ class ASCIIGeneratorService {
         const { file, width = 80, charSet = 'standard', colorMode = 'none' } = options;
 
         if (this.isGenerating) {
-            throw new Error('Generation already in progress');
+            this.eventBus.emit(EventBus.Events.NOTIFICATION_SHOW, { message: '⚠️ Please wait for the current generation to complete!', type: 'warning' });
+            return;
         }
 
         try {
@@ -175,7 +182,8 @@ class ASCIIGeneratorService {
         } = options;
 
         if (this.isGenerating) {
-            throw new Error('Generation already in progress');
+            this.eventBus.emit(EventBus.Events.NOTIFICATION_SHOW, { message: '⚠️ Please wait for the current generation to complete!', type: 'warning' });
+            return;
         }
 
         try {
@@ -198,11 +206,14 @@ class ASCIIGeneratorService {
                 throw new Error(`Font "${fontName}" not found`);
             }
 
+            // Ensure keywords are a Set for efficient lookup
+            const keywordSet = new Set(keywords.map(k => k.toLowerCase()));
+
             // Generate poetry ASCII
             const ascii = await this.convertPoetryToASCII(
                 validation.value,
                 font,
-                keywords,
+                keywordSet,
                 layout,
                 decoration
             );
@@ -213,7 +224,7 @@ class ASCIIGeneratorService {
                 metadata: {
                     poem: validation.value,
                     fontName,
-                    keywords: Array.from(keywords),
+                    keywords: Array.from(keywordSet),
                     layout,
                     color,
                     animation,
@@ -289,13 +300,13 @@ class ASCIIGeneratorService {
      * Convert poetry to ASCII with keyword highlighting
      * @private
      */
-    async convertPoetryToASCII(poem, font, keywords, layout, decoration) {
+    async convertPoetryToASCII(poem, font, keywordSet, layout, decoration) {
         const lines = poem.split('\n');
         let result = '';
 
         // Add top decoration
         if (decoration === 'borders') {
-            result += this.renderer.addBorder('', 'single').split('\n')[0] + '\n\n'; // A bit of a hack to get just the top border
+            result += this.renderer.createBorderLine('top', 40, 'single') + '\n\n';
         } else if (decoration === 'flowers') {
             result += '  🌸 '.repeat(15) + '\n\n';
         } else if (decoration === 'stars') {
@@ -311,13 +322,13 @@ class ASCIIGeneratorService {
                 continue;
             }
 
-            const transformedLine = this.transformLineWithKeywords(line, font, keywords);
+            const transformedLine = this.transformLineWithKeywords(line, font, keywordSet);
             result += transformedLine + '\n';
         }
 
         // Add bottom decoration
         if (decoration === 'borders') {
-            result += '\n' + this.renderer.addBorder('', 'single').split('\n')[2]; // A bit of a hack to get just the bottom border
+            result += '\n' + this.renderer.createBorderLine('bottom', 40, 'single');
         } else if (decoration === 'flowers') {
             result += '\n  🌸 '.repeat(15);
         } else if (decoration === 'stars') {
@@ -333,8 +344,8 @@ class ASCIIGeneratorService {
      * Transform line with keyword highlighting
      * @private
      */
-    transformLineWithKeywords(line, font, keywords) {
-        if (!keywords || keywords.size === 0) {
+    transformLineWithKeywords(line, font, keywordSet) {
+        if (!keywordSet || keywordSet.size === 0) {
             return '  ' + line;
         }
 
@@ -343,7 +354,7 @@ class ASCIIGeneratorService {
             if (!word.trim()) return word;
 
             const cleanWord = word.replace(/[^\w]/g, '').toLowerCase();
-            const isKeyword = keywords.has(cleanWord);
+            const isKeyword = keywordSet.has(cleanWord);
 
             if (isKeyword) {
                 return this.renderer.renderSmallASCII(word.toUpperCase(), font);
