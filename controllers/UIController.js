@@ -27,10 +27,20 @@ class UIController {
      * Initialize UI controller
      */
     initialize() {
-        this.cacheElements();
-        // Compose helpers now that DOM elements are cached
-        this.inputReader = new InputReader(this.dom);
-        this.outputWriter = new OutputWriter(this.renderer, this.dom.output);
+        try {
+            this.cacheElements();
+            // Compose helpers now that DOM elements are cached
+            if (typeof InputReader !== 'function') {
+                console.error('❌ InputReader script not loaded');
+            }
+            if (typeof OutputWriter !== 'function') {
+                console.error('❌ OutputWriter script not loaded');
+            }
+            this.inputReader = new InputReader(this.dom);
+            this.outputWriter = new OutputWriter(this.dom.output);
+        } catch (e) {
+            console.error('❌ UIController initialization error while composing helpers:', e);
+        }
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();

@@ -221,6 +221,8 @@
             const wantOpen = firstLoad || (saved === 'true') || /[?&]debug=1/.test(location.search);
             if (wantOpen) toggle(true);
             console.info('🧰 ConsoleOverlay ready. Toggle with Ctrl+~.');
+            // Self-check marker
+            console.info('🧪 ConsoleOverlay: live');
         } catch (err) {
             original.error('ConsoleOverlay failed to initialize', err);
         }
