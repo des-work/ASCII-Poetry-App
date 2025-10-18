@@ -30,6 +30,7 @@ class UIController {
         this.cacheElements();
         // Compose helpers now that DOM elements are cached
         this.inputReader = new InputReader(this.dom);
+        this.outputWriter = new OutputWriter(this.dom.output);
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();

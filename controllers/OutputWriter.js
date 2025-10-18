@@ -4,7 +4,8 @@
  * Thin wrapper around renderer with added safety checks and logs.
  */
 class OutputWriter {
-	constructor(outputElement) {
+	constructor(renderer, outputElement) {
+		this.renderer = renderer;
 		this.output = outputElement;
 		console.log('🧩 OutputWriter initialized');
 	}
@@ -23,10 +24,10 @@ class OutputWriter {
 			return;
 		}
 		try {
-			this.renderToElement(this.output, data);
+			this.renderer.renderToElement(this.output, data);
 			console.log('🖨️ OutputWriter: Render complete', { length: data.ascii.length });
-		} catch (err) {
-			console.error('OutputWriter: Render error', err);
+		} catch (error) {
+			console.error('OutputWriter: Render error', error);
 		}
 	}
 
