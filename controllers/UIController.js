@@ -215,11 +215,13 @@ class UIController {
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
             console.log('📥 UIController received TEXT_GENERATION_COMPLETE');
             onGenerationEnd();
+            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
             this.displayOutput({
                 ascii: result.ascii,
                 color: result.metadata?.color,
                 animation: result.metadata?.animation
             });
+            this.updateOutputStats(result.ascii);
             this.showNotification('✨ Text art generated!', 'success');
         });
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (payload) => {
@@ -231,11 +233,13 @@ class UIController {
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => {
             onGenerationEnd();
+            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
             this.displayOutput({
                 ascii: result.ascii,
                 color: 'none',
                 animation: 'none'
             });
+            this.updateOutputStats(result.ascii);
             this.showNotification('✨ Image art generated!', 'success');
         });
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (payload) => {
@@ -247,11 +251,13 @@ class UIController {
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, onGenerationStart);
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => {
             onGenerationEnd();
+            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
             this.displayOutput({
                 ascii: result.ascii,
                 color: result.metadata?.color,
                 animation: result.metadata?.animation
             });
+            this.updateOutputStats(result.ascii);
             this.showNotification('✨ Poetry art generated!', 'success');
         });
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (payload) => {
@@ -267,12 +273,23 @@ class UIController {
     handleGenerateClick() {
         console.log('🎨 handleGenerateClick called, current mode:', this.state.currentTab);
 
+        // Disable generate during processing to prevent duplicate requests
+        const enableGenerate = (enabled) => {
+            if (this.dom.generateBtn) {
+                this.dom.generateBtn.disabled = !enabled;
+                this.dom.generateBtn.classList.toggle('disabled', !enabled);
+            }
+        };
+
+        enableGenerate(false);
+
         switch (this.state.currentTab) {
             case 'text':
                 {
                     const { ok, options, error } = this.inputReader.readTextOptions();
                     if (!ok) {
                         this.showNotification(error, 'warning');
+                        enableGenerate(true);
                         return;
                     }
                     console.log('📤 Emitting REQUEST_TEXT_GENERATION', options);
@@ -285,6 +302,7 @@ class UIController {
                     const { ok, options, error } = this.inputReader.readImageOptions();
                     if (!ok) {
                         this.showNotification(error, 'warning');
+                        enableGenerate(true);
                         return;
                     }
                     console.log('📤 Emitting REQUEST_IMAGE_GENERATION', { fileName: options.file?.name, width: options.width, charSet: options.charSet });
@@ -297,6 +315,7 @@ class UIController {
                     const { ok, options, error } = this.inputReader.readPoetryOptions();
                     if (!ok) {
                         this.showNotification(error, 'warning');
+                        enableGenerate(true);
                         return;
                     }
                     // merge keyword state (reader does not have access to state)
@@ -309,6 +328,7 @@ class UIController {
             default:
                 console.error(`❌ Unknown generation mode: ${this.state.currentTab}`);
                 this.showNotification('Unknown mode selected', 'error');
+                enableGenerate(true);
         }
     }
 
@@ -351,6 +371,13 @@ class UIController {
             this.updateFontOptions(mode);
 
             this.eventBus.emit(EventBus.Events.TAB_CHANGED, { tab: mode });
+
+            // Improve continuity: focus correct input after switching
+            setTimeout(() => {
+                if (mode === 'text') this.dom.textInput?.focus();
+                if (mode === 'image') this.dom.imageInput?.focus();
+                if (mode === 'poetry') this.dom.poemInput?.focus();
+            }, 0);
         } catch (error) {
             console.error('Error switching mode:', error);
         }
@@ -629,6 +656,17 @@ class UIController {
             console.error('Error downloading output:', error);
             this.showNotification('❌ Failed to download', 'error');
         }
+    }
+
+    updateOutputStats(ascii) {
+        try {
+            const el = document.getElementById('output-stats');
+            if (!el || !ascii) return;
+            const lines = ascii.split('\n');
+            const width = Math.max(...lines.map(l => l.length));
+            const height = lines.length;
+            el.textContent = `${width}×${height}, ${ascii.length} chars`;
+        } catch (_) {}
     }
 
     /**
