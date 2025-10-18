@@ -216,7 +216,9 @@
         try {
             createOverlay();
             const saved = localStorage.getItem(STORE_KEY_OPEN);
-            const wantOpen = (saved === 'true') || /[?&]debug=1/.test(location.search);
+            // First load: default open to help diagnose; user can close and it persists
+            const firstLoad = saved === null;
+            const wantOpen = firstLoad || (saved === 'true') || /[?&]debug=1/.test(location.search);
             if (wantOpen) toggle(true);
             console.info('🧰 ConsoleOverlay ready. Toggle with Ctrl+~.');
         } catch (err) {

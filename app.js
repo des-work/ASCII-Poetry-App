@@ -65,7 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('  Download button:', downloadBtn ? '✅ Found' : '❌ Missing');
         console.log('  Clear button:', clearBtn ? '✅ Found' : '❌ Missing');
 
-        // Step 7: Log success message to the console.
+        // Step 7: Build badge to confirm fresh load
+        try {
+            const buildId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+            const el = document.getElementById('build-id');
+            if (el) el.textContent = buildId;
+        } catch (_) {}
+
+        // Step 8: Log success message to the console.
         console.log('\n' + '='.repeat(60));
         console.log('✅ APPLICATION INITIALIZED SUCCESSFULLY');
         console.log('='.repeat(60));
