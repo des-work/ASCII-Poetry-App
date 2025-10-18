@@ -233,7 +233,7 @@ class ASCIIRenderer {
         // Reset element state
         element.textContent = ascii;
         element.className = 'ascii-output'; // Reset classes
-        element.style.color = ''; // Reset inline color
+        element.style.color = 'red'; // Temporary: Force red color to test visibility
         element.style.background = ''; // Reset background for gradients
         element.style.webkitBackgroundClip = '';
         element.style.webkitTextFillColor = '';
