@@ -42,18 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
         uiController.subscribeToEvents();
         console.log('✅ Event subscriptions finalized');
 
-        // Step 5: Expose core components for debugging.
+        // Step 5: ButtonsController for delegated UI events
+        console.log('📦 Step 5: Creating Buttons controller...');
+        const buttonsController = new ButtonsController(eventBus, document);
+        console.log('✅ Buttons controller created');
+
+        // Step 6: Expose core components for debugging.
         window.app = { 
             eventBus,
             fontManager,
             asciiRenderer,
             inputValidator,
             services: { asciiGeneratorService }, 
-            controllers: { ui: uiController } 
+            controllers: { ui: uiController, buttons: buttonsController } 
         };
         console.log('✅ Components exposed to window.app');
         
-        // Step 6: Test button connections
+        // Step 7: Test button connections
         console.log('🔧 Testing button connections...');
         const generateBtn = document.getElementById('generate-main');
         const copyBtn = document.getElementById('copy-btn');

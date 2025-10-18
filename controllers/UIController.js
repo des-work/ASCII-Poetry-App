@@ -117,36 +117,12 @@ class UIController {
      * Attach DOM event listeners
      */
     attachEventListeners() {
-        // Mode switching
+        // Mode switching is now handled by ButtonsController via eventBus
         const btnCount = this.dom.modeButtons?.length || 0;
-        console.log('🔗 Attaching mode button listeners, found:', btnCount);
-        if (!btnCount) {
-            console.warn('⚠️ No mode buttons found in DOM at attach time');
-        }
-        this.dom.modeButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                console.log('🖱️ Mode button raw click captured', { mode: e.currentTarget.dataset.mode });
-                const mode = e.currentTarget.dataset.mode;
-                if (mode) this.switchMode(mode);
-            });
-        });
+        console.log('🔗 Mode buttons present:', btnCount);
 
         // Main Generate Button
         if (this.dom.generateBtn) {
-            console.log('✅ Attaching event listener to generate button');
-            this.dom.generateBtn.addEventListener('click', () => {
-            console.log('🖱️ Generate button clicked!');
-            // Trace listener counts before emitting
-            try {
-                const events = this.eventBus?.events || {};
-                console.log('🔎 EventBus listener counts before emit:', {
-                    textReq: (events[EventBus.Events.REQUEST_TEXT_GENERATION] || []).length,
-                    imgReq: (events[EventBus.Events.REQUEST_IMAGE_GENERATION] || []).length,
-                    ptryReq: (events[EventBus.Events.REQUEST_POETRY_GENERATION] || []).length
-                });
-            } catch (_) {}
-                this.handleGenerateClick();
-            });
             // Probe which element is on top of the generate button
             this.probeClickable(this.dom.generateBtn, 'generate-main');
         } else {
@@ -156,11 +132,7 @@ class UIController {
                 const btn = document.getElementById('generate-main');
                 if (btn) {
                     this.dom.generateBtn = btn;
-                    console.log('✅ Late-found generate button, attaching listener now');
-                    btn.addEventListener('click', () => {
-                        console.log('🖱️ Generate button clicked! (late-bound)');
-                        this.handleGenerateClick();
-                    });
+                    console.log('✅ Late-found generate button');
                     this.probeClickable(btn, 'generate-main(late)');
                     observer.disconnect();
                 }
@@ -169,33 +141,15 @@ class UIController {
         }
 
         // Output controls
-        if (this.dom.copyBtn) {
-            console.log('✅ Attaching event listener to copy button');
-            this.dom.copyBtn.addEventListener('click', () => {
-                console.log('🖱️ Copy button clicked!');
-                this.copyToClipboard();
-            });
-        } else {
+        if (!this.dom.copyBtn) {
             console.warn('⚠️ Copy button not found!');
         }
 
-        if (this.dom.downloadBtn) {
-            console.log('✅ Attaching event listener to download button');
-            this.dom.downloadBtn.addEventListener('click', () => {
-                console.log('🖱️ Download button clicked!');
-                this.downloadOutput();
-            });
-        } else {
+        if (!this.dom.downloadBtn) {
             console.warn('⚠️ Download button not found!');
         }
 
-        if (this.dom.clearBtn) {
-            console.log('✅ Attaching event listener to clear button');
-            this.dom.clearBtn.addEventListener('click', () => {
-                console.log('🖱️ Clear button clicked!');
-                this.clearOutput();
-            });
-        } else {
+        if (!this.dom.clearBtn) {
             console.warn('⚠️ Clear button not found!');
         }
 
@@ -233,20 +187,12 @@ class UIController {
             this.dom.keywordChipsContainer.addEventListener('click', (e) => this.handleChipClick(e));
         }
 
-        // Global capture: log any click on key controls even if listeners failed
-        document.addEventListener('click', (e) => {
-            const target = e.target;
-            const onGenerate = !!target.closest?.('#generate-main');
-            const onMode = !!target.closest?.('.mode-btn');
-            if (onGenerate || onMode) {
-                console.log('🛰️ Document-level click capture', {
-                    onGenerate,
-                    onMode,
-                    id: target.id,
-                    classes: target.className
-                });
-            }
-        }, true);
+        // UI action events from ButtonsController
+        this.eventBus.on('ui:mode:switch', ({ mode }) => this.switchMode(mode));
+        this.eventBus.on('ui:generate:click', () => this.handleGenerateClick());
+        this.eventBus.on('ui:copy:click', () => this.copyToClipboard());
+        this.eventBus.on('ui:download:click', () => this.downloadOutput());
+        this.eventBus.on('ui:clear:click', () => this.clearOutput());
     }
 
     /**
