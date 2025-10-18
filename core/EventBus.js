@@ -60,6 +60,10 @@ class EventBus {
      * @param {*} [data] - The data to pass to the callbacks.
      */
     emit(event, data) {
+        // Trace every emit to aid debugging
+        try {
+            console.log(`📢 EventBus.emit("${event}")`, { hasData: !!data });
+        } catch (_) {}
         if (!this.events[event]) {
             // It's common for some events to have no listeners, so a warning can be noisy.
             // console.warn(`⚠️ EventBus: No listeners for event "${event}"`);
@@ -67,7 +71,6 @@ class EventBus {
             // Uncomment the following lines
 
             // In emit method
-            console.log(`📢 EventBus.emit("${event}") called`);
             console.warn(`⚠️ No listeners registered for event: "${event}"`);
             console.log('📋 Available events:', Object.keys(this.events));
             return;
