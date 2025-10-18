@@ -4,8 +4,7 @@
  * Thin wrapper around renderer with added safety checks and logs.
  */
 class OutputWriter {
-	constructor(renderer, outputElement) {
-		this.renderer = renderer;
+	constructor(outputElement) {
 		this.output = outputElement;
 		console.log('🧩 OutputWriter initialized');
 	}
