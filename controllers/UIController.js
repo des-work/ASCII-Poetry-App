@@ -38,6 +38,19 @@ class UIController {
             }
             this.inputReader = new InputReader(this.dom);
             this.outputWriter = new OutputWriter(this.dom.output);
+            // Diagnostics: log cached element presence
+            console.log('🔎 UIController DOM cache:', {
+                modeButtons: this.dom.modeButtons?.length,
+                modeContents: this.dom.modeContents?.length,
+                hasGenerate: !!this.dom.generateBtn,
+                hasOutput: !!this.dom.output
+            });
+            // Fallback CSS injection to ensure pseudo-elements don't block clicks
+            try {
+                const style = document.createElement('style');
+                style.textContent = `.mode-btn::before{pointer-events:none!important;}`;
+                document.head.appendChild(style);
+            } catch (_) {}
         } catch (e) {
             console.error('❌ UIController initialization error while composing helpers:', e);
         }
@@ -105,8 +118,14 @@ class UIController {
      */
     attachEventListeners() {
         // Mode switching
+        const btnCount = this.dom.modeButtons?.length || 0;
+        console.log('🔗 Attaching mode button listeners, found:', btnCount);
+        if (!btnCount) {
+            console.warn('⚠️ No mode buttons found in DOM at attach time');
+        }
         this.dom.modeButtons.forEach(button => {
             button.addEventListener('click', (e) => {
+                console.log('🖱️ Mode button raw click captured', { mode: e.currentTarget.dataset.mode });
                 const mode = e.currentTarget.dataset.mode;
                 if (mode) this.switchMode(mode);
             });
@@ -128,8 +147,25 @@ class UIController {
             } catch (_) {}
                 this.handleGenerateClick();
             });
+            // Probe which element is on top of the generate button
+            this.probeClickable(this.dom.generateBtn, 'generate-main');
         } else {
             console.warn('⚠️ Generate button not found!');
+            // Observe for late DOM (defensive)
+            const observer = new MutationObserver(() => {
+                const btn = document.getElementById('generate-main');
+                if (btn) {
+                    this.dom.generateBtn = btn;
+                    console.log('✅ Late-found generate button, attaching listener now');
+                    btn.addEventListener('click', () => {
+                        console.log('🖱️ Generate button clicked! (late-bound)');
+                        this.handleGenerateClick();
+                    });
+                    this.probeClickable(btn, 'generate-main(late)');
+                    observer.disconnect();
+                }
+            });
+            try { observer.observe(document.body, { childList: true, subtree: true }); } catch (_) {}
         }
 
         // Output controls
@@ -196,6 +232,21 @@ class UIController {
         if (this.dom.keywordChipsContainer) {
             this.dom.keywordChipsContainer.addEventListener('click', (e) => this.handleChipClick(e));
         }
+
+        // Global capture: log any click on key controls even if listeners failed
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            const onGenerate = !!target.closest?.('#generate-main');
+            const onMode = !!target.closest?.('.mode-btn');
+            if (onGenerate || onMode) {
+                console.log('🛰️ Document-level click capture', {
+                    onGenerate,
+                    onMode,
+                    id: target.id,
+                    classes: target.className
+                });
+            }
+        }, true);
     }
 
     /**
@@ -670,6 +721,19 @@ class UIController {
         document.documentElement.setAttribute('data-theme', theme);
         if (this.dom.themeBtn) {
             this.dom.themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+    }
+
+    // Diagnostics: verify if an element is topmost at its center
+    probeClickable(element, label) {
+        try {
+            const rect = element.getBoundingClientRect();
+            const x = Math.floor(rect.left + rect.width / 2);
+            const y = Math.floor(rect.top + rect.height / 2);
+            const topEl = document.elementFromPoint(x, y);
+            console.log('🧭 Click probe', { label, topElTag: topEl?.tagName, topElId: topEl?.id, topElClass: topEl?.className, expectedId: element.id });
+        } catch (err) {
+            console.warn('Click probe failed', err);
         }
     }
 
