@@ -43,6 +43,7 @@ class UIController {
             // Tabs
             modeButtons: document.querySelectorAll('.mode-btn'),
             modeContents: document.querySelectorAll('.mode-content'),
+
             
             // Output
             output: document.getElementById('ascii-output'),
@@ -305,9 +306,8 @@ class UIController {
     switchMode(mode) {
         try {
             if (this.state.currentTab === mode) return;
-            console.log('📑 Switching to mode:', mode);
             this.state.currentTab = mode;
-            
+
             // Update button states
             this.dom.modeButtons.forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.mode === mode);

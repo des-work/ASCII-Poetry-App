@@ -310,6 +310,7 @@ body::after {
     transition: opacity 0.3s;
     background-size: 200% 100%;
     animation: rainbowFlow 3s linear infinite;
+    pointer-events: none; /* Prevent interference with clicks */
 }
 
 .mode-btn:hover::before {
