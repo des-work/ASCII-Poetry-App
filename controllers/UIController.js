@@ -33,14 +33,10 @@ class UIController {
             if (typeof InputReader !== 'function') {
                 console.error('❌ InputReader script not loaded');
             }
-            if (typeof OutputWriter !== 'function') {
-                console.error('❌ OutputWriter script not loaded');
-            }
             // Components (prefer components; keep readers/writers for compatibility)
             this.inputComponent = new InputComponent(this.dom);
             this.outputComponent = new OutputComponent(this.dom.output, this.renderer);
             this.inputReader = new InputReader(this.dom);
-            this.outputWriter = new OutputWriter(this.dom.output);
             // Diagnostics: log cached element presence
             console.log('🔎 UIController DOM cache:', {
                 modeButtons: this.dom.modeButtons?.length,
@@ -405,12 +401,7 @@ class UIController {
      */
     displayOutput(data) {
         try {
-            // Prefer component renderer; fallback to writer
-            if (this.outputComponent) {
-                this.outputComponent.render(data);
-            } else {
-                this.outputWriter.render(data);
-            }
+            this.outputComponent.render(data);
         } catch (error) {
             console.error('❌ Error displaying output:', error);
             console.error('Stack:', error.stack);
