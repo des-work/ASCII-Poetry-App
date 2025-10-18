@@ -30,7 +30,7 @@ class UIController {
         this.cacheElements();
         // Compose helpers now that DOM elements are cached
         this.inputReader = new InputReader(this.dom);
-        this.outputWriter = new OutputWriter(this.dom.output);
+        this.outputWriter = new OutputWriter(this.renderer, this.dom.output);
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
@@ -203,9 +203,10 @@ class UIController {
             });
             this.showNotification('✨ Text art generated!', 'success');
         });
-        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (error) => {
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (payload) => {
             onGenerationEnd();
-            this.showNotification(`❌ ${error.message}`, 'error');
+            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Text generation failed');
+            this.showNotification(`❌ ${message}`, 'error');
         });
 
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
@@ -218,9 +219,10 @@ class UIController {
             });
             this.showNotification('✨ Image art generated!', 'success');
         });
-        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (error) => {
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (payload) => {
             onGenerationEnd();
-            this.showNotification(`❌ ${error.message}`, 'error');
+            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Image generation failed');
+            this.showNotification(`❌ ${message}`, 'error');
         });
 
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, onGenerationStart);
@@ -233,9 +235,10 @@ class UIController {
             });
             this.showNotification('✨ Poetry art generated!', 'success');
         });
-        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => {
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (payload) => {
             onGenerationEnd();
-            this.showNotification(`❌ ${error.message}`, 'error');
+            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Poetry generation failed');
+            this.showNotification(`❌ ${message}`, 'error');
         });
     }
 
@@ -471,6 +474,16 @@ class UIController {
         if (this.dom.loading) {
             this.dom.loading.style.display = 'none';
             this.state.isLoading = false;
+        }
+    }
+
+    /**
+     * Show loading indicator
+     */
+    showLoading() {
+        if (this.dom.loading) {
+            this.dom.loading.style.display = 'block';
+            this.state.isLoading = true;
         }
     }
 
