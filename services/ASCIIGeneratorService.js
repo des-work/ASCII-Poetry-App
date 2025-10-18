@@ -82,21 +82,12 @@ class ASCIIGeneratorService {
                 }
             };
 
-            console.log('✅ Text generation complete, emitting event:', {
-                asciiLength: ascii.length,
-                lineCount: result.metadata.lineCount,
-                fontName,
-                color,
-                animation
-            });
-            console.log('📤 Emitting TEXT_GENERATION_COMPLETE event');
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_COMPLETE, result);
-            console.log('✅ Event emitted successfully');
             return result;
 
         } catch (error) {
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_ERROR, { error: error.message });
-            throw error;
+            console.error(`Text Generation Error: ${error.message}`);
         } finally {
             this.isGenerating = false;
         }
@@ -159,7 +150,7 @@ class ASCIIGeneratorService {
 
         } catch (error) {
             this.eventBus.emit(EventBus.Events.IMAGE_GENERATION_ERROR, { error: error.message });
-            throw error;
+            console.error(`Image Generation Error: ${error.message}`);
         } finally {
             this.isGenerating = false;
         }
@@ -240,7 +231,7 @@ class ASCIIGeneratorService {
 
         } catch (error) {
             this.eventBus.emit(EventBus.Events.POETRY_GENERATION_ERROR, { error: error.message });
-            throw error;
+            console.error(`Poetry Generation Error: ${error.message}`);
         } finally {
             this.isGenerating = false;
         }

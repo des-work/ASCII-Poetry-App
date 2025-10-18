@@ -4,12 +4,12 @@
  */
 
 class UIController {
-    constructor(eventBus, config, fontManager, asciiRenderer, validator) {
+    constructor(eventBus, config, fontManager, asciiRenderer, inputValidator) {
         this.eventBus = eventBus;
         this.config = config;
         this.fontManager = fontManager;
         this.renderer = asciiRenderer;
-        this.validator = validator;
+        this.validator = inputValidator;
         this.dom = {}; // Use 'dom' to be more specific than 'elements'
         this.state = {
             currentTab: 'text',
@@ -18,28 +18,18 @@ class UIController {
             keywords: new Set()
         };
         
-        // Compose helpers for better separation of concerns
-        try {
-            this.inputReader = new InputReader(this.dom);
-        } catch (e) {
-            console.warn('InputReader not available at construction time; will rebind after cacheElements');
-        }
-
         this.initialize();
         // Expose for debugging
         window.ui = this;
     }
-
 
     /**
      * Initialize UI controller
      */
     initialize() {
         this.cacheElements();
-        // Rebind InputReader now that DOM is cached
+        // Compose helpers now that DOM elements are cached
         this.inputReader = new InputReader(this.dom);
-        // Output writer composes renderer and output element
-        this.outputWriter = new OutputWriter(this.renderer, this.dom.output);
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
