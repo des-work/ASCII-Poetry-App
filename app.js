@@ -95,6 +95,16 @@ All systems operational!
 `);
         console.log('='.repeat(60) + '\n');
 
+        // After the success message, add a test generation to verify the flow
+        console.log('🧪 Running test generation...');
+        eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, {
+            text: 'TEST',
+            fontName: 'standard',
+            color: 'none',
+            animation: 'none'
+        });
+        console.log('🧪 Test generation emitted - check if output appears and logs show the flow');
+
     } catch (error) {
         // This catch block handles any fatal errors during the application's startup sequence.
         console.error('❌ A fatal error occurred during application initialization:', error);
