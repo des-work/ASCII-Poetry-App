@@ -260,8 +260,11 @@ class ASCIIGeneratorService {
 
             img.onload = () => {
                 try {
-                    const aspectRatio = img.height / img.width;
-                    const height = Math.floor(width * aspectRatio * 0.5); // Adjust for character aspect ratio
+                    // A more accurate aspect ratio correction.
+                    // Assumes common monospace fonts are roughly twice as tall as they are wide.
+                    const characterAspectRatio = 0.5;
+                    const imageAspectRatio = img.height / img.width;
+                    const height = Math.floor(width * imageAspectRatio * characterAspectRatio);
 
                     canvas.width = width;
                     canvas.height = height;
@@ -378,7 +381,7 @@ class ASCIIGeneratorService {
             simple: '#*+. ',
             detailed: '@#$%&*+=~-:,.` '
         };
-        return (sets[setName] || sets.standard).split('').reverse().join('');
+        return sets[setName] || sets.standard;
     }
 
     /**

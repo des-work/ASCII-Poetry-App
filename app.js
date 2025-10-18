@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Step 3: Instantiate the UI Controller with all its dependencies.
         console.log('📦 Step 3: Creating UI controller...');
-        const uiController = new UIController(eventBus, window.AppConfig || {}, fontManager, asciiRenderer);
+        const uiController = new UIController(eventBus, window.AppConfig || {}, fontManager, asciiRenderer, inputValidator);
         console.log('✅ UI controller created');
 
         // Step 4: Finalize subscriptions after all components are created.

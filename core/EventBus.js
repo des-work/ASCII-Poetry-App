@@ -70,8 +70,6 @@ class EventBus {
                 console.error('  Stack:', error.stack);
             }
         });
-        
-        console.log(`✅ Event "${event}" processing complete`);
     }
 
     /**

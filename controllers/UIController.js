@@ -4,16 +4,18 @@
  */
 
 class UIController {
-    constructor(eventBus, config, fontManager, asciiRenderer) {
+    constructor(eventBus, config, fontManager, asciiRenderer, validator) {
         this.eventBus = eventBus;
         this.config = config;
         this.fontManager = fontManager;
         this.renderer = asciiRenderer;
+        this.validator = validator;
         this.dom = {}; // Use 'dom' to be more specific than 'elements'
         this.state = {
             currentTab: 'text',
             theme: this.config?.ui?.theme?.default || 'dark',
-            isLoading: false
+            isLoading: false,
+            keywords: new Set()
         };
         
         this.initialize();
@@ -154,12 +156,21 @@ class UIController {
         // Keyword input handling
         if (this.dom.keywordsInput) {
             this.dom.keywordsInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && this.dom.keywordsInput.value) {
                     e.preventDefault();
-                    // In a full implementation, this would emit an event.
-                    // For now, it might call a method on a keyword manager.
+                    this.addKeyword(this.dom.keywordsInput.value.trim());
+                    this.dom.keywordsInput.value = '';
                 }
             });
+        }
+
+        // Auto-detect keywords button
+        if (this.dom.autoDetectBtn) {
+            this.dom.autoDetectBtn.addEventListener('click', () => this.autoDetectKeywords());
+        }
+
+        if (this.dom.keywordChipsContainer) {
+            this.dom.keywordChipsContainer.addEventListener('click', (e) => this.handleChipClick(e));
         }
     }
 
@@ -265,7 +276,7 @@ class UIController {
                     decoration: this.dom.poetryDecorationSelect?.value || 'none',
                     color: this.dom.colorSelect?.value || 'none',
                     animation: this.dom.animationSelect?.value || 'none',
-                    keywords: [] // TODO: Implement keyword management
+                    keywords: Array.from(this.state.keywords)
                 };
                 console.log('📤 Emitting REQUEST_POETRY_GENERATION');
                 this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, poetryOptions);
@@ -343,6 +354,122 @@ class UIController {
         }
     }
 
+    /**
+     * Display poetry-specific output
+     * @param {Object} result - Generation result
+     */
+    // This method is now redundant as its logic is handled by the renderer
+    // and the POETRY_GENERATION_COMPLETE event handler.
+    // displayPoetryOutput(result) { ... }
+
+    // --- Keyword Management ---
+
+    addKeyword(keyword) {
+        const validation = this.validator.validateKeyword(keyword, this.state.keywords.size);
+        if (!validation.valid) {
+            this.showNotification(`⚠️ ${validation.error}`, 'warning');
+            return;
+        }
+
+        if (this.state.keywords.has(validation.value)) {
+            this.showNotification('⚠️ Keyword already added!', 'warning');
+            return;
+        }
+
+        this.state.keywords.add(validation.value);
+        this.renderKeywordChips();
+    }
+
+    removeKeyword(keyword) {
+        this.state.keywords.delete(keyword);
+        this.renderKeywordChips();
+    }
+
+    renderKeywordChips() {
+        if (!this.dom.keywordChipsContainer) return;
+
+        this.dom.keywordChipsContainer.innerHTML = '';
+        this.state.keywords.forEach(keyword => {
+            const chip = document.createElement('div');
+            chip.className = 'keyword-chip';
+            chip.textContent = keyword;
+            chip.dataset.keyword = keyword;
+            this.dom.keywordChipsContainer.appendChild(chip);
+        });
+    }
+
+    handleChipClick(event) {
+        const keyword = event.target.dataset.keyword;
+        if (keyword) {
+            this.removeKeyword(keyword);
+        }
+    }
+
+    autoDetectKeywords() {
+        const poem = this.dom.poemInput?.value;
+        if (!poem || !poem.trim()) {
+            this.showNotification('⚠️ Please enter a poem first!', 'warning');
+            return;
+        }
+
+        try {
+            const config = this.config?.poetry || {};
+            const commonWords = new Set(config.commonWords || []);
+            const minLength = config.autoDetect?.minWordLength || 4;
+            const maxKeywords = config.autoDetect?.maxKeywords || 5;
+
+            // Extract words and count their frequency
+            const words = poem.toLowerCase().match(/\b[a-z]+\b/g) || [];
+            const wordCount = {};
+            
+            words.forEach(word => {
+                if (!commonWords.has(word) && word.length >= minLength) {
+                    wordCount[word] = (wordCount[word] || 0) + 1;
+                }
+            });
+
+            // Get top keywords based on frequency and length
+            const detectedKeywords = Object.keys(wordCount)
+                .sort((a, b) => {
+                    // Prioritize more frequent words, then longer words
+                    if (wordCount[b] !== wordCount[a]) {
+                        return wordCount[b] - wordCount[a];
+                    }
+                    return b.length - a.length;
+                })
+                .filter(word => !this.state.keywords.has(word)); // Exclude already added keywords
+
+            if (detectedKeywords.length === 0) {
+                this.showNotification('ℹ️ No new significant keywords detected.', 'info');
+                return;
+            }
+
+            // Add the top detected keywords up to the limit
+            let addedCount = 0;
+            for (const keyword of detectedKeywords) {
+                if (this.state.keywords.size < (this.config?.validation?.keywords?.max || 20)) {
+                    this.addKeyword(keyword);
+                    addedCount++;
+                    if (addedCount >= maxKeywords) break;
+                } else {
+                    this.showNotification('⚠️ Keyword limit reached.', 'warning');
+                    break;
+                }
+            }
+
+            if (addedCount > 0) {
+                this.showNotification(`✨ Detected and added ${addedCount} new keyword(s)!`, 'success');
+            } else {
+                this.showNotification('ℹ️ No new keywords could be added.', 'info');
+            }
+
+        } catch (error) {
+            console.error('Error auto-detecting keywords:', error);
+            this.showNotification('❌ Error detecting keywords.', 'error');
+        }
+    }
+
+    // --- End Keyword Management ---
 
     /**
      * Hide loading indicator
