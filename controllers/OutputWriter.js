@@ -24,7 +24,8 @@ class OutputWriter {
 			return;
 		}
 		try {
-			this.renderer.renderToElement(this.output, data);
+			// Use OutputWriter's own rendering routine to guarantee DOM-safe rendering
+			this.renderToElement(this.output, data);
 			console.log('🖨️ OutputWriter: Render complete', { length: data.ascii.length });
 		} catch (error) {
 			console.error('OutputWriter: Render error', error);
@@ -42,7 +43,8 @@ class OutputWriter {
 		// Reset element state
 		element.textContent = ascii;
 		element.className = 'ascii-output'; // Reset classes
-		element.style.color = ''; // Reset inline color
+		// Ensure visibility when color is 'none' on dark background
+		element.style.color = color === 'none' ? '#ffffff' : '';
 		element.style.background = ''; // Reset background for gradients
 		element.style.webkitBackgroundClip = '';
 		element.style.webkitTextFillColor = '';

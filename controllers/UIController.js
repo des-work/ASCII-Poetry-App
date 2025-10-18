@@ -106,7 +106,16 @@ class UIController {
         if (this.dom.generateBtn) {
             console.log('✅ Attaching event listener to generate button');
             this.dom.generateBtn.addEventListener('click', () => {
-                console.log('🖱️ Generate button clicked!');
+            console.log('🖱️ Generate button clicked!');
+            // Trace listener counts before emitting
+            try {
+                const events = this.eventBus?.events || {};
+                console.log('🔎 EventBus listener counts before emit:', {
+                    textReq: (events[EventBus.Events.REQUEST_TEXT_GENERATION] || []).length,
+                    imgReq: (events[EventBus.Events.REQUEST_IMAGE_GENERATION] || []).length,
+                    ptryReq: (events[EventBus.Events.REQUEST_POETRY_GENERATION] || []).length
+                });
+            } catch (_) {}
                 this.handleGenerateClick();
             });
         } else {
