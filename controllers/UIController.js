@@ -18,6 +18,13 @@ class UIController {
             keywords: new Set()
         };
         
+        // Compose helpers for better separation of concerns
+        try {
+            this.inputReader = new InputReader(this.dom);
+        } catch (e) {
+            console.warn('InputReader not available at construction time; will rebind after cacheElements');
+        }
+
         this.initialize();
         // Expose for debugging
         window.ui = this;
@@ -29,6 +36,10 @@ class UIController {
      */
     initialize() {
         this.cacheElements();
+        // Rebind InputReader now that DOM is cached
+        this.inputReader = new InputReader(this.dom);
+        // Output writer composes renderer and output element
+        this.outputWriter = new OutputWriter(this.renderer, this.dom.output);
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
@@ -243,44 +254,41 @@ class UIController {
 
         switch (this.state.currentTab) {
             case 'text':
-                const textOptions = {
-                    text: this.dom.textInput?.value || '',
-                    fontName: this.dom.fontSelect?.value || 'standard',
-                    color: this.dom.colorSelect?.value || 'none',
-                    animation: this.dom.animationSelect?.value || 'none',
-                };
-                console.log('📤 Emitting REQUEST_TEXT_GENERATION');
-                this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, textOptions);
+                {
+                    const { ok, options, error } = this.inputReader.readTextOptions();
+                    if (!ok) {
+                        this.showNotification(error, 'warning');
+                        return;
+                    }
+                    console.log('📤 Emitting REQUEST_TEXT_GENERATION', options);
+                    this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, options);
+                }
                 break;
 
             case 'image':
-                const imageFile = this.dom.imageInput?.files?.[0];
-                if (!imageFile) {
-                    console.warn('⚠️ No image file selected');
-                    this.showNotification('Please select an image first', 'error');
-                    return;
+                {
+                    const { ok, options, error } = this.inputReader.readImageOptions();
+                    if (!ok) {
+                        this.showNotification(error, 'warning');
+                        return;
+                    }
+                    console.log('📤 Emitting REQUEST_IMAGE_GENERATION', { fileName: options.file?.name, width: options.width, charSet: options.charSet });
+                    this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, options);
                 }
-                const imageOptions = {
-                    file: imageFile,
-                    width: parseInt(this.dom.imageWidthSlider?.value || '80', 10),
-                    charSet: this.dom.imageCharsSelect?.value || 'standard',
-                };
-                console.log('📤 Emitting REQUEST_IMAGE_GENERATION');
-                this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, imageOptions);
                 break;
 
             case 'poetry':
-                const poetryOptions = {
-                    poem: this.dom.poemInput?.value || '',
-                    fontName: this.dom.fontSelect?.value || 'mini',
-                    layout: this.dom.poetryLayoutSelect?.value || 'centered',
-                    decoration: this.dom.poetryDecorationSelect?.value || 'none',
-                    color: this.dom.colorSelect?.value || 'none',
-                    animation: this.dom.animationSelect?.value || 'none',
-                    keywords: Array.from(this.state.keywords)
-                };
-                console.log('📤 Emitting REQUEST_POETRY_GENERATION');
-                this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, poetryOptions);
+                {
+                    const { ok, options, error } = this.inputReader.readPoetryOptions();
+                    if (!ok) {
+                        this.showNotification(error, 'warning');
+                        return;
+                    }
+                    // merge keyword state (reader does not have access to state)
+                    options.keywords = Array.from(this.state.keywords);
+                    console.log('📤 Emitting REQUEST_POETRY_GENERATION', { poemLength: options.poem.length, layout: options.layout, decoration: options.decoration });
+                    this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, options);
+                }
                 break;
 
             default:
@@ -346,7 +354,7 @@ class UIController {
      */
     displayOutput(data) {
         try {
-            this.renderer.renderToElement(this.dom.output, data);
+            this.outputWriter.render(data);
         } catch (error) {
             console.error('❌ Error displaying output:', error);
             console.error('Stack:', error.stack);
