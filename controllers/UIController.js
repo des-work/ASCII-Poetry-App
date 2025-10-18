@@ -43,6 +43,8 @@ class UIController {
         this.attachEventListeners();
         this.initializeTheme();
         this.initializeAnimatedTitle();
+        // Set the initial mode to 'text'
+        this.switchMode('text');
         console.log('🕹️ UIController initialized');
     }
 
@@ -361,14 +363,6 @@ class UIController {
             this.showNotification(`Failed to display output: ${error.message}`, 'error');
         }
     }
-
-    /**
-     * Display poetry-specific output
-     * @param {Object} result - Generation result
-     */
-    // This method is now redundant as its logic is handled by the renderer
-    // and the POETRY_GENERATION_COMPLETE event handler.
-    // displayPoetryOutput(result) { ... }
 
     // --- Keyword Management ---
 
