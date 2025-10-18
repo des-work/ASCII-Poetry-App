@@ -36,6 +36,9 @@ class UIController {
             if (typeof OutputWriter !== 'function') {
                 console.error('❌ OutputWriter script not loaded');
             }
+            // Components (prefer components; keep readers/writers for compatibility)
+            this.inputComponent = new InputComponent(this.dom);
+            this.outputComponent = new OutputComponent(this.dom.output, this.renderer);
             this.inputReader = new InputReader(this.dom);
             this.outputWriter = new OutputWriter(this.dom.output);
             // Diagnostics: log cached element presence
@@ -366,7 +369,12 @@ class UIController {
      */
     displayOutput(data) {
         try {
-            this.outputWriter.render(data);
+            // Prefer component renderer; fallback to writer
+            if (this.outputComponent) {
+                this.outputComponent.render(data);
+            } else {
+                this.outputWriter.render(data);
+            }
         } catch (error) {
             console.error('❌ Error displaying output:', error);
             console.error('Stack:', error.stack);
