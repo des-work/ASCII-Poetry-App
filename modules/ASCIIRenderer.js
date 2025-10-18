@@ -223,6 +223,7 @@ class ASCIIRenderer {
      * @param {string} [data.animation='none'] - The animation to apply.
      */
     renderToElement(element, data) {
+        console.log('🎨 renderToElement called with:', { asciiLength: data?.ascii?.length, color, animation });
         if (!element || !data || typeof data.ascii === 'undefined') {
             console.error('Renderer: Invalid arguments for renderToElement');
             return;
