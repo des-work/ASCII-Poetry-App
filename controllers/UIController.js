@@ -58,6 +58,8 @@ class UIController {
             console.error('❌ UIController initialization error while composing helpers:', e);
         }
         this.attachEventListeners();
+        // Initial generate button state
+        this.updateGenerateEnabled();
         this.initializeTheme();
         this.initializeAnimatedTitle();
         // Set the initial mode to 'text'
@@ -167,6 +169,7 @@ class UIController {
                 if (this.dom.imageWidthValue) {
                     this.dom.imageWidthValue.textContent = e.target.value;
                 }
+                this.updateGenerateEnabled();
             });
         }
 
@@ -177,9 +180,15 @@ class UIController {
                     e.preventDefault();
                     this.addKeyword(this.dom.keywordsInput.value.trim());
                     this.dom.keywordsInput.value = '';
+                    this.updateGenerateEnabled();
                 }
             });
         }
+
+        // Enable/disable Generate based on current input validity
+        this.dom.textInput?.addEventListener('input', () => this.updateGenerateEnabled());
+        this.dom.poemInput?.addEventListener('input', () => this.updateGenerateEnabled());
+        this.dom.imageInput?.addEventListener('change', () => this.updateGenerateEnabled());
 
         // Auto-detect keywords button
         if (this.dom.autoDetectBtn) {
@@ -677,6 +686,8 @@ class UIController {
             if (this.dom.output) {
                 this.dom.output.textContent = '';
                 this.dom.output.className = 'ascii-output';
+                const stats = document.getElementById('output-stats');
+                if (stats) stats.textContent = '';
                 this.showNotification('🗑️ Output cleared', 'info');
                 this.eventBus.emit(EventBus.Events.OUTPUT_CLEARED);
             }
@@ -714,6 +725,37 @@ class UIController {
         if (this.dom.themeBtn) {
             this.dom.themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
         }
+    }
+
+    // ---- Flow helpers ----
+    updateGenerateEnabled() {
+        const btn = this.dom.generateBtn;
+        if (!btn) return;
+        let enabled = false;
+        switch (this.state.currentTab) {
+            case 'text':
+                enabled = !!(this.dom.textInput?.value && this.dom.textInput.value.trim());
+                break;
+            case 'image':
+                enabled = !!(this.dom.imageInput?.files?.[0]);
+                break;
+            case 'poetry':
+                enabled = !!(this.dom.poemInput?.value && this.dom.poemInput.value.trim());
+                break;
+        }
+        btn.disabled = !enabled;
+        btn.classList.toggle('disabled', !enabled);
+    }
+
+    updateOutputStats(ascii) {
+        try {
+            const el = document.getElementById('output-stats');
+            if (!el || !ascii) return;
+            const lines = ascii.split('\n');
+            const width = Math.max(...lines.map(l => l.length));
+            const height = lines.length;
+            el.textContent = `${width}×${height}, ${ascii.length} chars`;
+        } catch (_) {}
     }
 
     // Diagnostics: verify if an element is topmost at its center
