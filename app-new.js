@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Output system
         const outputManager = new OutputManager(eventBus, asciiRenderer);
         
+        // UI Controller (legacy system integration)
+        const uiController = new UIController(eventBus, window.AppConfig, fontManager, asciiRenderer, inputValidator);
+        
         console.log('✅ New system components created');
 
         // Step 3: Test system connections
@@ -82,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             buttonController,
             inputManager,
             generationService,
-            outputManager
+            outputManager,
+            uiController
         };
         console.log('✅ Components exposed to window.app');
 
