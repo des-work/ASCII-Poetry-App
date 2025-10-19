@@ -759,8 +759,8 @@ textarea:focus {
 
 .ascii-output {
     font-family: 'JetBrains Mono', 'Courier New', monospace;
-    font-size: 0.95rem;
-    line-height: 1.2;
+    font-size: 1.4rem;
+    line-height: 1.3;
     color: var(--text-primary);
     white-space: pre;
     overflow-x: auto;
@@ -770,6 +770,10 @@ textarea:focus {
     border-radius: 16px;
     border: 1px solid var(--border-subtle);
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 /* Rainbow border glow effect */

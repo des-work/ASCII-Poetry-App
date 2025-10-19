@@ -13,7 +13,6 @@ class UIController {
         this.dom = {}; // Use 'dom' to be more specific than 'elements'
         this.state = {
             currentTab: 'text',
-            theme: this.config?.ui?.theme?.default || 'dark',
             isLoading: false,
             keywords: new Set()
         };
@@ -36,6 +35,7 @@ class UIController {
             // Components (prefer components; keep readers/writers for compatibility)
             this.inputComponent = new InputComponent(this.dom);
             this.outputComponent = new OutputComponent(this.dom.output, this.renderer);
+            this.bannerComponent = new BannerComponent(this.config, this.fontManager, this.renderer);
             this.inputReader = new InputReader(this.dom);
             // Diagnostics: log cached element presence
             console.log('🔎 UIController DOM cache:', {
@@ -56,8 +56,6 @@ class UIController {
         this.attachEventListeners();
         // Initial generate button state
         this.updateGenerateEnabled();
-        this.initializeTheme();
-        this.initializeAnimatedTitle();
         // Set the initial mode to 'text'
         this.switchMode('text');
         console.log('🕹️ UIController initialized');
@@ -108,9 +106,6 @@ class UIController {
             
             // Notification
             notification: document.getElementById('notification'),
-
-            // Title
-            asciiTitle: document.getElementById('ascii-title'),
         };
     }
 
@@ -154,10 +149,7 @@ class UIController {
             console.warn('⚠️ Clear button not found!');
         }
 
-        // Theme toggle
-        if (this.dom.themeBtn) {
-            this.dom.themeBtn.addEventListener('click', () => this.toggleTheme());
-        }
+        // Theme toggle is now handled by BannerComponent
 
         // Image width slider
         if (this.dom.imageWidthSlider) {
@@ -337,15 +329,6 @@ class UIController {
         }
     }
 
-    initializeTheme() {
-        try {
-            const savedTheme = localStorage.getItem(this.config?.storage?.keys?.theme || 'theme') || this.config?.ui?.theme?.default || 'dark';
-            this.setTheme(savedTheme);
-        } catch (error) {
-            console.error('Error initializing theme:', error);
-            this.setTheme('dark'); // Fallback
-        }
-    }
 
     /**
      * Switch active tab
@@ -687,36 +670,6 @@ class UIController {
         }
     }
 
-    /**
-     * Toggle theme
-     */
-    toggleTheme() {
-        try {
-            const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
-            this.setTheme(newTheme);
-
-            // Save to localStorage
-            try {
-                const themeKey = this.config?.storage?.keys?.theme || 'theme';
-                localStorage.setItem(themeKey, newTheme);
-            } catch (storageError) {
-                console.warn('Failed to save theme preference:', storageError);
-            }
-
-            this.eventBus.emit(EventBus.Events.THEME_CHANGED, { theme: this.state.theme });
-
-        } catch (error) {
-            console.error('Error toggling theme:', error);
-        }
-    }
-
-    setTheme(theme) {
-        this.state.theme = theme;
-        document.documentElement.setAttribute('data-theme', theme);
-        if (this.dom.themeBtn) {
-            this.dom.themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
-        }
-    }
 
     // ---- Flow helpers ----
     updateGenerateEnabled() {
@@ -762,30 +715,6 @@ class UIController {
         }
     }
 
-    initializeAnimatedTitle() {
-        const interval = this.config?.ascii?.titleRotationInterval || 4000;
-        this.animateTitle();
-        setInterval(() => this.animateTitle(), interval);
-    }
-
-    animateTitle() {
-        if (!this.dom.asciiTitle) return;
-
-        const titleFonts = this.config?.ascii?.titleFonts || ['standard'];
-        const currentFontIndex = (this.state.titleFontIndex || 0) % titleFonts.length;
-        const fontName = titleFonts[currentFontIndex];
-        
-        const font = this.fontManager.getFont(fontName);
-        if (!font) {
-            console.warn(`Title font "${fontName}" not found.`);
-            return;
-        }
-
-        const asciiText = this.renderer.renderTextWithFont('ASCII ART', font);
-        this.dom.asciiTitle.textContent = asciiText;
-
-        this.state.titleFontIndex = currentFontIndex + 1;
-    }
 
     /**
      * Get current state
