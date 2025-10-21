@@ -1402,6 +1402,12 @@ class SimpleASCIIArt {
                 this.showNotification('⚠️ Please describe the ASCII art you want', 'warning');
                 return;
             }
+            
+            // Validate API configuration
+            if (!this.settings.apiKey || !this.settings.apiUrl) {
+                this.showNotification('⚠️ API not configured. Click ⚙️ Settings to setup', 'warning');
+                return;
+            }
         } else {
             text = this.textInput?.value?.trim();
             if (!text) {
@@ -1573,7 +1579,20 @@ class SimpleASCIIArt {
                 body: JSON.stringify(proxyRequest)
             });
 
-            const responseData = await response.json();
+            // First check if response is valid
+            const contentType = response.headers.get('content-type');
+            let responseData;
+            
+            try {
+                responseData = await response.json();
+            } catch (e) {
+                // Response is not JSON, try to get text
+                const text = await response.text();
+                if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                    throw new Error('API returned HTML error page - OpenWebUI may not be responding correctly');
+                }
+                throw new Error(`Invalid response format: ${text.substring(0, 100)}`);
+            }
 
             if (!response.ok) {
                 const errorMsg = responseData.details || responseData.error || `API error: ${response.status}`;
