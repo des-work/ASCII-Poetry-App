@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generation Flow Debug</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .flow-diagram { background: #333; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .flow-step { margin: 10px 0; padding: 10px; border-radius: 3px; }
+        .success { background: rgba(76, 175, 80, 0.2); border-left: 4px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.2); border-left: 4px solid #f44336; }
+        .warning { background: rgba(255, 152, 0, 0.2); border-left: 4px solid #FF9800; }
+        .info { background: rgba(33, 150, 243, 0.2); border-left: 4px solid #2196F3; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥Ñ Generation Flow Debug Process</h1>
+
+    <div class="section">
+        <h2>Ì≥ã Generation Flow Breakdown</h2>
+        <div class="flow-diagram">
+            <div class="flow-step info">
+                <strong>STEP 1: User Input</strong><br>
+                ‚Ä¢ Text entered in input field<br>
+                ‚Ä¢ Input validation triggered<br>
+                ‚Ä¢ Text change event emitted<br>
+                ‚Ä¢ Button state updated
+            </div>
+            <div class="flow-step info">
+                <strong>STEP 2: Button Click</strong><br>
+                ‚Ä¢ Generate button clicked<br>
+                ‚Ä¢ Click event captured<br>
+                ‚Ä¢ Input options read<br>
+                ‚Ä¢ Generation request emitted
+            </div>
+            <div class="flow-step info">
+                <strong>STEP 3: Generation Processing</strong><br>
+                ‚Ä¢ Options validated<br>
+                ‚Ä¢ Font loaded from cache<br>
+                ‚Ä¢ Text rendered to ASCII<br>
+                ‚Ä¢ Result cached
+            </div>
+            <div class="flow-step info">
+                <strong>STEP 4: Output Display</strong><br>
+                ‚Ä¢ Generation complete event<br>
+                ‚Ä¢ Output panel updated<br>
+                ‚Ä¢ UI state reset<br>
+                ‚Ä¢ User feedback shown
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Ì∑™ Step-by-Step Testing</h2>
+        <button onclick="testFlowStep(1)">Test Step 1: Input</button>
+        <button onclick="testFlowStep(2)">Test Step 2: Click</button>
+        <button onclick="testFlowStep(3)">Test Step 3: Generation</button>
+        <button onclick="testFlowStep(4)">Test Step 4: Output</button>
+        <button onclick="testFullFlow()">Test Full Flow</button>
+        <button onclick="resetFlow()">Reset Tests</button>
+        <div id="flow-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ç Component Communication</h2>
+        <button onclick="testComponentCommunication()">Test Component Communication</button>
+        <div id="comm-results" class="result"></div>
+    </div>
+
+    <script>
+        let flowTestResults = {};
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function testFlowStep(stepNum) {
+            clearResults('flow-results');
+
+            try {
+                log('flow-results', `Ì¥ç Testing Step ${stepNum}...`, 'info');
+
+                switch (stepNum) {
+                    case 1:
+                        await testInputStep();
+                        break;
+                    case 2:
+                        await testClickStep();
+                        break;
+                    case 3:
+                        await testGenerationStep();
+                        break;
+                    case 4:
+                        await testOutputStep();
+                        break;
+                }
+
+                flowTestResults[stepNum] = true;
+
+            } catch (error) {
+                log('flow-results', `‚ùå Step ${stepNum} failed: ${error.message}`, 'error');
+                flowTestResults[stepNum] = false;
+            }
+        }
+
+        async function testInputStep() {
+            log('flow-results', 'Ì≥ù Testing input step...', 'info');
+
+            // Test text input component
+            if (window.app?.inputPanel?.getTextInputComponent()) {
+                const textInput = window.app.inputPanel.getTextInputComponent();
+
+                // Set test text
+                textInput.setText('FLOW TEST');
+                const text = textInput.getText();
+
+                if (text === 'FLOW TEST') {
+                    log('flow-results', '‚úÖ Text input working', 'success');
+                } else {
+                    log('flow-results', `‚ùå Text input failed: got "${text}"`, 'error');
+                }
+
+                // Test validation
+                const isValid = textInput.isValid();
+                if (isValid) {
+                    log('flow-results', '‚úÖ Input validation working', 'success');
+                } else {
+                    log('flow-results', '‚ùå Input validation failed', 'error');
+                }
+
+                // Test event emission
+                let eventReceived = false;
+                window.app.eventBus.on('text:input:changed', (data) => {
+                    eventReceived = true;
+                });
+
+                // Trigger text change
+                textInput.setText('EVENT TEST');
+
+                setTimeout(() => {
+                    if (eventReceived) {
+                        log('flow-results', '‚úÖ Text change events working', 'success');
+                    } else {
+                        log('flow-results', '‚ùå Text change events not working', 'error');
+                    }
+                    window.app.eventBus.off('text:input:changed');
+                }, 100);
+
+            } else {
+                log('flow-results', '‚ùå TextInputComponent not available', 'error');
+            }
+        }
+
+        async function testClickStep() {
+            log('flow-results', 'Ì∂±Ô∏è Testing click step...', 'info');
+
+            // Test generate button component
+            if (window.app?.inputPanel?.getGenerateButtonComponent()) {
+                const generateButton = window.app.inputPanel.getGenerateButtonComponent();
+
+                // Check button state
+                const isEnabled = generateButton.isEnabled();
+                log('flow-results', `Ì¥ò Button enabled: ${isEnabled}`);
+
+                if (!isEnabled) {
+                    log('flow-results', '‚ùå Button should be enabled for click test', 'error');
+                    return;
+                }
+
+                // Test click event emission
+                let clickEventReceived = false;
+                window.app.eventBus.on('ui:generate:click', () => {
+                    clickEventReceived = true;
+                });
+
+                // Emit click event
+                window.app.eventBus.emit('ui:generate:click');
+
+                setTimeout(() => {
+                    if (clickEventReceived) {
+                        log('flow-results', '‚úÖ Click event emission working', 'success');
+                    } else {
+                        log('flow-results', '‚ùå Click event emission not working', 'error');
+                    }
+                    window.app.eventBus.off('ui:generate:click');
+                }, 100);
+
+            } else {
+                log('flow-results', '‚ùå GenerateButtonComponent not available', 'error');
+            }
+        }
+
+        async function testGenerationStep() {
+            log('flow-results', '‚öôÔ∏è Testing generation step...', 'info');
+
+            // Test generation service
+            if (window.app?.generationService) {
+                try {
+                    // Listen for all generation events
+                    const events = [];
+                    window.app.eventBus.on('text:gen:start', () => events.push('start'));
+                    window.app.eventBus.on('text:gen:complete', () => events.push('complete'));
+                    window.app.eventBus.on('text:gen:error', () => events.push('error'));
+
+                    // Attempt generation
+                    const result = await window.app.generationService.generateText({
+                        text: 'GENERATION TEST',
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    });
+
+                    // Check results after delay
+                    setTimeout(() => {
+                        if (events.includes('start')) {
+                            log('flow-results', '‚úÖ Generation start event working', 'success');
+                        } else {
+                            log('flow-results', '‚ùå Generation start event missing', 'error');
+                        }
+
+                        if (events.includes('complete')) {
+                            log('flow-results', '‚úÖ Generation complete event working', 'success');
+                        } else {
+                            log('flow-results', '‚ùå Generation complete event missing', 'error');
+                        }
+
+                        if (result && result.ascii) {
+                            log('flow-results', `‚úÖ Generation successful: ${result.ascii.length} characters`, 'success');
+                        } else {
+                            log('flow-results', '‚ùå Generation returned invalid result', 'error');
+                        }
+
+                        // Cleanup
+                        window.app.eventBus.off('text:gen:start');
+                        window.app.eventBus.off('text:gen:complete');
+                        window.app.eventBus.off('text:gen:error');
+                    }, 500);
+
+                } catch (error) {
+                    log('flow-results', `‚ùå Generation step error: ${error.message}`, 'error');
+                }
+            } else {
+                log('flow-results', '‚ùå GenerationService not available', 'error');
+            }
+        }
+
+        async function testOutputStep() {
+            log('flow-results', 'Ì≥∫ Testing output step...', 'info');
+
+            // Test output panel
+            if (window.app?.outputPanel) {
+                try {
+                    // Test display
+                    const testContent = "OUTPUT\nTEST\nSTEP";
+                    const displayed = window.app.outputPanel.display(testContent);
+
+                    if (displayed) {
+                        log('flow-results', '‚úÖ Output display working', 'success');
+                    } else {
+                        log('flow-results', '‚ùå Output display failed', 'error');
+                    }
+
+                    // Check output content
+                    const outputEl = document.getElementById('ascii-output');
+                    if (outputEl && outputEl.textContent.includes('OUTPUT')) {
+                        log('flow-results', '‚úÖ Output content updated', 'success');
+                    } else {
+                        log('flow-results', '‚ùå Output content not updated', 'error');
+                    }
+
+                    // Test state management
+                    const currentState = outputEl?.getAttribute('data-state');
+                    log('flow-results', `Ìø∑Ô∏è Output state: ${currentState || 'none'}`);
+
+                } catch (error) {
+                    log('flow-results', `‚ùå Output step error: ${error.message}`, 'error');
+                }
+            } else {
+                log('flow-results', '‚ùå OutputPanel not available', 'error');
+            }
+        }
+
+        async function testFullFlow() {
+            clearResults('flow-results');
+
+            try {
+                log('flow-results', 'Ì∫Ä Testing complete generation flow...', 'info');
+
+                // Set up test input
+                if (window.app?.inputPanel?.getTextInputComponent()) {
+                    window.app.inputPanel.getTextInputComponent().setText('FULL FLOW TEST');
+                }
+
+                // Listen for all events
+                const events = [];
+                window.app.eventBus.on('text:input:changed', () => events.push('input_changed'));
+                window.app.eventBus.on('ui:generate:click', () => events.push('button_clicked'));
+                window.app.eventBus.on('request:text:gen', () => events.push('generation_requested'));
+                window.app.eventBus.on('text:gen:start', () => events.push('generation_started'));
+                window.app.eventBus.on('text:gen:complete', () => events.push('generation_completed'));
+
+                // Trigger full flow
+                window.app.eventBus.emit('ui:generate:click');
+
+                // Check results after delay
+                setTimeout(() => {
+                    const expectedEvents = ['input_changed', 'button_clicked', 'generation_requested', 'generation_started', 'generation_completed'];
+                    const missingEvents = expectedEvents.filter(event => !events.includes(event));
+
+                    if (missingEvents.length === 0) {
+                        log('flow-results', '‚úÖ Full generation flow working', 'success');
+                    } else {
+                        log('flow-results', `‚ùå Missing events: ${missingEvents.join(', ')}`, 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('text:input:changed');
+                    window.app.eventBus.off('ui:generate:click');
+                    window.app.eventBus.off('request:text:gen');
+                    window.app.eventBus.off('text:gen:start');
+                    window.app.eventBus.off('text:gen:complete');
+                }, 2000);
+
+            } catch (error) {
+                log('flow-results', `‚ùå Full flow test error: ${error.message}`, 'error');
+            }
+        }
+
+        function resetFlow() {
+            flowTestResults = {};
+            clearResults('flow-results');
+        }
+
+        async function testComponentCommunication() {
+            clearResults('comm-results');
+
+            try {
+                log('comm-results', 'Ì¥ó Testing component communication...', 'info');
+
+                // Test TextInput ‚Üí GenerateButton communication
+                if (window.app?.inputPanel) {
+                    const textInput = window.app.inputPanel.getTextInputComponent();
+                    const generateButton = window.app.inputPanel.getGenerateButtonComponent();
+
+                    // Set text and check if button updates
+                    textInput.setText('COMMUNICATION TEST');
+                    const isEnabled = generateButton.isEnabled();
+
+                    if (isEnabled) {
+                        log('comm-results', '‚úÖ TextInput ‚Üí GenerateButton communication working', 'success');
+                    } else {
+                        log('comm-results', '‚ùå TextInput ‚Üí GenerateButton communication broken', 'error');
+                    }
+
+                    // Test font change communication
+                    const fontSelector = window.app.inputPanel.getFontSelectorComponent();
+                    if (fontSelector) {
+                        let fontChangeReceived = false;
+                        window.app.eventBus.on('font:changed', () => {
+                            fontChangeReceived = true;
+                        });
+
+                        fontSelector.setFont('block');
+
+                        setTimeout(() => {
+                            if (fontChangeReceived) {
+                                log('comm-results', '‚úÖ FontSelector ‚Üí InputPanel communication working', 'success');
+                            } else {
+                                log('comm-results', '‚ùå FontSelector ‚Üí InputPanel communication broken', 'error');
+                            }
+                            window.app.eventBus.off('font:changed');
+                        }, 100);
+                    }
+                }
+
+            } catch (error) {
+                log('comm-results', `‚ùå Component communication test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic checks
+        setTimeout(() => {
+            if (window.app) {
+                log('flow-results', '‚úÖ App loaded successfully', 'success');
+            } else {
+                log('flow-results', '‚ùå App not loaded', 'error');
+            }
+        }, 500);
+    </script>
+</body>
+</html>

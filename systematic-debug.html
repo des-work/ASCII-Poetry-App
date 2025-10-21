@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systematic Generation Debug</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .debug-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 10px 0; }
+        .debug-sequence { display: grid; grid-template-columns: 50px 1fr; gap: 10px; margin: 10px 0; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; max-height: 300px; overflow-y: auto; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .step { margin: 5px 0; padding: 5px; border-radius: 3px; }
+        .step-number { background: #2196F3; color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+        .current-step { background: #FF9800; }
+        .completed-step { background: #4CAF50; }
+        .failed-step { background: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ç Systematic Generation Debug Process</h1>
+
+    <div class="section">
+        <h2>ÌæØ Generation Flow Analysis</h2>
+        <div class="debug-sequence">
+            <div class="step-number" id="step1-num">1</div>
+            <div class="step" id="step1">
+                <strong>User Input</strong><br>
+                Text entered in input field ‚Üí Input validation ‚Üí State update
+            </div>
+
+            <div class="step-number" id="step2-num">2</div>
+            <div class="step" id="step2">
+                <strong>Button Click</strong><br>
+                Generate button clicked ‚Üí Event emission ‚Üí Input reading
+            </div>
+
+            <div class="step-number" id="step3-num">3</div>
+            <div class="step" id="step3">
+                <strong>Generation Request</strong><br>
+                Options validation ‚Üí Font loading ‚Üí Text rendering
+            </div>
+
+            <div class="step-number" id="step4-num">4</div>
+            <div class="step" id="step4">
+                <strong>Result Display</strong><br>
+                ASCII art creation ‚Üí Output panel update ‚Üí UI feedback
+            </div>
+        </div>
+
+        <div class="debug-grid">
+            <button onclick="testStep(1)">Test Step 1</button>
+            <button onclick="testStep(2)">Test Step 2</button>
+            <button onclick="testStep(3)">Test Step 3</button>
+            <button onclick="testStep(4)">Test Step 4</button>
+            <button onclick="runAllSteps()">Run All Steps</button>
+            <button onclick="resetSteps()">Reset</button>
+        </div>
+        <div id="debug-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ß Component Status</h2>
+        <button onclick="checkComponentStatus()">Check Component Status</button>
+        <div id="status-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä Flow Monitoring</h2>
+        <button onclick="monitorFlow()">Monitor Flow</button>
+        <div id="flow-results" class="result"></div>
+    </div>
+
+    <script>
+        let stepResults = {};
+        let flowMonitor = null;
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function updateStepStatus(stepNum, status) {
+            const stepNumEl = document.getElementById(`step${stepNum}-num`);
+            stepNumEl.className = 'step-number';
+
+            if (status === 'current') stepNumEl.classList.add('current-step');
+            else if (status === 'completed') stepNumEl.classList.add('completed-step');
+            else if (status === 'failed') stepNumEl.classList.add('failed-step');
+        }
+
+        async function testStep(stepNum) {
+            clearResults('debug-results');
+            updateStepStatus(stepNum, 'current');
+
+            try {
+                log('debug-results', `Ì¥ç Testing Step ${stepNum}...`, 'info');
+
+                switch (stepNum) {
+                    case 1:
+                        await testStep1();
+                        break;
+                    case 2:
+                        await testStep2();
+                        break;
+                    case 3:
+                        await testStep3();
+                        break;
+                    case 4:
+                        await testStep4();
+                        break;
+                }
+
+                updateStepStatus(stepNum, 'completed');
+                stepResults[stepNum] = true;
+
+            } catch (error) {
+                log('debug-results', `‚ùå Step ${stepNum} failed: ${error.message}`, 'error');
+                updateStepStatus(stepNum, 'failed');
+                stepResults[stepNum] = false;
+            }
+        }
+
+        async function testStep1() {
+            log('debug-results', 'Ì≥ù Testing user input flow...', 'info');
+
+            // Test text input component
+            if (window.app?.inputPanel?.getTextInputComponent()) {
+                const textInput = window.app.inputPanel.getTextInputComponent();
+
+                // Set test text
+                textInput.setText('STEP1 TEST');
+                const text = textInput.getText();
+
+                if (text === 'STEP1 TEST') {
+                    log('debug-results', '‚úÖ Text input working', 'success');
+                } else {
+                    log('debug-results', '‚ùå Text input not working', 'error');
+                }
+
+                // Test validation
+                const isValid = textInput.isValid();
+                log('debug-results', `‚úÖ Text validation: ${isValid ? 'valid' : 'invalid'}`);
+
+            } else {
+                log('debug-results', '‚ùå TextInputComponent not available', 'error');
+            }
+        }
+
+        async function testStep2() {
+            log('debug-results', 'Ì∂±Ô∏è Testing button click flow...', 'info');
+
+            // Test generate button component
+            if (window.app?.inputPanel?.getGenerateButtonComponent()) {
+                const generateButton = window.app.inputPanel.getGenerateButtonComponent();
+
+                // Check if button is enabled
+                const isEnabled = generateButton.isEnabled();
+                log('debug-results', `Ì¥ò Button state: ${isEnabled ? 'enabled' : 'disabled'}`);
+
+                if (!isEnabled) {
+                    log('debug-results', '‚ùå Button should be enabled for testing', 'error');
+                    return;
+                }
+
+                // Test event emission
+                let eventReceived = false;
+                window.app.eventBus.on('ui:generate:click', () => {
+                    eventReceived = true;
+                });
+
+                // Simulate button click
+                window.app.eventBus.emit('ui:generate:click');
+
+                // Check if event was received
+                setTimeout(() => {
+                    if (eventReceived) {
+                        log('debug-results', '‚úÖ Button click event working', 'success');
+                    } else {
+                        log('debug-results', '‚ùå Button click event not working', 'error');
+                    }
+                    window.app.eventBus.off('ui:generate:click');
+                }, 100);
+
+            } else {
+                log('debug-results', '‚ùå GenerateButtonComponent not available', 'error');
+            }
+        }
+
+        async function testStep3() {
+            log('debug-results', '‚öôÔ∏è Testing generation request flow...', 'info');
+
+            // Test generation service
+            if (window.app?.generationService) {
+                try {
+                    // Listen for generation events
+                    window.app.eventBus.on('text:gen:start', () => {
+                        log('debug-results', '‚úÖ Generation started', 'success');
+                    });
+
+                    window.app.eventBus.on('text:gen:complete', (result) => {
+                        log('debug-results', `‚úÖ Generation completed: ${result.ascii?.length || 0} characters`, 'success');
+                    });
+
+                    window.app.eventBus.on('text:gen:error', (error) => {
+                        log('debug-results', `‚ùå Generation error: ${error}`, 'error');
+                    });
+
+                    // Attempt generation
+                    const result = await window.app.generationService.generateText({
+                        text: 'STEP3 TEST',
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    });
+
+                    // Cleanup
+                    setTimeout(() => {
+                        window.app.eventBus.off('text:gen:start');
+                        window.app.eventBus.off('text:gen:complete');
+                        window.app.eventBus.off('text:gen:error');
+                    }, 2000);
+
+                } catch (error) {
+                    log('debug-results', `‚ùå Generation service error: ${error.message}`, 'error');
+                }
+            } else {
+                log('debug-results', '‚ùå GenerationService not available', 'error');
+            }
+        }
+
+        async function testStep4() {
+            log('debug-results', 'Ì≥∫ Testing output display flow...', 'info');
+
+            // Test output panel
+            if (window.app?.outputPanel) {
+                try {
+                    // Test manual display
+                    const testContent = "STEP4\nTEST\nOUTPUT";
+                    const displayed = window.app.outputPanel.display(testContent);
+
+                    if (displayed) {
+                        log('debug-results', '‚úÖ Output display working', 'success');
+                    } else {
+                        log('debug-results', '‚ùå Output display failed', 'error');
+                    }
+
+                    // Check output content
+                    const outputEl = document.getElementById('ascii-output');
+                    if (outputEl && outputEl.textContent.includes('STEP4')) {
+                        log('debug-results', '‚úÖ Output content updated', 'success');
+                    } else {
+                        log('debug-results', '‚ùå Output content not updated', 'error');
+                    }
+
+                } catch (error) {
+                    log('debug-results', `‚ùå Output display error: ${error.message}`, 'error');
+                }
+            } else {
+                log('debug-results', '‚ùå OutputPanel not available', 'error');
+            }
+        }
+
+        async function runAllSteps() {
+            clearResults('debug-results');
+
+            // Reset step states
+            for (let i = 1; i <= 4; i++) {
+                updateStepStatus(i, 'current');
+            }
+
+            // Run steps sequentially
+            for (let i = 1; i <= 4; i++) {
+                await testStep(i);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            // Summary
+            const passed = Object.values(stepResults).filter(Boolean).length;
+            log('debug-results', `Ì≥ä Test Summary: ${passed}/4 steps passed`);
+
+            if (passed === 4) {
+                log('debug-results', 'Ìæâ All steps working! Generation should work.', 'success');
+            } else {
+                log('debug-results', `‚ùå ${4 - passed} step(s) failed. Check above for details.`, 'error');
+            }
+        }
+
+        function resetSteps() {
+            stepResults = {};
+            for (let i = 1; i <= 4; i++) {
+                updateStepStatus(i, 'current');
+            }
+            clearResults('debug-results');
+        }
+
+        function checkComponentStatus() {
+            clearResults('status-results');
+
+            try {
+                log('status-results', 'Ìø• Checking component status...', 'info');
+
+                const components = [
+                    { name: 'AppConfig', check: !!window.AppConfig },
+                    { name: 'EventBus', check: !!window.app?.eventBus },
+                    { name: 'UIController', check: !!window.app?.uiController },
+                    { name: 'GenerationService', check: !!window.app?.generationService },
+                    { name: 'FontManager', check: !!window.app?.fontManager },
+                    { name: 'InputPanel', check: !!window.app?.inputPanel },
+                    { name: 'OutputPanel', check: !!window.app?.outputPanel },
+                    { name: 'TextInput', check: !!window.app?.inputPanel?.getTextInputComponent() },
+                    { name: 'GenerateButton', check: !!window.app?.inputPanel?.getGenerateButtonComponent() },
+                    { name: 'FontSelector', check: !!window.app?.inputPanel?.getFontSelectorComponent() }
+                ];
+
+                let healthy = 0;
+                components.forEach(({ name, check }) => {
+                    if (check) {
+                        log('status-results', `‚úÖ ${name}`, 'success');
+                        healthy++;
+                    } else {
+                        log('status-results', `‚ùå ${name}`, 'error');
+                    }
+                });
+
+                log('status-results', `Ì≥ä System Health: ${healthy}/${components.length} components operational`);
+
+                if (healthy >= 8) {
+                    log('status-results', 'Ìæâ System appears healthy!', 'success');
+                } else {
+                    log('status-results', '‚ö†Ô∏è System has issues', 'warning');
+                }
+
+            } catch (error) {
+                log('status-results', `‚ùå Status check error: ${error.message}`, 'error');
+            }
+        }
+
+        function monitorFlow() {
+            clearResults('flow-results');
+
+            if (flowMonitor) {
+                clearInterval(flowMonitor);
+                flowMonitor = null;
+                log('flow-results', '‚èπÔ∏è Flow monitoring stopped', 'info');
+                return;
+            }
+
+            log('flow-results', '‚ñ∂Ô∏è Starting flow monitoring...', 'info');
+            flowMonitor = setInterval(() => {
+                // Monitor key metrics
+                const textInput = window.app?.inputPanel?.getTextInputComponent();
+                const generateButton = window.app?.inputPanel?.getGenerateButtonComponent();
+
+                const metrics = {
+                    textValid: textInput?.isValid() || false,
+                    buttonEnabled: generateButton?.isEnabled() || false,
+                    currentText: textInput?.getText() || '',
+                    currentFont: window.app?.inputPanel?.getCurrentFont() || 'unknown'
+                };
+
+                log('flow-results', `Ì≥ä Flow: ${metrics.textValid ? '‚úÖ' : '‚ùå'} Valid text, ${metrics.buttonEnabled ? '‚úÖ' : '‚ùå'} Button enabled, Text: "${metrics.currentText}", Font: ${metrics.currentFont}`);
+            }, 1000);
+        }
+
+        // Auto-check status
+        setTimeout(() => {
+            checkComponentStatus();
+        }, 500);
+    </script>
+</body>
+</html>
