@@ -60,44 +60,30 @@ class EventBus {
      * @param {*} [data] - The data to pass to the callbacks.
      */
     emit(event, data) {
-        // Trace every emit to aid debugging
-        try {
+        // Only log in debug mode for specific event types
+        if (window.DEBUG_MODE) {
             console.log(`📢 EventBus.emit("${event}")`, { hasData: !!data });
-        } catch (_) {}
+        }
+        
         if (!this.events[event]) {
-            // It's common for some events to have no listeners, so a warning can be noisy.
-            // console.warn(`⚠️ EventBus: No listeners for event "${event}"`);
-            // Temporarily re-enable for debugging
-            // Uncomment the following lines
-
-            // In emit method
-            console.warn(`⚠️ No listeners registered for event: "${event}"`);
-            console.log('📋 Available events:', Object.keys(this.events));
+            // Only warn in debug mode for expected event patterns
+            if (window.DEBUG_MODE && /^(request:|ui:|text:gen:|image:gen:|poetry:gen:)/.test(event)) {
+                console.warn(`⚠️ EventBus: No listeners for event "${event}"`);
+            }
             return;
         }
         
         const listenerCount = this.events[event].length;
-        // console.log(`📢 EventBus: Emitting "${event}" to ${listenerCount} listener(s)`);
         
         // Use a slice to prevent issues if a callback unsubscribes during iteration
         this.events[event].slice().forEach((callback, index) => {
             try {
                 callback(data);
-                // Temporarily re-enable for debugging
-                // Uncomment the following lines
-
-                // In emit method
-                console.log(`✅ Listener #${index + 1} completed`);
             } catch (error) {
-                console.error(`  ❌ Error in listener #${index + 1} for "${event}":`, error);
-                console.error('  Stack:', error.stack);
+                console.error(`❌ EventBus: Error in listener for "${event}":`, error.message);
+                console.error('Stack:', error.stack);
             }
         });
-        // Temporarily re-enable for debugging
-        // Uncomment the following lines
-
-        // In emit method
-        console.log(`✅ Event "${event}" processing complete`);
     }
 
     /**

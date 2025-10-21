@@ -46,30 +46,43 @@ class DisplayManager {
      * Handle successful generation
      */
     handleGenerationComplete(result) {
-        console.log('📺 DisplayManager: Generation complete', {
-            success: result.success,
-            hasAscii: !!result.ascii,
-            color: result.metadata?.color,
-            animation: result.metadata?.animation
-        });
+        try {
+            console.log('📺 DisplayManager: Generation complete', {
+                success: result.success,
+                hasAscii: !!result.ascii,
+                color: result.metadata?.color,
+                animation: result.metadata?.animation
+            });
 
-        if (!result.success || !result.ascii) {
-            console.warn('⚠️ DisplayManager: No ASCII to display');
-            return;
-        }
+            // Validate result structure
+            if (!result || typeof result !== 'object') {
+                throw new Error('Invalid result object');
+            }
 
-        this.currentOutput = result;
+            if (!result.success || !result.ascii) {
+                console.warn('⚠️ DisplayManager: No ASCII to display');
+                this.panel.setDefaultState();
+                return;
+            }
 
-        // Display the ASCII art using OutputPanel
-        const displayed = this.panel.display(result.ascii, {
-            color: result.metadata?.color || 'none',
-            animation: result.metadata?.animation || 'none'
-        });
+            this.currentOutput = result;
 
-        if (displayed) {
-            console.log('✅ DisplayManager: Output rendered successfully');
-        } else {
-            console.error('❌ DisplayManager: Failed to render output');
+            // Display the ASCII art using OutputPanel with error handling
+            const displayed = this.panel.display(result.ascii, {
+                color: result.metadata?.color || 'none',
+                animation: result.metadata?.animation || 'none'
+            });
+
+            if (displayed) {
+                console.log('✅ DisplayManager: Output rendered successfully');
+            } else {
+                console.error('❌ DisplayManager: Failed to render output');
+                this.showError('Failed to display output');
+            }
+        } catch (error) {
+            console.error('❌ DisplayManager: Error displaying output:', error);
+            this.panel.setDefaultState();
+            this.showError(`Display error: ${error.message}`);
         }
     }
 
@@ -77,21 +90,48 @@ class DisplayManager {
      * Handle generation errors
      */
     handleGenerationError(error) {
-        console.error('❌ DisplayManager: Generation error', error);
-        
-        const message = typeof error === 'string' 
-            ? error 
-            : (error?.message || error?.error || 'Generation failed');
-        
-        this.showError(message);
+        try {
+            console.error('❌ DisplayManager: Generation error', error);
+            
+            // Safely extract error message
+            let message = 'Generation failed';
+            if (typeof error === 'string') {
+                message = error;
+            } else if (error && typeof error === 'object') {
+                message = error.message || error.error || error.toString();
+            }
+            
+            // Ensure message is a string
+            if (typeof message !== 'string') {
+                message = 'An unknown error occurred';
+            }
+            
+            this.panel.setDefaultState();
+            this.showError(message);
+        } catch (handlerError) {
+            console.error('❌ DisplayManager: Error handling generation error:', handlerError);
+            this.panel.setDefaultState();
+            this.showError('An error occurred while processing your request');
+        }
     }
 
     /**
      * Show error message
      */
     showError(message) {
-        console.error('📺 DisplayManager: Error -', message);
-        // Could emit notification event here if needed
+        try {
+            if (typeof message !== 'string') {
+                message = 'An error occurred';
+            }
+            console.error('📺 DisplayManager: Error -', message);
+            // Emit notification event for user feedback
+            this.eventBus.emit(EventBus.Events.NOTIFICATION_SHOW, {
+                message: `❌ ${message}`,
+                type: 'error'
+            });
+        } catch (error) {
+            console.error('❌ DisplayManager: Error showing error message:', error);
+        }
     }
 
     /**

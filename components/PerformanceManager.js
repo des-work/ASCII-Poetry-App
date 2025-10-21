@@ -20,9 +20,16 @@ class PerformanceManager {
 
     /**
      * Generate cache key for text rendering
+     * Uses JSON.stringify to safely handle all input combinations
      */
     generateCacheKey(text, fontName, color, animation) {
-        return `${text.toLowerCase()}|${fontName}|${color}|${animation}`;
+        // Use JSON.stringify to ensure no collisions between different parameter combinations
+        return JSON.stringify({
+            text: (text || '').toLowerCase(),
+            font: (fontName || '').toLowerCase(),
+            color: (color || '').toLowerCase(),
+            animation: (animation || '').toLowerCase()
+        });
     }
 
     /**
@@ -43,19 +50,31 @@ class PerformanceManager {
     }
 
     /**
-     * Cache rendering result
+     * Cache rendering result with proper LRU eviction
      */
     cacheResult(text, fontName, color, animation, result) {
         const key = this.generateCacheKey(text, fontName, color, animation);
         
-        // Manage cache size (LRU)
-        if (this.renderCache.size >= this.maxCacheSize) {
-            const firstKey = this.renderCache.keys().next().value;
-            this.renderCache.delete(firstKey);
+        // If key already exists, delete it to move to end (most recently used)
+        if (this.renderCache.has(key)) {
+            this.renderCache.delete(key);
         }
         
+        // If cache is at max size, evict the least recently used (first item)
+        if (this.renderCache.size >= this.maxCacheSize) {
+            // Get first key (oldest/LRU entry)
+            const firstKey = this.renderCache.keys().next().value;
+            this.renderCache.delete(firstKey);
+            console.log('⚡ PerformanceManager: Evicted LRU cache entry');
+        }
+        
+        // Add new result (becomes most recently used)
         this.renderCache.set(key, result);
-        console.log('⚡ PerformanceManager: Cached result for', key);
+        console.log('⚡ PerformanceManager: Cached result', {
+            keyLength: key.length,
+            cacheSize: this.renderCache.size,
+            maxSize: this.maxCacheSize
+        });
     }
 
     /**

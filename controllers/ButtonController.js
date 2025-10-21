@@ -27,16 +27,19 @@ class ButtonController {
     }
 
     attachListeners() {
-        // Use event delegation on document body
+        // Use ONLY event delegation for all clicks
+        // This prevents duplicate listeners on the same elements
         document.body.addEventListener('click', this.handleClick.bind(this));
         
-        // Also attach to specific elements for reliability
-        this.attachSpecificListeners();
-        
-        console.log('🔗 ButtonController: Event listeners attached');
+        console.log('🔗 ButtonController: Event listeners attached (using delegation)');
     }
 
     attachSpecificListeners() {
+        // This method is deprecated in favor of event delegation
+        // Kept for reference but NOT called from attachListeners()
+        // Uncomment if delegation doesn't work in older browsers
+        
+        /*
         // Mode buttons
         const modeButtons = document.querySelectorAll('.mode-btn');
         modeButtons.forEach(btn => {
@@ -97,6 +100,7 @@ class ButtonController {
                 this.eventBus.emit('ui:theme:toggle');
             });
         }
+        */
     }
 
     handleClick(event) {

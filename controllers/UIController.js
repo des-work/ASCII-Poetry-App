@@ -87,7 +87,39 @@ class UIController {
             outputStats: document.getElementById('output-stats')
         };
 
+        // Validate critical elements exist
+        this.validateCriticalElements();
+
         console.log('📦 UIController: DOM cached');
+    }
+
+    /**
+     * Validate that critical DOM elements exist
+     */
+    validateCriticalElements() {
+        const critical = {
+            generateBtn: 'generate-main',
+            textInput: 'text-input',
+            fontSelect: 'font-select',
+            colorSelect: 'color-select'
+        };
+
+        const missing = [];
+        for (const [key, id] of Object.entries(critical)) {
+            if (!this.dom[key]) {
+                missing.push(`#${id}`);
+                console.warn(`⚠️ UIController: Critical element missing: #${id}`);
+            }
+        }
+
+        if (missing.length > 0) {
+            console.error(`❌ UIController: Missing critical elements: ${missing.join(', ')}. Check HTML structure.`);
+            // Emit error event for user
+            this.eventBus.emit(EventBus.Events.NOTIFICATION_SHOW, {
+                message: `❌ Application error: Missing UI elements. Please refresh the page.`,
+                type: 'error'
+            });
+        }
     }
 
     /**
@@ -310,6 +342,15 @@ class UIController {
      */
 
     switchMode(mode) {
+        // Validate mode
+        const validModes = ['text', 'image', 'poetry'];
+        
+        if (!validModes.includes(mode)) {
+            console.error(`❌ UIController: Invalid mode "${mode}". Valid modes: ${validModes.join(', ')}`);
+            this.showNotification(`Invalid mode: "${mode}"`, 'error');
+            return;
+        }
+
         console.log('🔄 UIController: Switching mode to:', mode);
         
         if (this.state.currentMode === mode) return;

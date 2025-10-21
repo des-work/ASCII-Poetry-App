@@ -11,7 +11,37 @@ class GenerationService {
         this.eventBus = eventBus;
         this.performanceManager = performanceManager;
         this.isGenerating = false;
+        
+        // Timeout configuration (in milliseconds)
+        this.generationTimeout = 10000; // 10 seconds
+        this.imageProcessingTimeout = 15000; // 15 seconds for image processing
+        
         this.init();
+    }
+
+    /**
+     * Create a timeout promise that rejects after specified time
+     */
+    createTimeoutPromise(timeoutMs, operationName) {
+        return new Promise((_, reject) => {
+            setTimeout(() => {
+                reject(new Error(`${operationName} took too long (${timeoutMs}ms timeout). Please try again.`));
+            }, timeoutMs);
+        });
+    }
+
+    /**
+     * Race a promise against a timeout
+     */
+    async raceWithTimeout(promise, timeoutMs, operationName) {
+        try {
+            return await Promise.race([
+                Promise.resolve(promise),
+                this.createTimeoutPromise(timeoutMs, operationName)
+            ]);
+        } catch (error) {
+            throw error;
+        }
     }
 
     init() {
@@ -57,17 +87,45 @@ class GenerationService {
             
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_START);
 
-            const { text, fontName = 'standard', color = 'none', animation = 'none' } = options;
+            // Validate options object
+            if (!options || typeof options !== 'object') {
+                throw new Error('Invalid options: options must be an object');
+            }
 
-            // Validate input
+            const {
+                text = '',
+                fontName = 'standard',
+                color = 'none',
+                animation = 'none'
+            } = options;
+
+            // Validate required fields
+            if (typeof text !== 'string') {
+                throw new Error('Invalid input: text must be a string');
+            }
+
             if (!text || !text.trim()) {
                 throw new Error('Text is required');
+            }
+
+            // Validate optional fields
+            if (typeof fontName !== 'string' || !fontName.trim()) {
+                throw new Error('Invalid input: fontName must be a non-empty string');
+            }
+
+            if (typeof color !== 'string') {
+                throw new Error('Invalid input: color must be a string');
+            }
+
+            if (typeof animation !== 'string') {
+                throw new Error('Invalid input: animation must be a string');
             }
 
             // Check cache first
             const cachedResult = this.performanceManager?.getCachedResult(text, fontName, color, animation);
             if (cachedResult) {
                 console.log('⚙️ GenerationService: Using cached result');
+                this.isGenerating = false;  // ✅ FIX: Reset flag before returning
                 this.eventBus.emit(EventBus.Events.TEXT_GENERATION_COMPLETE, cachedResult);
                 return;
             }
@@ -78,8 +136,15 @@ class GenerationService {
                 throw new Error(`Font "${fontName}" not found`);
             }
 
-            // Generate ASCII
-            const ascii = this.renderer.renderTextWithFont(text.toUpperCase(), font);
+            // Generate ASCII with timeout protection
+            const asciiPromise = Promise.resolve(
+                this.renderer.renderTextWithFont(text.toUpperCase(), font)
+            );
+            const ascii = await this.raceWithTimeout(
+                asciiPromise, 
+                this.generationTimeout, 
+                'Text generation'
+            );
 
             const result = {
                 success: true,
@@ -102,6 +167,17 @@ class GenerationService {
 
         } catch (error) {
             console.error('⚙️ GenerationService: Text generation error:', error);
+            
+            // Log to ErrorHandler if available
+            if (window.errorHandler) {
+                window.errorHandler.handleError({
+                    type: 'TextGenerationError',
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
             // Emit error with the correct event name
             this.eventBus.emit(EventBus.Events.TEXT_GENERATION_ERROR, error.message);
         } finally {
@@ -150,6 +226,17 @@ class GenerationService {
 
         } catch (error) {
             console.error('⚙️ GenerationService: Image generation error:', error);
+            
+            // Log to ErrorHandler if available
+            if (window.errorHandler) {
+                window.errorHandler.handleError({
+                    type: 'ImageGenerationError',
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
             this.eventBus.emit(EventBus.Events.IMAGE_GENERATION_ERROR, error.message);
         } finally {
             this.isGenerating = false;
@@ -215,6 +302,17 @@ class GenerationService {
 
         } catch (error) {
             console.error('⚙️ GenerationService: Poetry generation error:', error);
+            
+            // Log to ErrorHandler if available
+            if (window.errorHandler) {
+                window.errorHandler.handleError({
+                    type: 'PoetryGenerationError',
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
             this.eventBus.emit(EventBus.Events.POETRY_GENERATION_ERROR, error.message);
         } finally {
             this.isGenerating = false;

@@ -6,7 +6,27 @@
 class InputReader {
 	constructor(dom) {
 		this.dom = dom;
+		this.validateDOM();
 		console.log('🧩 InputReader initialized');
+	}
+
+	/**
+	 * Validate that required DOM elements exist
+	 */
+	validateDOM() {
+		const required = {
+			textInput: 'text-input',
+			fontSelect: 'font-select',
+			colorSelect: 'color-select',
+			animationSelect: 'animation-select'
+		};
+
+		for (const [key, id] of Object.entries(required)) {
+			if (!this.dom?.[key]) {
+				console.warn(`⚠️ InputReader: DOM element "${key}" (#${id}) not found`);
+				// Don't throw - just log. Some elements might be optional.
+			}
+		}
 	}
 
 	/**
@@ -14,7 +34,16 @@ class InputReader {
 	 * Returns { ok, options, error }
 	 */
 	readTextOptions() {
-		const text = this.dom?.textInput?.value ?? '';
+		// Validate input element exists
+		if (!this.dom?.textInput) {
+			return { 
+				ok: false, 
+				options: null, 
+				error: '❌ Input element not found. Please refresh the page.' 
+			};
+		}
+
+		const text = this.dom.textInput.value ?? '';
 		const fontName = this.dom?.fontSelect?.value ?? 'standard';
 		const color = this.dom?.colorSelect?.value ?? 'none';
 		const animation = this.dom?.animationSelect?.value ?? 'none';
@@ -33,7 +62,16 @@ class InputReader {
 	 * Read options for Image → ASCII generation.
 	 */
 	readImageOptions() {
-		const file = this.dom?.imageInput?.files?.[0] ?? null;
+		// Validate input element exists
+		if (!this.dom?.imageInput) {
+			return { 
+				ok: false, 
+				options: null, 
+				error: '❌ Image input not found. Please refresh the page.' 
+			};
+		}
+
+		const file = this.dom.imageInput.files?.[0] ?? null;
 		const width = parseInt(this.dom?.imageWidthSlider?.value ?? '80', 10);
 		const charSet = this.dom?.imageCharsSelect?.value ?? 'standard';
 
@@ -48,7 +86,16 @@ class InputReader {
 	 * Read options for Poetry generation.
 	 */
 	readPoetryOptions() {
-		const poem = this.dom?.poemInput?.value ?? '';
+		// Validate input element exists
+		if (!this.dom?.poemInput) {
+			return { 
+				ok: false, 
+				options: null, 
+				error: '❌ Poem input not found. Please refresh the page.' 
+			};
+		}
+
+		const poem = this.dom.poemInput.value ?? '';
 		const fontName = this.dom?.fontSelect?.value ?? 'mini';
 		const layout = this.dom?.poetryLayoutSelect?.value ?? 'centered';
 		const decoration = this.dom?.poetryDecorationSelect?.value ?? 'none';
