@@ -1028,25 +1028,41 @@ class SimpleASCIIArt {
         this.currentMode = mode;
         console.log(`🔄 Switched to ${mode} mode`);
 
-        // Update UI
+        // Update UI - Use data attributes to control visibility without breaking layout
         if (mode === 'text') {
             this.modeTextBtn?.classList.add('active');
             this.modePoetryBtn?.classList.remove('active');
             this.inputTitle.textContent = 'ASCII Art Generator';
             this.textInputLabel.textContent = 'Enter your text:';
-            this.colorGroup.style.display = 'block';
-            this.borderGroup.style.display = 'none';
-            this.poetryColorGroup.style.display = 'none';
-            this.fontSelect.style.display = 'block';
+            
+            // Hide/Show groups by setting data attributes
+            this.colorGroup?.setAttribute('data-mode', 'text');
+            this.borderGroup?.setAttribute('data-mode', 'hidden');
+            this.poetryColorGroup?.setAttribute('data-mode', 'hidden');
+            
+            // Use display property only as fallback
+            if (this.colorGroup) this.colorGroup.style.display = 'block';
+            if (this.borderGroup) this.borderGroup.style.display = 'none';
+            if (this.poetryColorGroup) this.poetryColorGroup.style.display = 'none';
+            
+            if (this.fontSelect) this.fontSelect.style.display = 'block';
         } else {
             this.modePoetryBtn?.classList.add('active');
             this.modeTextBtn?.classList.remove('active');
             this.inputTitle.textContent = 'Poetry Formatter';
             this.textInputLabel.textContent = 'Enter your poem:';
-            this.colorGroup.style.display = 'none';
-            this.borderGroup.style.display = 'block';
-            this.poetryColorGroup.style.display = 'block';
-            this.fontSelect.style.display = 'none';
+            
+            // Hide/Show groups
+            this.colorGroup?.setAttribute('data-mode', 'hidden');
+            this.borderGroup?.setAttribute('data-mode', 'poetry');
+            this.poetryColorGroup?.setAttribute('data-mode', 'poetry');
+            
+            // Use display property
+            if (this.colorGroup) this.colorGroup.style.display = 'none';
+            if (this.borderGroup) this.borderGroup.style.display = 'block';
+            if (this.poetryColorGroup) this.poetryColorGroup.style.display = 'block';
+            
+            if (this.fontSelect) this.fontSelect.style.display = 'block';
         }
 
         // Regenerate if text exists
@@ -1227,13 +1243,35 @@ class SimpleASCIIArt {
         try {
             const borderStyle = this.borderSelect?.value || 'box';
             const color = this.poetryColorSelect?.value || 'none';
+            const fontName = this.fontSelect?.value || 'standard';
+            const available = this.fontManager.getAvailableFonts();
+            const finalFont = available.includes(fontName) ? fontName : 'standard';
             
-            const formatted = this.poetryFormatter.formatPoem(text, borderStyle, 1);
+            // Format the poem with border
+            let formatted = this.poetryFormatter.formatPoem(text, borderStyle, 1);
+
+            // Optionally apply ASCII font rendering to poem text
+            // For poetry, we'll use ASCII fonts to render the poem lines
+            if (fontName !== 'standard') {
+                try {
+                    const font = this.fontManager.getFont(finalFont);
+                    if (this.asciiRenderer.validateFont(font)) {
+                        // Apply font to first line of poem for visual effect
+                        const firstLine = text.split('\n')[0];
+                        const asciiTitle = this.asciiRenderer.renderTextWithFont(firstLine, font);
+                        formatted = asciiTitle + '\n\n' + formatted;
+                    }
+                } catch (e) {
+                    console.warn('Could not apply font to poem:', e.message);
+                    // Continue without font - fallback to plain poem
+                }
+            }
 
             return {
                 ascii: formatted,
                 border: borderStyle,
                 color: color,
+                font: finalFont,
                 mode: 'poetry',
                 text: text,
                 timestamp: Date.now(),
@@ -1257,9 +1295,17 @@ class SimpleASCIIArt {
             this.output.textContent = result.ascii;
             this.output.className = 'ascii-output';
 
-            // Apply color class
+            // Apply color class - handle rainbow specially
             if (result.color && result.color !== 'none') {
-                this.output.classList.add(`color-${result.color}`);
+                if (result.color === 'rainbow') {
+                    // Force reflow to restart animation
+                    this.output.classList.remove('color-rainbow');
+                    // Trigger reflow
+                    void this.output.offsetWidth;
+                    this.output.classList.add('color-rainbow');
+                } else {
+                    this.output.classList.add(`color-${result.color}`);
+                }
             }
 
             // Apply border class for poetry

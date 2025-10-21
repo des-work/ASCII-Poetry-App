@@ -67,103 +67,177 @@ body {
     align-items: start;
 }
 
-/* Input Section */
+/* Input Section Stable Layout */
 .input-section {
-    background: var(--bg-secondary);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
+    background-color: #1a1a1a;
+    padding: 15px;
+    border-radius: 5px;
 }
 
 .input-section h2 {
-    margin-bottom: 25px;
-    font-size: 1.5rem;
-    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ffffff;
 }
 
+/* Input Group Grid for Stable Layout */
 .input-group {
-    margin-bottom: 25px;
+    margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 12px;
+    min-height: 50px;  /* Fixed height to prevent collapse */
 }
 
 .input-group label {
-    display: block;
-    margin-bottom: 8px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: #cccccc;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.input-group textarea,
+.input-group select {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+}
+
+.input-group textarea:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: #2196F3;
+    background-color: #333333;
 }
 
 .input-group textarea {
-    width: 100%;
-    padding: 12px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    grid-column: 1 / -1;
     resize: vertical;
     min-height: 100px;
+    font-family: 'JetBrains Mono', monospace;
 }
 
-.input-group textarea:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+/* Hidden Input Groups - Still Take Space */
+.input-group[style*="display: none"] {
+    display: none !important;
 }
 
-.input-group select {
-    width: 100%;
-    padding: 10px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+.input-group {
+    visibility: visible;
+    height: auto;
+}
+
+/* Mode Section */
+.mode-section {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+}
+
+.mode-section label {
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 10px;
+    justify-self: start;
+}
+
+.mode-btn {
+    padding: 8px 16px;
+    border: 2px solid #444;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 100px;
 }
 
-.input-group select:focus {
-    outline: none;
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+.mode-btn:hover {
+    border-color: #2196F3;
+    background-color: #2a2a2a;
+}
+
+.mode-btn.active {
+    border-color: #2196F3;
+    background-color: #2196F3;
+    color: #ffffff;
+}
+
+/* Control Group Container - Maintains consistent spacing */
+.control-group-wrapper {
+    display: contents;  /* Don't add extra layout container */
+}
+
+/* Hidden but Space-Preserving */
+.input-group.hidden {
+    visibility: hidden;
+    height: 50px;
+    pointer-events: none;
+}
+
+/* Show/Hide with JavaScript - Use display property */
+.input-group.visible {
+    visibility: visible;
+    height: auto;
 }
 
 /* Button Group */
 .button-group {
-    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .generate-btn {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
-    color: white;
+    border-radius: 6px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
 }
 
 .generate-btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
 }
 
 .generate-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
 }
 
 .generate-btn.generating {
-    animation: pulse 1.5s ease-in-out infinite;
+    animation: button-pulse 1.5s infinite;
 }
 
-@keyframes pulse {
+@keyframes button-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }
 }
@@ -216,51 +290,6 @@ body {
     border-color: rgba(239, 68, 68, 0.3);
 }
 
-/* Mode Section */
-.mode-section {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: #2a2a2a;
-    border-radius: 5px;
-}
-
-.mode-section label {
-    font-weight: 600;
-    color: #ffffff;
-    margin: 0;
-}
-
-.mode-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.mode-btn {
-    padding: 8px 16px;
-    border: 2px solid #444;
-    background-color: #1a1a1a;
-    color: #ffffff;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.mode-btn:hover {
-    border-color: #2196F3;
-    background-color: #2a2a2a;
-}
-
-.mode-btn.active {
-    border-color: #2196F3;
-    background-color: #2196F3;
-    color: #ffffff;
-}
-
 /* ANSI Color Support for ASCII Output */
 .ascii-output.color-red {
     color: #ff6b6b;
@@ -288,6 +317,22 @@ body {
 
 .ascii-output.color-white {
     color: #ffffff;
+}
+
+/* Rainbow Color Animation */
+@keyframes rainbow-text {
+    0% { color: #ff0000; }
+    16% { color: #ff7f00; }
+    33% { color: #ffff00; }
+    50% { color: #00ff00; }
+    66% { color: #0000ff; }
+    83% { color: #4b0082; }
+    100% { color: #ff0000; }
+}
+
+.ascii-output.color-rainbow {
+    animation: rainbow-text 3s linear infinite;
+    font-weight: bold;
 }
 
 /* Poetry Border Styles */
