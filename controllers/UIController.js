@@ -1,86 +1,69 @@
 /**
- * UI Controller
- * Manages all UI interactions and updates
+ * UIController - Remade with Clean Architecture
+ * Single Responsibility: Coordinate user interactions and route to appropriate handlers
+ * 
+ * This controller:
+ * - Manages DOM element caching
+ * - Routes button clicks to handlers
+ * - Listens to generation events and updates UI accordingly
+ * - Shows notifications and loading states
+ * 
+ * It does NOT:
+ * - Generate ASCII art (delegated to GenerationService)
+ * - Manage output rendering (delegated to DisplayManager/OutputRenderer)
+ * - Manage input validation (delegated to InputReader)
  */
 
 class UIController {
-    constructor(eventBus, config, fontManager, asciiRenderer, inputValidator) {
+    constructor(eventBus, config, inputReader, inputValidator) {
         this.eventBus = eventBus;
         this.config = config;
-        this.fontManager = fontManager;
-        this.renderer = asciiRenderer;
+        this.inputReader = inputReader;
         this.validator = inputValidator;
-        this.dom = {}; // Use 'dom' to be more specific than 'elements'
+        this.dom = {};
         this.state = {
-            currentTab: 'text',
-            isLoading: false,
-            keywords: new Set()
+            currentMode: 'text',
+            isGenerating: false
         };
         
         this.initialize();
-        // Expose for debugging
-        window.ui = this;
     }
 
     /**
-     * Initialize UI controller
+     * Initialize - cache DOM and setup listeners
      */
     initialize() {
+        console.log('🕹️ UIController: Initializing...');
+        
         try {
-            this.cacheElements();
-            // Compose helpers now that DOM elements are cached
-            if (typeof InputReader !== 'function') {
-                console.error('❌ InputReader script not loaded');
-            }
-            // Components (prefer components; keep readers/writers for compatibility)
-            this.inputComponent = new InputComponent(this.dom);
-            this.outputComponent = new OutputComponent(this.dom.output, this.renderer);
-            this.bannerComponent = new BannerComponent(this.config, this.fontManager, this.renderer);
-            this.inputReader = new InputReader(this.dom);
-            // Diagnostics: log cached element presence
-            console.log('🔎 UIController DOM cache:', {
-                modeButtons: this.dom.modeButtons?.length,
-                modeContents: this.dom.modeContents?.length,
-                hasGenerate: !!this.dom.generateBtn,
-                hasOutput: !!this.dom.output
-            });
-            // Fallback CSS injection to ensure pseudo-elements don't block clicks
-            try {
-                const style = document.createElement('style');
-                style.textContent = `.mode-btn::before{pointer-events:none!important;}`;
-                document.head.appendChild(style);
-            } catch (_) {}
-        } catch (e) {
-            console.error('❌ UIController initialization error while composing helpers:', e);
+            this.cacheDOM();
+            this.attachEventListeners();
+            this.subscribeToEvents();
+            this.setInitialMode('text');
+            
+            console.log('✅ UIController: Initialized');
+        } catch (error) {
+            console.error('❌ UIController: Initialization error:', error);
         }
-        this.attachEventListeners();
-        // Initial generate button state
-        this.updateGenerateEnabled();
-        // Set the initial mode to 'text'
-        this.switchMode('text');
-        console.log('🕹️ UIController initialized');
     }
 
     /**
-     * Cache DOM elements for performance
+     * Cache all DOM elements for performance
      */
-    cacheElements() {
+    cacheDOM() {
         this.dom = {
-            // Tabs
-            modeButtons: document.querySelectorAll('.mode-btn'),
-            modeContents: document.querySelectorAll('.mode-content'),
-
-            
-            // Output
-            output: document.getElementById('ascii-output'),
-            
-            // Controls
+            // Buttons
             generateBtn: document.getElementById('generate-main'),
             copyBtn: document.getElementById('copy-btn'),
             downloadBtn: document.getElementById('download-btn'),
             clearBtn: document.getElementById('clear-btn'),
             themeBtn: document.getElementById('theme-btn'),
-            
+            autoDetectBtn: document.getElementById('auto-detect-btn'),
+
+            // Mode tabs
+            modeButtons: document.querySelectorAll('.mode-btn'),
+            modeContents: document.querySelectorAll('.mode-content'),
+
             // Inputs
             textInput: document.getElementById('text-input'),
             imageInput: document.getElementById('image-input'),
@@ -91,641 +74,394 @@ class UIController {
             colorSelect: document.getElementById('color-select'),
             animationSelect: document.getElementById('animation-select'),
             imageWidthSlider: document.getElementById('image-width'),
-            imageWidthValue: document.getElementById('width-value'),
             imageCharsSelect: document.getElementById('image-chars'),
             poetryLayoutSelect: document.getElementById('poetry-layout'),
             poetryDecorationSelect: document.getElementById('poetry-decoration'),
-
-            // Keyword System
             keywordsInput: document.getElementById('keywords-input'),
-            autoDetectBtn: document.getElementById('auto-detect-btn'),
             keywordChipsContainer: document.getElementById('keyword-chips'),
 
-            // Loading
+            // Indicators
             loading: document.getElementById('loading-indicator'),
-            
-            // Notification
-            notification: document.getElementById('notification'),
+            notification: null,
+            outputStats: document.getElementById('output-stats')
         };
+
+        console.log('📦 UIController: DOM cached');
     }
 
     /**
      * Attach DOM event listeners
      */
     attachEventListeners() {
-        // Mode switching is now handled by ButtonsController via eventBus
-        const btnCount = this.dom.modeButtons?.length || 0;
-        console.log('🔗 Mode buttons present:', btnCount);
-
-        // Main Generate Button
+        // Generate button
         if (this.dom.generateBtn) {
-            // Probe which element is on top of the generate button
-            this.probeClickable(this.dom.generateBtn, 'generate-main');
-        } else {
-            console.warn('⚠️ Generate button not found!');
-            // Observe for late DOM (defensive)
-            const observer = new MutationObserver(() => {
-                const btn = document.getElementById('generate-main');
-                if (btn) {
-                    this.dom.generateBtn = btn;
-                    console.log('✅ Late-found generate button');
-                    this.probeClickable(btn, 'generate-main(late)');
-                    observer.disconnect();
-                }
+            this.dom.generateBtn.addEventListener('click', () => this.onGenerateClick());
+        }
+
+        // Output control buttons
+        if (this.dom.copyBtn) {
+            this.dom.copyBtn.addEventListener('click', () => this.onCopyClick());
+        }
+        if (this.dom.downloadBtn) {
+            this.dom.downloadBtn.addEventListener('click', () => this.onDownloadClick());
+        }
+        if (this.dom.clearBtn) {
+            this.dom.clearBtn.addEventListener('click', () => this.onClearClick());
+        }
+
+        // Theme button
+        if (this.dom.themeBtn) {
+            this.dom.themeBtn.addEventListener('click', () => this.onThemeClick());
+        }
+
+        // Mode buttons
+        this.dom.modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                if (mode) this.switchMode(mode);
             });
-            try { observer.observe(document.body, { childList: true, subtree: true }); } catch (_) {}
+        });
+
+        // Auto-detect keywords
+        if (this.dom.autoDetectBtn) {
+            this.dom.autoDetectBtn.addEventListener('click', () => this.onAutoDetectClick());
         }
 
-        // Output controls
-        if (!this.dom.copyBtn) {
-            console.warn('⚠️ Copy button not found!');
-        }
-
-        if (!this.dom.downloadBtn) {
-            console.warn('⚠️ Download button not found!');
-        }
-
-        if (!this.dom.clearBtn) {
-            console.warn('⚠️ Clear button not found!');
-        }
-
-        // Theme toggle is now handled by BannerComponent
-
-        // Image width slider
-        if (this.dom.imageWidthSlider) {
-            this.dom.imageWidthSlider.addEventListener('input', (e) => {
-                if (this.dom.imageWidthValue) {
-                    this.dom.imageWidthValue.textContent = e.target.value;
-                }
-                this.updateGenerateEnabled();
-            });
-        }
-
-        // Keyword input handling
+        // Keyword input
         if (this.dom.keywordsInput) {
             this.dom.keywordsInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && this.dom.keywordsInput.value) {
-                    e.preventDefault();
-                    this.addKeyword(this.dom.keywordsInput.value.trim());
+                if (e.key === 'Enter') {
+                    this.addKeyword(this.dom.keywordsInput.value);
                     this.dom.keywordsInput.value = '';
-                    this.updateGenerateEnabled();
                 }
             });
         }
 
-        // Enable/disable Generate based on current input validity
-        this.dom.textInput?.addEventListener('input', () => this.updateGenerateEnabled());
-        this.dom.poemInput?.addEventListener('input', () => this.updateGenerateEnabled());
-        this.dom.imageInput?.addEventListener('change', () => this.updateGenerateEnabled());
+        // Input validation listeners
+        this.dom.textInput?.addEventListener('input', () => this.updateGenerateButtonState());
+        this.dom.imageInput?.addEventListener('change', () => this.updateGenerateButtonState());
+        this.dom.poemInput?.addEventListener('input', () => this.updateGenerateButtonState());
 
-        // Auto-detect keywords button
-        if (this.dom.autoDetectBtn) {
-            this.dom.autoDetectBtn.addEventListener('click', () => this.autoDetectKeywords());
-        }
-
-        if (this.dom.keywordChipsContainer) {
-            this.dom.keywordChipsContainer.addEventListener('click', (e) => this.handleChipClick(e));
-        }
-
-        // UI action events from ButtonsController
-        this.eventBus.on('ui:mode:switch', ({ mode }) => this.switchMode(mode));
-        this.eventBus.on('ui:generate:click', () => this.handleGenerateClick());
-        this.eventBus.on('ui:copy:click', () => this.copyToClipboard());
-        this.eventBus.on('ui:download:click', () => this.downloadOutput());
-        this.eventBus.on('ui:clear:click', () => this.clearOutput());
+        console.log('📌 UIController: Event listeners attached');
     }
 
     /**
-     * Subscribe to event bus events
+     * Subscribe to generation events
      */
     subscribeToEvents() {
-        // Notification events
-        this.eventBus.on(EventBus.Events.NOTIFICATION_SHOW, (data) => {
-            this.showNotification(data.message, data.type);
+        // Generation start
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, () => this.onGenerationStart('text'));
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, () => this.onGenerationStart('image'));
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, () => this.onGenerationStart('poetry'));
+
+        // Generation complete
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => this.onGenerationComplete(result));
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => this.onGenerationComplete(result));
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => this.onGenerationComplete(result));
+
+        // Generation errors
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (error) => this.onGenerationError(error));
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (error) => this.onGenerationError(error));
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => this.onGenerationError(error));
+
+        console.log('🔗 UIController: Event subscriptions complete');
+    }
+
+    /**
+     * BUTTON CLICK HANDLERS
+     */
+
+    onGenerateClick() {
+        console.log('🎨 UIController: Generate clicked');
+        
+        if (this.state.isGenerating) {
+            this.showNotification('⏳ Please wait for current generation to complete', 'warning');
+            return;
+        }
+
+        try {
+            const { ok, options, error } = this.inputReader.readTextOptions();
+            
+            if (!ok) {
+                this.showNotification(`⚠️ ${error}`, 'warning');
+                return;
+            }
+
+            this.disableGenerateButton();
+            
+            // Emit generation request
+            this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, options);
+            console.log('📤 UIController: Generation request emitted');
+        } catch (error) {
+            console.error('❌ UIController: Generate error:', error);
+            this.showNotification('❌ Error: ' + error.message, 'error');
+            this.enableGenerateButton();
+        }
+    }
+
+    onCopyClick() {
+        console.log('📋 UIController: Copy clicked');
+        const output = document.getElementById('ascii-output');
+        if (!output || !output.textContent.trim()) {
+            this.showNotification('⚠️ Nothing to copy', 'warning');
+            return;
+        }
+
+        navigator.clipboard.writeText(output.textContent)
+            .then(() => this.showNotification('✅ Copied to clipboard', 'success'))
+            .catch(err => this.showNotification('❌ Copy failed', 'error'));
+    }
+
+    onDownloadClick() {
+        console.log('💾 UIController: Download clicked');
+        const output = document.getElementById('ascii-output');
+        if (!output || !output.textContent.trim()) {
+            this.showNotification('⚠️ Nothing to download', 'warning');
+            return;
+        }
+
+        const blob = new Blob([output.textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ascii-art-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.showNotification('✅ Downloaded successfully', 'success');
+    }
+
+    onClearClick() {
+        console.log('🗑️ UIController: Clear clicked');
+        const output = document.getElementById('ascii-output');
+        if (output) {
+            output.innerHTML = '';
+            output.textContent = '';
+            output.className = 'ascii-output';
+        }
+        if (this.dom.outputStats) {
+            this.dom.outputStats.textContent = '';
+        }
+        this.showNotification('🗑️ Cleared', 'info');
+    }
+
+    onThemeClick() {
+        console.log('🌙 UIController: Theme clicked');
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        try {
+            localStorage.setItem('theme', newTheme);
+        } catch (e) {}
+        this.dom.themeBtn.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+        console.log('✅ Theme changed to:', newTheme);
+    }
+
+    onAutoDetectClick() {
+        console.log('🔍 UIController: Auto-detect keywords clicked');
+        this.showNotification('✨ Auto-detect feature coming soon', 'info');
+    }
+
+    /**
+     * GENERATION EVENT HANDLERS
+     */
+
+    onGenerationStart(type) {
+        console.log('⏳ UIController: Generation started -', type);
+        this.state.isGenerating = true;
+        this.showLoading(true);
+        this.disableGenerateButton();
+    }
+
+    onGenerationComplete(result) {
+        console.log('✅ UIController: Generation complete', {
+            success: result.success,
+            asciiLength: result.ascii?.length
         });
         
-        // Generation complete events
-        const onGenerationStart = () => this.showLoading();
-        const onGenerationEnd = () => this.hideLoading();
+        this.state.isGenerating = false;
+        this.showLoading(false);
+        this.enableGenerateButton();
 
-        this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, onGenerationStart);
-        this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
-            console.log('📥 UIController received TEXT_GENERATION_COMPLETE');
-            onGenerationEnd();
-            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
-            this.displayOutput({
-                ascii: result.ascii,
-                color: result.metadata?.color,
-                animation: result.metadata?.animation
-            });
-            this.updateOutputStats(result.ascii);
-            this.showNotification('✨ Text art generated!', 'success');
-        });
-        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (payload) => {
-            onGenerationEnd();
-            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Text generation failed');
-            this.showNotification(`❌ ${message}`, 'error');
-        });
-
-        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, onGenerationStart);
-        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => {
-            onGenerationEnd();
-            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
-            this.displayOutput({
-                ascii: result.ascii,
-                color: 'none',
-                animation: 'none'
-            });
-            this.updateOutputStats(result.ascii);
-            this.showNotification('✨ Image art generated!', 'success');
-        });
-        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (payload) => {
-            onGenerationEnd();
-            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Image generation failed');
-            this.showNotification(`❌ ${message}`, 'error');
-        });
-
-        this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, onGenerationStart);
-        this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => {
-            onGenerationEnd();
-            if (this.dom.generateBtn) this.dom.generateBtn.disabled = false;
-            this.displayOutput({
-                ascii: result.ascii,
-                color: result.metadata?.color,
-                animation: result.metadata?.animation
-            });
-            this.updateOutputStats(result.ascii);
-            this.showNotification('✨ Poetry art generated!', 'success');
-        });
-        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (payload) => {
-            onGenerationEnd();
-            const message = typeof payload === 'string' ? payload : (payload?.error || payload?.message || 'Poetry generation failed');
-            this.showNotification(`❌ ${message}`, 'error');
-        });
-    }
-
-    /**
-     * Handles the main "Generate" button click and dispatches to the correct service request.
-     */
-    handleGenerateClick() {
-        console.log('🎨 handleGenerateClick called, current mode:', this.state.currentTab);
-
-        // Disable generate during processing to prevent duplicate requests
-        const enableGenerate = (enabled) => {
-            if (this.dom.generateBtn) {
-                this.dom.generateBtn.disabled = !enabled;
-                this.dom.generateBtn.classList.toggle('disabled', !enabled);
-            }
-        };
-
-        enableGenerate(false);
-
-        switch (this.state.currentTab) {
-            case 'text':
-                {
-                    const { ok, options, error } = this.inputReader.readTextOptions();
-                    if (!ok) {
-                        this.showNotification(error, 'warning');
-                        enableGenerate(true);
-                        return;
-                    }
-                    console.log('📤 Emitting REQUEST_TEXT_GENERATION', options);
-                    this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, options);
-                }
-                break;
-
-            case 'image':
-                {
-                    const { ok, options, error } = this.inputReader.readImageOptions();
-                    if (!ok) {
-                        this.showNotification(error, 'warning');
-                        enableGenerate(true);
-                        return;
-                    }
-                    console.log('📤 Emitting REQUEST_IMAGE_GENERATION', { fileName: options.file?.name, width: options.width, charSet: options.charSet });
-                    this.eventBus.emit(EventBus.Events.REQUEST_IMAGE_GENERATION, options);
-                }
-                break;
-
-            case 'poetry':
-                {
-                    const { ok, options, error } = this.inputReader.readPoetryOptions();
-                    if (!ok) {
-                        this.showNotification(error, 'warning');
-                        enableGenerate(true);
-                        return;
-                    }
-                    // merge keyword state (reader does not have access to state)
-                    options.keywords = Array.from(this.state.keywords);
-                    console.log('📤 Emitting REQUEST_POETRY_GENERATION', { poemLength: options.poem.length, layout: options.layout, decoration: options.decoration });
-                    this.eventBus.emit(EventBus.Events.REQUEST_POETRY_GENERATION, options);
-                }
-                break;
-
-            default:
-                console.error(`❌ Unknown generation mode: ${this.state.currentTab}`);
-                this.showNotification('Unknown mode selected', 'error');
-                enableGenerate(true);
+        if (!result.success || !result.ascii) {
+            this.showNotification('❌ Generation failed', 'error');
+            return;
         }
+
+        // Update stats if available
+        if (result.ascii && this.dom.outputStats) {
+            const lines = result.ascii.split('\n');
+            const width = Math.max(...lines.map(l => l.length));
+            const height = lines.length;
+            this.dom.outputStats.textContent = `${width}×${height}, ${result.ascii.length} chars`;
+        }
+
+        this.showNotification('✨ Generation complete!', 'success');
     }
 
+    onGenerationError(error) {
+        console.error('❌ UIController: Generation error:', error);
+        
+        this.state.isGenerating = false;
+        this.showLoading(false);
+        this.enableGenerateButton();
+
+        const message = typeof error === 'string' ? error : (error?.message || 'Unknown error');
+        this.showNotification(`❌ ${message}`, 'error');
+    }
 
     /**
-     * Switch active tab
-     * @param {string} tabName - Name of the tab
+     * MODE MANAGEMENT
      */
+
     switchMode(mode) {
-        try {
-            if (this.state.currentTab === mode) return;
-            this.state.currentTab = mode;
+        console.log('🔄 UIController: Switching mode to:', mode);
+        
+        if (this.state.currentMode === mode) return;
+        this.state.currentMode = mode;
 
-            // Update button states
-            this.dom.modeButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.mode === mode);
-            });
+        // Update button states
+        this.dom.modeButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
 
-            // Update tab content visibility
-            this.dom.modeContents.forEach(content => {
-                content.classList.toggle('active', content.id === `${mode}-mode`);
-            });
+        // Update content visibility
+        this.dom.modeContents.forEach(content => {
+            content.classList.toggle('active', content.id === `${mode}-mode`);
+        });
 
-            // Show/hide poetry-specific options
-            const poetryOptions = document.querySelectorAll('.poetry-only');
-            poetryOptions.forEach(opt => {
-                opt.style.display = mode === 'poetry' ? 'flex' : 'none';
-            });
+        // Show/hide poetry options
+        document.querySelectorAll('.poetry-only').forEach(el => {
+            el.style.display = mode === 'poetry' ? 'flex' : 'none';
+        });
 
-            // Update font options based on mode
-            this.updateFontOptions(mode);
-
-            this.eventBus.emit(EventBus.Events.TAB_CHANGED, { tab: mode });
-
-            // Improve continuity: focus correct input after switching
-            setTimeout(() => {
-                if (mode === 'text') this.dom.textInput?.focus();
-                if (mode === 'image') this.dom.imageInput?.focus();
-                if (mode === 'poetry') this.dom.poemInput?.focus();
-            }, 0);
-        } catch (error) {
-            console.error('Error switching mode:', error);
-        }
+        this.updateGenerateButtonState();
+        console.log('✅ Mode switched to:', mode);
     }
 
-    updateFontOptions(mode) {
-        const fontOption = this.dom.fontSelect.closest('.compact-option');
-        if (!fontOption) return;
-
-        fontOption.style.display = (mode === 'image') ? 'none' : 'flex';
+    setInitialMode(mode) {
+        this.switchMode(mode);
     }
 
     /**
-     * Display ASCII art output
-     * @param {Object} data - Output data
+     * UI STATE MANAGEMENT
      */
-    displayOutput(data) {
-        try {
-            this.outputComponent.render(data);
-        } catch (error) {
-            console.error('❌ Error displaying output:', error);
-            console.error('Stack:', error.stack);
-            this.showNotification(`Failed to display output: ${error.message}`, 'error');
+
+    updateGenerateButtonState() {
+        if (!this.dom.generateBtn) return;
+
+        let canGenerate = false;
+
+        switch (this.state.currentMode) {
+            case 'text':
+                canGenerate = !!(this.dom.textInput?.value?.trim());
+                break;
+            case 'image':
+                canGenerate = !!(this.dom.imageInput?.files?.[0]);
+                break;
+            case 'poetry':
+                canGenerate = !!(this.dom.poemInput?.value?.trim());
+                break;
+        }
+
+        this.dom.generateBtn.disabled = !canGenerate;
+        this.dom.generateBtn.classList.toggle('disabled', !canGenerate);
+    }
+
+    disableGenerateButton() {
+        if (this.dom.generateBtn) {
+            this.dom.generateBtn.disabled = true;
+            this.dom.generateBtn.classList.add('disabled');
         }
     }
 
-    // --- Keyword Management ---
+    enableGenerateButton() {
+        if (this.dom.generateBtn) {
+            this.dom.generateBtn.disabled = false;
+            this.dom.generateBtn.classList.remove('disabled');
+        }
+        this.updateGenerateButtonState();
+    }
+
+    showLoading(show) {
+        if (this.dom.loading) {
+            this.dom.loading.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    /**
+     * NOTIFICATIONS
+     */
+
+    showNotification(message, type = 'info') {
+        console.log(`📢 UIController: ${type.toUpperCase()} - ${message}`);
+
+        if (!this.dom.notification) {
+            const notif = document.createElement('div');
+            notif.id = 'notification';
+            notif.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(18, 18, 26, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
+                color: #ffffff;
+                padding: 12px 20px;
+                border-radius: 8px;
+                border: 1px solid rgba(102, 126, 234, 0.3);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.85rem;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            document.body.appendChild(notif);
+            this.dom.notification = notif;
+        }
+
+        this.dom.notification.textContent = message;
+        this.dom.notification.style.opacity = '1';
+
+        setTimeout(() => {
+            if (this.dom.notification) {
+                this.dom.notification.style.opacity = '0';
+            }
+        }, 3000);
+    }
+
+    /**
+     * KEYWORD MANAGEMENT
+     */
 
     addKeyword(keyword) {
-        const validation = this.validator.validateKeyword(keyword, this.state.keywords.size);
-        if (!validation.valid) {
-            this.showNotification(`⚠️ ${validation.error}`, 'warning');
-            return;
-        }
-
-        if (this.state.keywords.has(validation.value)) {
-            this.showNotification('⚠️ Keyword already added!', 'warning');
-            return;
-        }
-
-        this.state.keywords.add(validation.value);
-        this.renderKeywordChips();
-    }
-
-    removeKeyword(keyword) {
-        this.state.keywords.delete(keyword);
-        this.renderKeywordChips();
-    }
-
-    renderKeywordChips() {
-        if (!this.dom.keywordChipsContainer) return;
-
-        this.dom.keywordChipsContainer.innerHTML = '';
-        this.state.keywords.forEach(keyword => {
+        if (!keyword || !keyword.trim()) return;
+        
+        const trimmed = keyword.trim();
+        if (this.dom.keywordChipsContainer) {
             const chip = document.createElement('div');
             chip.className = 'keyword-chip';
-            chip.textContent = keyword;
-            chip.dataset.keyword = keyword;
+            chip.textContent = trimmed;
+            chip.addEventListener('click', () => chip.remove());
             this.dom.keywordChipsContainer.appendChild(chip);
-        });
-    }
-
-    handleChipClick(event) {
-        const keyword = event.target.dataset.keyword;
-        if (keyword) {
-            this.removeKeyword(keyword);
-        }
-    }
-
-    autoDetectKeywords() {
-        const poem = this.dom.poemInput?.value;
-        if (!poem || !poem.trim()) {
-            this.showNotification('⚠️ Please enter a poem first!', 'warning');
-            return;
-        }
-
-        try {
-            const config = this.config?.poetry || {};
-            const commonWords = new Set(config.commonWords || []);
-            const minLength = config.autoDetect?.minWordLength || 4;
-            const maxKeywords = config.autoDetect?.maxKeywords || 5;
-
-            // Extract words and count their frequency
-            const words = poem.toLowerCase().match(/\b[a-z]+\b/g) || [];
-            const wordCount = {};
-            
-            words.forEach(word => {
-                if (!commonWords.has(word) && word.length >= minLength) {
-                    wordCount[word] = (wordCount[word] || 0) + 1;
-                }
-            });
-
-            // Get top keywords based on frequency and length
-            const detectedKeywords = Object.keys(wordCount)
-                .sort((a, b) => {
-                    // Prioritize more frequent words, then longer words
-                    if (wordCount[b] !== wordCount[a]) {
-                        return wordCount[b] - wordCount[a];
-                    }
-                    return b.length - a.length;
-                })
-                .filter(word => !this.state.keywords.has(word)); // Exclude already added keywords
-
-            if (detectedKeywords.length === 0) {
-                this.showNotification('ℹ️ No new significant keywords detected.', 'info');
-                return;
-            }
-
-            // Add the top detected keywords up to the limit
-            let addedCount = 0;
-            for (const keyword of detectedKeywords) {
-                if (this.state.keywords.size < (this.config?.validation?.keywords?.max || 20)) {
-                    this.addKeyword(keyword);
-                    addedCount++;
-                    if (addedCount >= maxKeywords) break;
-                } else {
-                    this.showNotification('⚠️ Keyword limit reached.', 'warning');
-                    break;
-                }
-            }
-
-            if (addedCount > 0) {
-                this.showNotification(`✨ Detected and added ${addedCount} new keyword(s)!`, 'success');
-            } else {
-                this.showNotification('ℹ️ No new keywords could be added.', 'info');
-            }
-
-        } catch (error) {
-            console.error('Error auto-detecting keywords:', error);
-            this.showNotification('❌ Error detecting keywords.', 'error');
-        }
-    }
-
-    // --- End Keyword Management ---
-
-    /**
-     * Hide loading indicator
-     */
-    hideLoading() {
-        if (this.dom.loading) {
-            this.dom.loading.style.display = 'none';
-            this.state.isLoading = false;
         }
     }
 
     /**
-     * Show loading indicator
+     * UTILITIES
      */
-    showLoading() {
-        if (this.dom.loading) {
-            this.dom.loading.style.display = 'block';
-            this.state.isLoading = true;
-        }
-    }
 
-    /**
-     * Show notification
-     * @param {string} message - Notification message
-     * @param {string} type - Notification type (success, error, warning, info)
-     */
-    showNotification(message, type = 'info') {
-        try {
-            let notification = this.dom.notification;
-            
-            if (!notification) {
-                notification = document.createElement('div');
-                notification.id = 'notification';
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 80px;
-                    right: 20px;
-                    background: linear-gradient(135deg, rgba(18, 18, 26, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
-                    color: var(--text-primary);
-                    padding: 12px 20px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(102, 126, 234, 0.3);
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 0.85rem;
-                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-                    z-index: 10000;
-                    opacity: 0;
-                    transition: opacity 0.3s ease, transform 0.3s ease;
-                    transform: translateY(-10px);
-                `;
-                document.body.appendChild(notification);
-                this.dom.notification = notification;
-            }
-
-            notification.textContent = message;
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-
-            const duration = this.config?.ui?.notifications?.duration || 3000;
-
-            setTimeout(() => {
-                if (notification) {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateY(-10px)';
-                }
-            }, duration);
-
-        } catch (error) {
-            console.error('Error showing notification:', error);
-        }
-    }
-
-    /**
-     * Copy output to clipboard
-     */
-    async copyToClipboard() {
-        try {
-            const output = this.dom.output?.textContent;
-            
-            if (!output || !output.trim()) {
-                this.showNotification('⚠️ No ASCII art to copy!', 'warning');
-                return;
-            }
-
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(output);
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = output;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
-
-            this.showNotification('📋 Copied to clipboard!', 'success');
-            this.eventBus.emit(EventBus.Events.OUTPUT_COPIED, { output });
-
-        } catch (error) {
-            console.error('Error copying to clipboard:', error);
-            this.showNotification('❌ Failed to copy', 'error');
-        }
-    }
-
-    /**
-     * Download output as text file
-     */
-    downloadOutput() {
-        try {
-            const output = this.dom.output?.textContent;
-            
-            if (!output || !output.trim()) {
-                this.showNotification('⚠️ No ASCII art to download!', 'warning');
-                return;
-            }
-
-            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ascii-art-${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-
-            this.showNotification('💾 Downloaded successfully!', 'success');
-            this.eventBus.emit(EventBus.Events.OUTPUT_DOWNLOADED, { output });
-
-        } catch (error) {
-            console.error('Error downloading output:', error);
-            this.showNotification('❌ Failed to download', 'error');
-        }
-    }
-
-    updateOutputStats(ascii) {
-        try {
-            const el = document.getElementById('output-stats');
-            if (!el || !ascii) return;
-            const lines = ascii.split('\n');
-            const width = Math.max(...lines.map(l => l.length));
-            const height = lines.length;
-            el.textContent = `${width}×${height}, ${ascii.length} chars`;
-        } catch (_) {}
-    }
-
-    /**
-     * Clear output
-     */
-    clearOutput() {
-        try {
-            if (this.dom.output) {
-                this.dom.output.textContent = '';
-                this.dom.output.className = 'ascii-output';
-                const stats = document.getElementById('output-stats');
-                if (stats) stats.textContent = '';
-                this.showNotification('🗑️ Output cleared', 'info');
-                this.eventBus.emit(EventBus.Events.OUTPUT_CLEARED);
-            }
-        } catch (error) {
-            console.error('Error clearing output:', error);
-        }
-    }
-
-
-    // ---- Flow helpers ----
-    updateGenerateEnabled() {
-        const btn = this.dom.generateBtn;
-        if (!btn) return;
-        let enabled = false;
-        switch (this.state.currentTab) {
-            case 'text':
-                enabled = !!(this.dom.textInput?.value && this.dom.textInput.value.trim());
-                break;
-            case 'image':
-                enabled = !!(this.dom.imageInput?.files?.[0]);
-                break;
-            case 'poetry':
-                enabled = !!(this.dom.poemInput?.value && this.dom.poemInput.value.trim());
-                break;
-        }
-        btn.disabled = !enabled;
-        btn.classList.toggle('disabled', !enabled);
-    }
-
-    updateOutputStats(ascii) {
-        try {
-            const el = document.getElementById('output-stats');
-            if (!el || !ascii) return;
-            const lines = ascii.split('\n');
-            const width = Math.max(...lines.map(l => l.length));
-            const height = lines.length;
-            el.textContent = `${width}×${height}, ${ascii.length} chars`;
-        } catch (_) {}
-    }
-
-    // Diagnostics: verify if an element is topmost at its center
-    probeClickable(element, label) {
-        try {
-            const rect = element.getBoundingClientRect();
-            const x = Math.floor(rect.left + rect.width / 2);
-            const y = Math.floor(rect.top + rect.height / 2);
-            const topEl = document.elementFromPoint(x, y);
-            console.log('🧭 Click probe', { label, topElTag: topEl?.tagName, topElId: topEl?.id, topElClass: topEl?.className, expectedId: element.id });
-        } catch (err) {
-            console.warn('Click probe failed', err);
-        }
-    }
-
-
-    /**
-     * Get current state
-     * @returns {Object}
-     */
     getState() {
         return { ...this.state };
     }
+
+    getCurrentMode() {
+        return this.state.currentMode;
+    }
 }
 
-// Export for use in other modules
+// Export for use
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = UIController;
 }

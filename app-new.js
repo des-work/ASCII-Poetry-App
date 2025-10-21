@@ -18,20 +18,46 @@ document.addEventListener('DOMContentLoaded', () => {
         // Step 2: Create new system components
         console.log('📦 Step 2: Creating new system components...');
         
+        // Performance system
+        const performanceManager = new PerformanceManager(window.AppConfig);
+        
         // Button system
         const buttonController = new ButtonController(eventBus);
         
         // Input system
         const inputManager = new InputManager(eventBus, inputValidator);
         
-        // Generation system
-        const generationService = new GenerationService(fontManager, asciiRenderer, inputValidator, eventBus);
+        // Font switching system
+        const fontSwitcher = new FontSwitcher(eventBus, fontManager, window.AppConfig);
         
-        // Output system
+        // Generation system
+        const generationService = new GenerationService(fontManager, asciiRenderer, inputValidator, eventBus, performanceManager);
+        
+        // Output display system (NEW SIMPLIFIED)
+        const outputRenderer = new OutputRenderer();
+        const outputPanel = new OutputPanel();
+        const displayManager = new DisplayManager(eventBus, outputPanel);
+        
+        // Output system (legacy)
         const outputManager = new OutputManager(eventBus, asciiRenderer);
         
-        // UI Controller (legacy system integration)
-        const uiController = new UIController(eventBus, window.AppConfig, fontManager, asciiRenderer, inputValidator);
+        // UI Controller (NEW CLEAN DESIGN)
+        // First, we need to cache DOM elements for InputReader
+        const domCache = {
+            textInput: document.getElementById('text-input'),
+            imageInput: document.getElementById('image-input'),
+            poemInput: document.getElementById('poem-input'),
+            fontSelect: document.getElementById('font-select'),
+            colorSelect: document.getElementById('color-select'),
+            animationSelect: document.getElementById('animation-select'),
+            imageWidthSlider: document.getElementById('image-width'),
+            imageCharsSelect: document.getElementById('image-chars'),
+            poetryLayoutSelect: document.getElementById('poetry-layout'),
+            poetryDecorationSelect: document.getElementById('poetry-decoration')
+        };
+        
+        const inputReader = new InputReader(domCache);
+        const uiController = new UIController(eventBus, window.AppConfig, inputReader, inputValidator);
         
         console.log('✅ New system components created');
 
@@ -71,33 +97,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         console.log('✅ Theme initialized');
 
-        // Step 5: Set initial mode
-        console.log('📦 Step 5: Setting initial mode...');
+        // Step 5: Preload common fonts for better performance
+        console.log('📦 Step 5: Preloading common fonts...');
+        await performanceManager.preloadFonts(fontManager, ['standard', 'block', 'bubble', 'mini']);
+        console.log('✅ Common fonts preloaded');
+
+        // Step 6: Set initial mode
+        console.log('📦 Step 6: Setting initial mode...');
         inputManager.switchMode('text');
         console.log('✅ Initial mode set to text');
 
-        // Step 6: Expose components for debugging
+        // Step 7: Expose components for debugging
         window.app = {
             eventBus,
             fontManager,
             asciiRenderer,
             inputValidator,
+            performanceManager,
             buttonController,
             inputManager,
+            fontSwitcher,
             generationService,
+            displayManager,
+            outputRenderer,
+            outputPanel,
             outputManager,
-            uiController
+            uiController,
+            inputReader,
+            // Debug helpers
+            debugOutput: () => {
+                displayManager.debug();
+                outputRenderer.debug();
+            },
+            testOutput: (text = 'HELLO WORLD') => {
+                outputRenderer.display(text, { color: 'none', animation: 'none' });
+            },
+            // Diagnostic helpers
+            DiagnosticHelper,
+            diagnose: () => {
+                console.log('\n=== COMPREHENSIVE DIAGNOSTICS ===\n');
+                DiagnosticHelper.traceCompleteFlow();
+                console.log('\n');
+                DiagnosticHelper.checkInputReading();
+                console.log('\n');
+                DiagnosticHelper.testRenderingSpeed();
+                console.log('\n');
+                DiagnosticHelper.checkEventSubscriptions();
+                console.log('\n=== END DIAGNOSTICS ===\n');
+            }
         };
         console.log('✅ Components exposed to window.app');
 
-        // Step 7: Build badge
+        // Step 8: Build badge
         try {
             const buildId = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
             const el = document.getElementById('build-id');
             if (el) el.textContent = buildId;
         } catch (_) {}
 
-        // Step 8: Success message
+        // Step 9: Success message
         console.log('\n' + '='.repeat(60));
         console.log('✅ NEW APPLICATION INITIALIZED SUCCESSFULLY');
         console.log('='.repeat(60));
@@ -117,6 +175,16 @@ NEW SYSTEM OPERATIONAL!
   window.app.generationService - Generation service
   window.app.outputManager - Output management
   window.app.buttonController - Button controller
+  window.app.fontSwitcher - Font switching system
+  window.app.performanceManager - Performance optimization
+  window.app.performanceManager.getStats() - View cache statistics
+  window.app.debugOutput() - Debug output element visibility
+  window.app.testOutput('HELLO') - Test output with sample text
+  window.app.diagnose() - Run comprehensive diagnostics
+  window.app.DiagnosticHelper.checkInputReading() - Check text input
+  window.app.DiagnosticHelper.checkOutputVisibility() - Check output element
+  window.app.DiagnosticHelper.testRenderingSpeed() - Test render performance
+  window.app.DiagnosticHelper.testGeneration('TEXT') - Manual generation test
 
 📝 Quick Test:
   window.app.eventBus.emit('request:text:gen', {

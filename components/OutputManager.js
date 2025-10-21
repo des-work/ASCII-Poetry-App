@@ -40,9 +40,17 @@ class OutputManager {
 
     subscribeToEvents() {
         // Generation events
-        this.eventBus.on('generation:start', (data) => this.showLoading(data.type));
-        this.eventBus.on('generation:complete', (result) => this.displayOutput(result));
-        this.eventBus.on('generation:error', (error) => this.showError(error));
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, () => this.showLoading('text'));
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => this.displayOutput(result));
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (error) => this.showError(error));
+
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, () => this.showLoading('image'));
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_COMPLETE, (result) => this.displayOutput(result));
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (error) => this.showError(error));
+
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, () => this.showLoading('poetry'));
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_COMPLETE, (result) => this.displayOutput(result));
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => this.showError(error));
 
         // UI action events
         this.eventBus.on('ui:copy:click', () => this.copyToClipboard());

@@ -4,11 +4,12 @@
  */
 
 class GenerationService {
-    constructor(fontManager, renderer, validator, eventBus) {
+    constructor(fontManager, renderer, validator, eventBus, performanceManager) {
         this.fontManager = fontManager;
         this.renderer = renderer;
         this.validator = validator;
         this.eventBus = eventBus;
+        this.performanceManager = performanceManager;
         this.isGenerating = false;
         this.init();
     }
@@ -54,13 +55,21 @@ class GenerationService {
             this.isGenerating = true;
             console.log('⚙️ GenerationService: Starting text generation...');
             
-            this.eventBus.emit('generation:start', { type: 'text' });
+            this.eventBus.emit(EventBus.Events.TEXT_GENERATION_START);
 
             const { text, fontName = 'standard', color = 'none', animation = 'none' } = options;
 
             // Validate input
             if (!text || !text.trim()) {
                 throw new Error('Text is required');
+            }
+
+            // Check cache first
+            const cachedResult = this.performanceManager?.getCachedResult(text, fontName, color, animation);
+            if (cachedResult) {
+                console.log('⚙️ GenerationService: Using cached result');
+                this.eventBus.emit(EventBus.Events.TEXT_GENERATION_COMPLETE, cachedResult);
+                return;
             }
 
             // Get font
@@ -84,15 +93,17 @@ class GenerationService {
                 }
             };
 
+            // Cache the result
+            this.performanceManager?.cacheResult(text, fontName, color, animation, result);
+
             console.log('⚙️ GenerationService: Text generation complete');
-            this.eventBus.emit('generation:complete', result);
+            // Emit with the correct event name from EventBus.Events
+            this.eventBus.emit(EventBus.Events.TEXT_GENERATION_COMPLETE, result);
 
         } catch (error) {
             console.error('⚙️ GenerationService: Text generation error:', error);
-            this.eventBus.emit('generation:error', { 
-                type: 'text', 
-                error: error.message 
-            });
+            // Emit error with the correct event name
+            this.eventBus.emit(EventBus.Events.TEXT_GENERATION_ERROR, error.message);
         } finally {
             this.isGenerating = false;
         }
@@ -111,7 +122,7 @@ class GenerationService {
             this.isGenerating = true;
             console.log('⚙️ GenerationService: Starting image generation...');
             
-            this.eventBus.emit('generation:start', { type: 'image' });
+            this.eventBus.emit(EventBus.Events.IMAGE_GENERATION_START);
 
             const { file, width = 80, charSet = 'standard' } = options;
 
@@ -135,14 +146,11 @@ class GenerationService {
             };
 
             console.log('⚙️ GenerationService: Image generation complete');
-            this.eventBus.emit('generation:complete', result);
+            this.eventBus.emit(EventBus.Events.IMAGE_GENERATION_COMPLETE, result);
 
         } catch (error) {
             console.error('⚙️ GenerationService: Image generation error:', error);
-            this.eventBus.emit('generation:error', { 
-                type: 'image', 
-                error: error.message 
-            });
+            this.eventBus.emit(EventBus.Events.IMAGE_GENERATION_ERROR, error.message);
         } finally {
             this.isGenerating = false;
         }
@@ -161,7 +169,7 @@ class GenerationService {
             this.isGenerating = true;
             console.log('⚙️ GenerationService: Starting poetry generation...');
             
-            this.eventBus.emit('generation:start', { type: 'poetry' });
+            this.eventBus.emit(EventBus.Events.POETRY_GENERATION_START);
 
             const { 
                 poem, 
@@ -203,14 +211,11 @@ class GenerationService {
             };
 
             console.log('⚙️ GenerationService: Poetry generation complete');
-            this.eventBus.emit('generation:complete', result);
+            this.eventBus.emit(EventBus.Events.POETRY_GENERATION_COMPLETE, result);
 
         } catch (error) {
             console.error('⚙️ GenerationService: Poetry generation error:', error);
-            this.eventBus.emit('generation:error', { 
-                type: 'poetry', 
-                error: error.message 
-            });
+            this.eventBus.emit(EventBus.Events.POETRY_GENERATION_ERROR, error.message);
         } finally {
             this.isGenerating = false;
         }
