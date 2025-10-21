@@ -321,32 +321,81 @@ class GenerationService {
 
     async convertImageToASCII(file, width, charSet) {
         return new Promise((resolve, reject) => {
+            // Validate input
+            if (!file || !file.type.startsWith('image/')) {
+                reject(new Error('Invalid file: must be an image'));
+                return;
+            }
+
+            if (width < 20 || width > 200) {
+                reject(new Error('Invalid width: must be between 20 and 200'));
+                return;
+            }
+
+            // Timeout for image loading (5 seconds)
+            const loadTimeout = setTimeout(() => {
+                reject(new Error('Image loading timed out. Please try a different image.'));
+            }, 5000);
+
             const img = new Image();
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            img.onerror = () => reject(new Error('Failed to load image'));
+            if (!ctx) {
+                clearTimeout(loadTimeout);
+                reject(new Error('Canvas context not available'));
+                return;
+            }
+
+            img.onerror = () => {
+                clearTimeout(loadTimeout);
+                reject(new Error('Failed to load image. Please check the file and try again.'));
+            };
+
+            img.onabort = () => {
+                clearTimeout(loadTimeout);
+                reject(new Error('Image loading was aborted'));
+            };
+
             img.onload = () => {
+                clearTimeout(loadTimeout);
                 try {
+                    // Validate image dimensions
+                    if (img.width <= 0 || img.height <= 0) {
+                        throw new Error('Invalid image dimensions');
+                    }
+
                     // Calculate height maintaining aspect ratio
                     const aspectRatio = img.height / img.width;
-                    const height = Math.floor(width * aspectRatio * 0.5); // 0.5 for character aspect ratio
+                    const height = Math.max(1, Math.floor(width * aspectRatio * 0.5)); // 0.5 for character aspect ratio
 
                     canvas.width = width;
                     canvas.height = height;
 
+                    // Draw with error handling
                     ctx.drawImage(img, 0, 0, width, height);
-                    const imageData = ctx.getImageData(0, 0, width, height);
+                    
+                    // Get image data with error handling
+                    let imageData;
+                    try {
+                        imageData = ctx.getImageData(0, 0, width, height);
+                    } catch (error) {
+                        throw new Error('Could not read image data. This might be a cross-origin image.');
+                    }
 
                     const chars = this.getCharacterSet(charSet);
+                    if (!chars || chars.length === 0) {
+                        throw new Error(`Invalid character set: "${charSet}"`);
+                    }
+
                     let ascii = '';
 
                     for (let y = 0; y < height; y++) {
                         for (let x = 0; x < width; x++) {
                             const pixelIndex = (y * width + x) * 4;
-                            const r = imageData.data[pixelIndex];
-                            const g = imageData.data[pixelIndex + 1];
-                            const b = imageData.data[pixelIndex + 2];
+                            const r = imageData.data[pixelIndex] || 0;
+                            const g = imageData.data[pixelIndex + 1] || 0;
+                            const b = imageData.data[pixelIndex + 2] || 0;
                             const brightness = (r + g + b) / 3;
 
                             const charIndex = Math.floor((brightness / 255) * (chars.length - 1));
@@ -355,13 +404,23 @@ class GenerationService {
                         ascii += '\n';
                     }
 
+                    if (!ascii || ascii.trim().length === 0) {
+                        throw new Error('No ASCII art generated from image');
+                    }
+
                     resolve(ascii);
                 } catch (error) {
-                    reject(error);
+                    reject(new Error(`Image processing error: ${error.message}`));
                 }
             };
 
-            img.src = URL.createObjectURL(file);
+            // Set source to trigger loading
+            try {
+                img.src = URL.createObjectURL(file);
+            } catch (error) {
+                clearTimeout(loadTimeout);
+                reject(new Error(`Failed to create image URL: ${error.message}`));
+            }
         });
     }
 

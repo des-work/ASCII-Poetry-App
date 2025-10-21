@@ -103,6 +103,49 @@ class PerformanceManager {
     }
 
     /**
+     * Reset statistics (useful for session tracking)
+     */
+    resetStats() {
+        this.stats = {
+            cacheHits: 0,
+            cacheMisses: 0,
+            totalRequests: 0
+        };
+        console.log('⚡ PerformanceManager: Statistics reset');
+        return this.stats;
+    }
+
+    /**
+     * Get stats and reset them for next interval
+     * Useful for monitoring and reporting
+     */
+    getStatsAndReset() {
+        const stats = this.getStats();
+        this.resetStats();
+        return stats;
+    }
+
+    /**
+     * Configure cache size
+     */
+    setMaxCacheSize(newSize) {
+        if (newSize < 1) {
+            console.error('⚡ PerformanceManager: Cache size must be at least 1');
+            return false;
+        }
+        
+        // If shrinking cache, evict excess items
+        while (this.renderCache.size > newSize) {
+            const firstKey = this.renderCache.keys().next().value;
+            this.renderCache.delete(firstKey);
+        }
+        
+        this.maxCacheSize = newSize;
+        console.log(`⚡ PerformanceManager: Max cache size set to ${newSize}`);
+        return true;
+    }
+
+    /**
      * Preload common fonts
      */
     async preloadFonts(fontManager, commonFonts = ['standard', 'block', 'bubble']) {

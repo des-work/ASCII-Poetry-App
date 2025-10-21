@@ -5,11 +5,12 @@
  */
 class EventBus {
     constructor() {
-        if (EventBus.instance) {
+        if (EventBus.instance)
             // console.log('♻️ EventBus: Returning existing instance'); // This can be noisy
             return EventBus.instance;
         }
         this.events = {};
+        this.subscriptions = new Map(); // Track subscriptions for cleanup
         EventBus.instance = this;
         // Temporarily re-enable for debugging
         // Uncomment the following lines
@@ -19,7 +20,7 @@ class EventBus {
     }
 
     /**
-     * Subscribe to an event.
+     * Subscribe to an event with automatic unsubscribe tracking
      * @param {string} event - The event name.
      * @param {Function} callback - The function to call when the event is emitted.
      * @returns {Function} A function to unsubscribe.
@@ -29,13 +30,21 @@ class EventBus {
             this.events[event] = [];
         }
         this.events[event].push(callback);
-        // Temporarily re-enable for debugging
-        // Uncomment the following lines
-
-        // In on method
-        console.log(`👂 EventBus: Listener registered for "${event}" (total: ${this.events[event].length})`);
+        
+        // Track subscription for cleanup
+        const unsubscribe = () => this.off(event, callback);
+        
+        if (!this.subscriptions.has(event)) {
+            this.subscriptions.set(event, []);
+        }
+        this.subscriptions.get(event).push(unsubscribe);
+        
+        if (window.DEBUG_MODE) {
+            console.log(`👂 EventBus: Listener registered for "${event}" (total: ${this.events[event].length})`);
+        }
+        
         // Return an unsubscribe function
-        return () => this.off(event, callback);
+        return unsubscribe;
     }
 
     /**
@@ -52,6 +61,49 @@ class EventBus {
         } else {
             delete this.events[event];
         }
+    }
+
+    /**
+     * Clean up all subscriptions for a component
+     * Call this when a component is destroyed
+     */
+    cleanup(event) {
+        if (event) {
+            // Clean specific event
+            if (this.subscriptions.has(event)) {
+                this.subscriptions.delete(event);
+            }
+            delete this.events[event];
+            console.log(`🧹 EventBus: Cleaned up subscriptions for "${event}"`);
+        } else {
+            // Clean all events
+            this.events = {};
+            this.subscriptions.clear();
+            console.log('🧹 EventBus: Cleaned up all subscriptions');
+        }
+    }
+
+    /**
+     * Get subscription count for monitoring
+     */
+    getSubscriptionCount(event) {
+        if (event) {
+            return this.events[event]?.length || 0;
+        }
+        // Return total count
+        return Object.keys(this.events).reduce((total, key) => total + (this.events[key]?.length || 0), 0);
+    }
+
+    /**
+     * Debug helper to show all subscriptions
+     */
+    debugSubscriptions() {
+        const stats = {};
+        for (const [event, callbacks] of Object.entries(this.events)) {
+            stats[event] = callbacks.length;
+        }
+        console.log('📊 EventBus Subscriptions:', stats);
+        return stats;
     }
 
     /**

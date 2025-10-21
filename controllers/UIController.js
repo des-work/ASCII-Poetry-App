@@ -493,6 +493,114 @@ class UIController {
     getCurrentMode() {
         return this.state.currentMode;
     }
+
+    /**
+     * RECOVERY AND ERROR HANDLING
+     */
+
+    /**
+     * Recover from error state
+     */
+    recover() {
+        console.log('🔄 UIController: Attempting recovery...');
+        
+        try {
+            // Reset state
+            this.state.isGenerating = false;
+            
+            // Reset UI
+            this.showLoading(false);
+            this.enableGenerateButton();
+            
+            // Reset output
+            if (this.outputPanel) {
+                this.outputPanel.setDefaultState();
+            }
+            
+            // Clear notifications
+            this.clearNotification();
+            
+            console.log('✅ UIController: Recovery complete');
+            return true;
+        } catch (error) {
+            console.error('❌ UIController: Recovery failed:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Hard reset - reinitialize critical components
+     */
+    hardReset() {
+        console.log('⚠️  UIController: Performing hard reset...');
+        
+        try {
+            // Unsubscribe from events
+            if (this.eventBus && this.eventBus.cleanup) {
+                this.eventBus.cleanup();
+            }
+            
+            // Reset state
+            this.state = {
+                currentMode: 'text',
+                isGenerating: false
+            };
+            
+            // Re-cache DOM
+            this.cacheDOM();
+            
+            // Re-attach listeners
+            this.attachEventListeners();
+            
+            // Re-subscribe to events
+            this.subscribeToEvents();
+            
+            // Reset UI
+            this.showLoading(false);
+            this.enableGenerateButton();
+            
+            // Reset output
+            if (this.outputPanel) {
+                this.outputPanel.setDefaultState();
+            }
+            
+            console.log('✅ UIController: Hard reset complete');
+            this.showNotification('🔄 Application reset', 'info');
+            return true;
+        } catch (error) {
+            console.error('❌ UIController: Hard reset failed:', error);
+            this.showNotification('❌ Reset failed', 'error');
+            return false;
+        }
+    }
+
+    /**
+     * Clear notifications
+     */
+    clearNotification() {
+        if (this.dom?.notification) {
+            this.dom.notification.textContent = '';
+            this.dom.notification.className = 'notification';
+        }
+    }
+
+    /**
+     * Handle critical errors
+     */
+    handleCriticalError(error) {
+        console.error('🚨 UIController: Critical error:', error);
+        
+        // Show error to user
+        this.showNotification(`🚨 Critical error: ${error.message || 'Unknown error'}`, 'error');
+        
+        // Reset UI state
+        this.state.isGenerating = false;
+        this.showLoading(false);
+        this.enableGenerateButton();
+        
+        // Suggest recovery
+        console.log('💡 Tip: Use window.app.uiController.recover() to recover, or hardReset() for full reset');
+    }
 }
 
 // Export for use

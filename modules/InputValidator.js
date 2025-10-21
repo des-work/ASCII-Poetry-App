@@ -17,7 +17,8 @@ class InputValidator {
     }
 
     /**
-     * Sanitize text input by removing dangerous characters
+     * Sanitize text input by removing dangerous characters while preserving ASCII art
+     * Prevents XSS and other injection attacks
      * @param {string} input - Input to sanitize
      * @returns {string} Sanitized input
      */
@@ -25,14 +26,46 @@ class InputValidator {
         if (typeof input !== 'string') {
             return '';
         }
-        // Remove potentially dangerous characters but keep ASCII art friendly ones
-        return input.replace(/[<>]/g, '');
+        
+        // Remove HTML/XML tags and dangerous control characters
+        // But preserve ASCII art friendly characters
+        let sanitized = input
+            .replace(/<[^>]*>/g, '') // Remove HTML tags
+            .replace(/javascript:/gi, '') // Remove javascript: protocol
+            .replace(/on\w+\s*=/gi, '') // Remove event handlers
+            .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ''); // Remove control chars except tabs/newlines
+        
+        // Also remove < and > to prevent HTML injection
+        sanitized = sanitized.replace(/[<>]/g, '');
+        
+        return sanitized;
     }
 
     /**
-     * Validate text input
+     * Escape HTML special characters for safe display
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    escapeHtml(text) {
+        if (typeof text !== 'string') {
+            return '';
+        }
+        
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        
+        return text.replace(/[&<>"']/g, (char) => map[char]);
+    }
+
+    /**
+     * Validate and sanitize text input
      * @param {string} text - Text to validate
-     * @returns {Object} validation result
+     * @returns {Object} validation result with sanitized value
      */
     validateText(text) {
         if (!text || typeof text !== 'string') {
