@@ -947,7 +947,14 @@ class SimpleASCIIArt {
         this.generationTimeout = 5000;
         this.fontChangeDelay = 300;
         this.fontChangeTimer = null;
-        this.currentMode = 'text';  // 'text' or 'poetry'
+        this.currentMode = 'text';  // 'text', 'poetry', or 'ai'
+        this.settings = {
+            apiUrl: 'http://localhost:8000',
+            apiKey: '',
+            model: 'mistral',
+            temperature: 0.7,
+            maxTokens: 1000
+        };
         this.init();
     }
 
@@ -988,6 +995,23 @@ class SimpleASCIIArt {
         this.inputTitle = document.getElementById('input-title');
         this.modeTextBtn = document.getElementById('mode-text');
         this.modePoetryBtn = document.getElementById('mode-poetry');
+        this.modeAiBtn = document.getElementById('mode-ai');
+        this.clearOutputBtn = document.getElementById('clear-output-btn');
+        this.aiPrompt = document.getElementById('ai-prompt');
+        this.aiPromptGroup = document.getElementById('ai-prompt-group');
+        this.textInputGroup = document.getElementById('text-input-group');
+        
+        // Settings elements
+        this.settingsBtn = document.getElementById('settings-btn');
+        this.settingsModal = document.getElementById('settings-modal');
+        this.closeSettingsBtn = document.getElementById('close-settings-btn');
+        this.settingsApiUrl = document.getElementById('settings-api-url');
+        this.settingsApiKey = document.getElementById('settings-api-key');
+        this.settingsModel = document.getElementById('settings-model');
+        this.settingsTemp = document.getElementById('settings-temp');
+        this.settingsTokens = document.getElementById('settings-tokens');
+        this.testApiBtn = document.getElementById('test-api-btn');
+        this.saveApiBtn = document.getElementById('save-api-btn');
 
         if (!this.textInput || !this.fontSelect || !this.generateBtn || !this.output) {
             throw new Error('Required DOM elements not found');
@@ -1020,6 +1044,12 @@ class SimpleASCIIArt {
         if (this.modePoetryBtn) {
             this.modePoetryBtn.addEventListener('click', () => this.setMode('poetry'));
         }
+        if (this.modeAiBtn) {
+            this.modeAiBtn.addEventListener('click', () => this.setMode('ai'));
+        }
+        if (this.clearOutputBtn) {
+            this.clearOutputBtn.addEventListener('click', () => this.clearOutput());
+        }
     }
 
     setMode(mode) {
@@ -1032,41 +1062,54 @@ class SimpleASCIIArt {
         if (mode === 'text') {
             this.modeTextBtn?.classList.add('active');
             this.modePoetryBtn?.classList.remove('active');
+            this.modeAiBtn?.classList.remove('active');
             this.inputTitle.textContent = 'ASCII Art Generator';
             this.textInputLabel.textContent = 'Enter your text:';
             
-            // Hide/Show groups by setting data attributes
-            this.colorGroup?.setAttribute('data-mode', 'text');
-            this.borderGroup?.setAttribute('data-mode', 'hidden');
-            this.poetryColorGroup?.setAttribute('data-mode', 'hidden');
-            
-            // Use display property only as fallback
+            if (this.textInputGroup) this.textInputGroup.style.display = 'grid';
+            if (this.aiPromptGroup) this.aiPromptGroup.style.display = 'none';
+            if (this.apiKeyGroup) this.apiKeyGroup.style.display = 'none';
+            if (this.apiUrlGroup) this.apiUrlGroup.style.display = 'none';
             if (this.colorGroup) this.colorGroup.style.display = 'block';
             if (this.borderGroup) this.borderGroup.style.display = 'none';
             if (this.poetryColorGroup) this.poetryColorGroup.style.display = 'none';
-            
             if (this.fontSelect) this.fontSelect.style.display = 'block';
-        } else {
+        } else if (mode === 'poetry') {
             this.modePoetryBtn?.classList.add('active');
             this.modeTextBtn?.classList.remove('active');
+            this.modeAiBtn?.classList.remove('active');
             this.inputTitle.textContent = 'Poetry Formatter';
             this.textInputLabel.textContent = 'Enter your poem:';
             
-            // Hide/Show groups
-            this.colorGroup?.setAttribute('data-mode', 'hidden');
-            this.borderGroup?.setAttribute('data-mode', 'poetry');
-            this.poetryColorGroup?.setAttribute('data-mode', 'poetry');
-            
-            // Use display property
+            if (this.textInputGroup) this.textInputGroup.style.display = 'grid';
+            if (this.aiPromptGroup) this.aiPromptGroup.style.display = 'none';
+            if (this.apiKeyGroup) this.apiKeyGroup.style.display = 'none';
+            if (this.apiUrlGroup) this.apiUrlGroup.style.display = 'none';
             if (this.colorGroup) this.colorGroup.style.display = 'none';
             if (this.borderGroup) this.borderGroup.style.display = 'block';
             if (this.poetryColorGroup) this.poetryColorGroup.style.display = 'block';
+            if (this.fontSelect) this.fontSelect.style.display = 'block';
+        } else if (mode === 'ai') {
+            this.modeAiBtn?.classList.add('active');
+            this.modeTextBtn?.classList.remove('active');
+            this.modePoetryBtn?.classList.remove('active');
+            this.inputTitle.textContent = 'AI ASCII Art Generator';
             
+            if (this.textInputGroup) this.textInputGroup.style.display = 'none';
+            if (this.aiPromptGroup) this.aiPromptGroup.style.display = 'grid';
+            if (this.apiKeyGroup) this.apiKeyGroup.style.display = 'grid';
+            if (this.apiUrlGroup) this.apiUrlGroup.style.display = 'grid';
+            if (this.colorGroup) this.colorGroup.style.display = 'block';
+            if (this.borderGroup) this.borderGroup.style.display = 'none';
+            if (this.poetryColorGroup) this.poetryColorGroup.style.display = 'none';
             if (this.fontSelect) this.fontSelect.style.display = 'block';
         }
 
-        // Regenerate if text exists
-        if (this.textInput.value.trim()) {
+        // Regenerate if input exists
+        const hasInput = this.currentMode === 'ai' ? 
+            this.aiPrompt?.value.trim() : 
+            this.textInput?.value.trim();
+        if (hasInput) {
             this.handleGenerate();
         }
     }
@@ -1091,16 +1134,19 @@ class SimpleASCIIArt {
 
     attachEventListeners() {
         try {
+            // Generate button click
             this.generateBtn.addEventListener('click', () => {
                 this.handleGenerate();
             });
 
+            // Enter key in text input
             this.textInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && e.ctrlKey) {
                     this.handleGenerate();
                 }
             });
 
+            // Font selection change (debounced)
             this.fontSelect.addEventListener('change', () => {
                 this.handleFontChange();
             });
@@ -1123,10 +1169,122 @@ class SimpleASCIIArt {
                 }
             });
 
+            // Settings modal handlers
+            this.settingsBtn?.addEventListener('click', () => this.openSettings());
+            this.closeSettingsBtn?.addEventListener('click', () => this.closeSettings());
+            this.settingsModal?.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) this.closeSettings();
+            });
+
+            // Settings tab switcher
+            document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => this.switchSettingsTab(e.target.dataset.tab));
+            });
+
+            // Settings save/test buttons
+            this.saveApiBtn?.addEventListener('click', () => this.saveSettings());
+            this.testApiBtn?.addEventListener('click', () => this.testAPIConnection());
+
             console.log('🔗 Event listeners attached');
         } catch (error) {
             console.error('❌ Failed to attach event listeners:', error);
             throw error;
+        }
+    }
+
+    openSettings() {
+        this.loadSettings();
+        if (this.settingsModal) this.settingsModal.style.display = 'flex';
+        console.log('⚙️ Settings opened');
+    }
+
+    closeSettings() {
+        if (this.settingsModal) this.settingsModal.style.display = 'none';
+        console.log('⚙️ Settings closed');
+    }
+
+    switchSettingsTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.settings-tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Show selected tab
+        const tabElement = document.getElementById(`${tabName}-tab`);
+        const btnElement = document.querySelector(`[data-tab="${tabName}"]`);
+        if (tabElement) tabElement.classList.add('active');
+        if (btnElement) btnElement.classList.add('active');
+    }
+
+    loadSettings() {
+        const saved = localStorage.getItem('asciiArtSettings');
+        if (saved) {
+            this.settings = { ...this.settings, ...JSON.parse(saved) };
+        }
+
+        // Update form fields
+        if (this.settingsApiUrl) this.settingsApiUrl.value = this.settings.apiUrl;
+        if (this.settingsApiKey) this.settingsApiKey.value = this.settings.apiKey;
+        if (this.settingsModel) this.settingsModel.value = this.settings.model;
+        if (this.settingsTemp) this.settingsTemp.value = this.settings.temperature;
+        if (this.settingsTokens) this.settingsTokens.value = this.settings.maxTokens;
+    }
+
+    saveSettings() {
+        this.settings = {
+            apiUrl: this.settingsApiUrl?.value || 'http://localhost:8000',
+            apiKey: this.settingsApiKey?.value || '',
+            model: this.settingsModel?.value || 'mistral',
+            temperature: parseFloat(this.settingsTemp?.value) || 0.7,
+            maxTokens: parseInt(this.settingsTokens?.value) || 1000
+        };
+
+        localStorage.setItem('asciiArtSettings', JSON.stringify(this.settings));
+        this.showNotification('💾 Settings saved successfully!', 'success');
+        console.log('💾 Settings saved:', this.settings);
+    }
+
+    async testAPIConnection() {
+        try {
+            this.testApiBtn.disabled = true;
+            this.testApiBtn.textContent = '🔄 Testing...';
+
+            const apiUrl = this.settingsApiUrl?.value;
+            const apiKey = this.settingsApiKey?.value;
+
+            if (!apiUrl || !apiKey) {
+                this.showNotification('⚠️ API URL and Key are required', 'warning');
+                return;
+            }
+
+            const response = await fetch(`${apiUrl}/api/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: this.settingsModel?.value || 'mistral',
+                    messages: [{ role: 'user', content: 'test' }],
+                    max_tokens: 10
+                })
+            });
+
+            if (response.ok) {
+                this.showNotification('✅ API connection successful!', 'success');
+                console.log('✅ API test passed');
+            } else {
+                this.showNotification(`❌ API error: ${response.status}`, 'error');
+            }
+        } catch (error) {
+            this.showNotification(`❌ Connection failed: ${error.message}`, 'error');
+            console.error('API test failed:', error);
+        } finally {
+            this.testApiBtn.disabled = false;
+            this.testApiBtn.textContent = '🧪 Test Connection';
         }
     }
 
@@ -1160,10 +1318,20 @@ class SimpleASCIIArt {
             return;
         }
 
-        const text = this.textInput?.value?.trim();
-        if (!text) {
-            this.showNotification('⚠️ Please enter some text', 'warning');
-            return;
+        // Determine input based on mode
+        let text;
+        if (this.currentMode === 'ai') {
+            text = this.aiPrompt?.value?.trim();
+            if (!text) {
+                this.showNotification('⚠️ Please describe the ASCII art you want', 'warning');
+                return;
+            }
+        } else {
+            text = this.textInput?.value?.trim();
+            if (!text) {
+                this.showNotification('⚠️ Please enter some text', 'warning');
+                return;
+            }
         }
 
         if (text.length > 5000) {
@@ -1179,8 +1347,10 @@ class SimpleASCIIArt {
             let result;
             if (this.currentMode === 'text') {
                 result = await this.generateText(text);
-            } else {
+            } else if (this.currentMode === 'poetry') {
                 result = await this.generatePoetry(text);
+            } else if (this.currentMode === 'ai') {
+                result = await this.generateAI(text);
             }
 
             this.lastValidState = result;
@@ -1192,6 +1362,8 @@ class SimpleASCIIArt {
             
             if (error.message === 'Generation timeout') {
                 this.showError('Generation took too long. Try shorter text.');
+            } else if (error.message.includes('API')) {
+                this.showError(`API Error: ${error.message}`);
             } else {
                 this.showError(`Generation failed: ${error.message}`);
             }
@@ -1279,6 +1451,72 @@ class SimpleASCIIArt {
             };
         } catch (error) {
             throw new Error(`Poetry generation error: ${error.message}`);
+        }
+    }
+
+    async generateAI(prompt) {
+        try {
+            // Check if API is configured
+            if (!this.settings.apiKey) {
+                const err = new Error('API Key not configured');
+                err.requiresSetup = true;
+                throw err;
+            }
+
+            const fontName = this.fontSelect?.value || 'standard';
+            const available = this.fontManager.getAvailableFonts();
+            const finalFont = available.includes(fontName) ? fontName : 'standard';
+            const color = this.colorSelect?.value || 'none';
+
+            console.log('🤖 Calling OpenWebUI API...');
+
+            // Call OpenWebUI API to generate ASCII art
+            const response = await fetch(`${this.settings.apiUrl}/api/chat/completions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.settings.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: this.settings.model,
+                    messages: [{
+                        role: 'user',
+                        content: `Create detailed ASCII art of: ${prompt}\n\nMake it creative, detailed, and visually impressive. Use a variety of characters for shading and texture. Keep it under 50 lines.`
+                    }],
+                    temperature: this.settings.temperature,
+                    max_tokens: this.settings.maxTokens
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            let ascii = data.choices?.[0]?.message?.content;
+
+            if (!ascii) {
+                throw new Error('No ASCII art generated from API');
+            }
+
+            // Clean up the response (remove markdown code blocks if present)
+            ascii = ascii.replace(/```ascii\n?|\n?```/g, '').trim();
+
+            return {
+                ascii: ascii,
+                prompt: prompt,
+                font: finalFont,
+                color: color,
+                mode: 'ai',
+                apiUrl: this.settings.apiUrl,
+                timestamp: Date.now(),
+                success: true
+            };
+        } catch (error) {
+            if (error.requiresSetup) {
+                throw new Error(`API not configured - Click ⚙️ to setup OpenWebUI API key`);
+            }
+            throw new Error(`AI generation error: ${error.message}`);
         }
     }
 
@@ -1385,6 +1623,14 @@ class SimpleASCIIArt {
             }
         } catch (error) {
             console.error('❌ Recovery failed:', error);
+        }
+    }
+
+    clearOutput() {
+        if (this.output) {
+            this.output.textContent = '';
+            this.output.className = 'ascii-output';
+            console.log('🗑️ Output cleared');
         }
     }
 }

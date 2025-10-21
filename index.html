@@ -13,9 +13,105 @@
         <header class="compact-header">
             <h1 id="ascii-title">ASCII ART</h1>
             <div class="header-controls">
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
                 <button id="theme-btn" class="icon-btn" title="Toggle Theme">🌙</button>
             </div>
         </header>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="settings-modal" style="display: none;">
+            <div class="settings-panel">
+                <div class="settings-header">
+                    <h2>Settings</h2>
+                    <button id="close-settings-btn" class="close-btn">✕</button>
+                </div>
+                
+                <div class="settings-tabs">
+                    <button class="settings-tab-btn active" data-tab="api">🤖 API</button>
+                    <button class="settings-tab-btn" data-tab="display">🎨 Display</button>
+                </div>
+
+                <!-- API Tab -->
+                <div id="api-tab" class="settings-tab-content active">
+                    <h3>OpenWebUI API Configuration</h3>
+                    
+                    <div class="settings-group">
+                        <label for="settings-api-url">API URL:</label>
+                        <input type="text" id="settings-api-url" placeholder="http://localhost:8000" value="http://localhost:8000" />
+                        <small>Example: http://localhost:8000 or https://your-server.com</small>
+                    </div>
+
+                    <div class="settings-group">
+                        <label for="settings-api-key">API Key:</label>
+                        <input type="password" id="settings-api-key" placeholder="Paste your OpenWebUI API key..." />
+                        <small>Get your API key from OpenWebUI Settings → API Keys</small>
+                    </div>
+
+                    <div class="settings-group">
+                        <label for="settings-model">Model Name:</label>
+                        <input type="text" id="settings-model" placeholder="mistral" value="mistral" />
+                        <small>Default model to use for AI generation</small>
+                    </div>
+
+                    <div class="settings-group">
+                        <label for="settings-temp">Temperature:</label>
+                        <input type="number" id="settings-temp" min="0" max="1" step="0.1" value="0.7" />
+                        <small>Lower = more focused, Higher = more creative (0.0-1.0)</small>
+                    </div>
+
+                    <div class="settings-group">
+                        <label for="settings-tokens">Max Tokens:</label>
+                        <input type="number" id="settings-tokens" min="100" max="4000" step="100" value="1000" />
+                        <small>Maximum length of generated response</small>
+                    </div>
+
+                    <div class="settings-info">
+                        <h4>🚀 Setup Instructions</h4>
+                        <ol>
+                            <li>Install OpenWebUI: <code>docker run -d -p 8000:8000 ghcr.io/open-webui/open-webui:latest</code></li>
+                            <li>Access at: <code>http://localhost:8000</code></li>
+                            <li>Create API key in Settings → API Keys</li>
+                            <li>Paste key here and test connection</li>
+                        </ol>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button id="test-api-btn" class="settings-btn test-btn">🧪 Test Connection</button>
+                        <button id="save-api-btn" class="settings-btn save-btn">💾 Save Settings</button>
+                    </div>
+                </div>
+
+                <!-- Display Tab -->
+                <div id="display-tab" class="settings-tab-content">
+                    <h3>Display Settings</h3>
+                    
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="settings-wrap" checked />
+                            Wrap long lines in output
+                        </label>
+                    </div>
+
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="settings-monospace" checked />
+                            Use monospace font for output
+                        </label>
+                    </div>
+
+                    <div class="settings-group">
+                        <label>
+                            <input type="checkbox" id="settings-smooth-scroll" checked />
+                            Enable smooth scrolling
+                        </label>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button id="reset-display-btn" class="settings-btn reset-btn">🔄 Reset to Defaults</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Two-Column Layout -->
         <div class="main-layout">
@@ -27,6 +123,7 @@
                     <div class="mode-buttons">
                         <button id="mode-text" class="mode-btn active" data-mode="text">✨ Text</button>
                         <button id="mode-poetry" class="mode-btn" data-mode="poetry">📜 Poetry</button>
+                        <button id="mode-ai" class="mode-btn" data-mode="ai">🤖 AI Art</button>
                     </div>
                 </div>
 
@@ -34,9 +131,16 @@
                 <div class="input-section">
                     <h2 id="input-title">ASCII Art Generator</h2>
 
-                    <div class="input-group">
+                    <!-- Text Input (Text & Poetry Modes) -->
+                    <div class="input-group" id="text-input-group">
                         <label for="text-input" id="text-input-label">Enter your text:</label>
                         <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
+                    </div>
+
+                    <!-- AI Prompt Input (AI Mode) -->
+                    <div class="input-group" id="ai-prompt-group" style="display: none;">
+                        <label for="ai-prompt" id="ai-prompt-label">Describe ASCII art:</label>
+                        <textarea id="ai-prompt" placeholder="e.g., A detailed dragon breathing fire..."></textarea>
                     </div>
 
                     <div class="input-group">
@@ -105,7 +209,10 @@
 
             <!-- Right Panel: Output Display -->
             <div class="output-panel">
-                <h2>Output</h2>
+                <div class="output-header">
+                    <h2>Output</h2>
+                    <button id="clear-output-btn" class="clear-btn" title="Clear output">🗑️ Clear</button>
+                </div>
                 <pre id="ascii-output" class="ascii-output"></pre>
             </div>
         </div>
