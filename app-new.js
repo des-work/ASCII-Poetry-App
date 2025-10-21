@@ -60,12 +60,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const outputPanel = new OutputPanel();
         const displayManager = new DisplayManager(eventBus, outputPanel);
 
-        // Input reading system
+        // Input system (refactored into components)
         console.log('📦 Initializing input system...');
 
         // Wait a bit to ensure all DOM elements are loaded
         await new Promise(resolve => setTimeout(resolve, 100));
 
+        // Initialize input panel component
+        const inputPanel = new InputPanelComponent(eventBus, fontManager, inputValidator);
+
+        // Create input reader for backward compatibility
         const domCache = {
             textInput: document.getElementById('text-input'),
             imageInput: document.getElementById('image-input'),
@@ -78,15 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             poetryLayoutSelect: document.getElementById('poetry-layout'),
             poetryDecorationSelect: document.getElementById('poetry-decoration')
         };
-
-        // Check for critical DOM elements
-        const criticalElements = ['textInput', 'fontSelect', 'colorSelect'];
-        const missingElements = criticalElements.filter(key => !domCache[key]);
-
-        if (missingElements.length > 0) {
-            console.error('❌ Critical DOM elements missing:', missingElements);
-            throw new Error(`Missing critical DOM elements: ${missingElements.join(', ')}`);
-        }
 
         const inputReader = new InputReader(domCache);
         console.log('✅ Input system ready');
@@ -151,6 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             buttonController,
             inputManager,
             fontSwitcher,
+            inputPanel,
             
             // Generation
             generationService,
@@ -227,6 +223,7 @@ CLEAN ARCHITECTURE READY
   window.app.generationService    - Generation engine
   window.app.displayManager       - Display coordinator
   window.app.outputPanel          - Output display
+  window.app.inputPanel           - Input component coordinator
   window.app.eventBus             - Event system
 
 📝 Quick Test:

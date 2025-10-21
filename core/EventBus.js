@@ -70,17 +70,51 @@ class EventBus {
     cleanup(event) {
         if (event) {
             // Clean specific event
+            const listenerCount = this.events[event]?.length || 0;
             if (this.subscriptions.has(event)) {
                 this.subscriptions.delete(event);
             }
             delete this.events[event];
-            console.log(`🧹 EventBus: Cleaned up subscriptions for "${event}"`);
+            console.log(`🧹 EventBus: Cleaned up "${event}" (${listenerCount} listeners removed)`);
         } else {
             // Clean all events
+            const totalListeners = Object.values(this.events).reduce((sum, listeners) => sum + listeners.length, 0);
             this.events = {};
             this.subscriptions.clear();
-            console.log('🧹 EventBus: Cleaned up all subscriptions');
+            console.log(`🧹 EventBus: Cleaned up all subscriptions (${totalListeners} listeners removed)`);
         }
+    }
+
+    /**
+     * Get subscription statistics for monitoring
+     */
+    getSubscriptionStats() {
+        const stats = {};
+        for (const [event, callbacks] of Object.entries(this.events)) {
+            stats[event] = callbacks.length;
+        }
+        return stats;
+    }
+
+    /**
+     * Check for potential memory leaks
+     */
+    detectMemoryLeaks() {
+        const warnings = [];
+
+        // Check for events with too many listeners
+        for (const [event, callbacks] of Object.entries(this.events)) {
+            if (callbacks.length > 10) {
+                warnings.push(`Event "${event}" has ${callbacks.length} listeners (potential leak)`);
+            }
+        }
+
+        // Check for subscription tracking issues
+        if (this.subscriptions.size !== Object.keys(this.events).length) {
+            warnings.push('Subscription tracking inconsistency detected');
+        }
+
+        return warnings;
     }
 
     /**

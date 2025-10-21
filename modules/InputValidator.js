@@ -63,29 +63,77 @@ class InputValidator {
     }
 
     /**
-     * Validate and sanitize text input
+     * Validate and sanitize text input with comprehensive checks
      * @param {string} text - Text to validate
      * @returns {Object} validation result with sanitized value
      */
     validateText(text) {
-        if (!text || typeof text !== 'string') {
-            return { valid: false, error: 'Please enter some text' };
+        // Type check
+        if (text === null || text === undefined) {
+            return { valid: false, error: 'Text input is required' };
         }
 
-        const sanitized = this.sanitizeInput(text.trim());
-        
-        if (!sanitized) {
-            return { valid: false, error: 'Please enter some text' };
+        if (typeof text !== 'string') {
+            return { valid: false, error: 'Text must be a string value' };
         }
 
-        if (sanitized.length > this.config.MAX_TEXT_LENGTH) {
+        // Empty check
+        const trimmed = text.trim();
+        if (!trimmed) {
+            return { valid: false, error: 'Please enter some text to generate ASCII art' };
+        }
+
+        // Length check
+        if (trimmed.length > (this.config?.MAX_TEXT_LENGTH || 5000)) {
             return {
                 valid: false,
-                error: `Text too long! Maximum ${this.config.MAX_TEXT_LENGTH} characters allowed`
+                error: `Text too long! Maximum ${(this.config?.MAX_TEXT_LENGTH || 5000)} characters allowed (current: ${trimmed.length})`
             };
         }
 
-        return { valid: true, value: sanitized };
+        // Content validation
+        if (trimmed.length < (this.config?.MIN_TEXT_LENGTH || 1)) {
+            return {
+                valid: false,
+                error: `Text too short! Minimum ${(this.config?.MIN_TEXT_LENGTH || 1)} character(s) required`
+            };
+        }
+
+        // Sanitize input
+        const sanitized = this.sanitizeInput(trimmed);
+
+        // Check if sanitization removed all content
+        if (!sanitized || !sanitized.trim()) {
+            return {
+                valid: false,
+                error: 'Text contains only invalid characters'
+            };
+        }
+
+        // Check for suspicious patterns
+        const suspiciousPatterns = [
+            /<script/i,
+            /javascript:/i,
+            /vbscript:/i,
+            /onload=/i,
+            /onerror=/i
+        ];
+
+        for (const pattern of suspiciousPatterns) {
+            if (pattern.test(text)) {
+                return {
+                    valid: false,
+                    error: 'Text contains potentially unsafe content'
+                };
+            }
+        }
+
+        return {
+            valid: true,
+            value: sanitized,
+            originalLength: text.length,
+            sanitizedLength: sanitized.length
+        };
     }
 
     /**

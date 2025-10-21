@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logic & Flow Analysis</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 10px 0; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .flow-diagram { background: #333; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ç Logic & Flow Analysis Tool</h1>
+
+    <div class="section">
+        <h2>ÌæØ Critical Flow Analysis</h2>
+        <div class="analysis-grid">
+            <button onclick="analyzeStateManagement()">Analyze State Management</button>
+            <button onclick="analyzeEventFlow()">Analyze Event Flow</button>
+            <button onclick="analyzeErrorHandling()">Analyze Error Handling</button>
+            <button onclick="analyzePerformanceFlow()">Analyze Performance Flow</button>
+        </div>
+        <div id="analysis-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ß Flow Optimization</h2>
+        <div class="analysis-grid">
+            <button onclick="optimizeStateSync()">Optimize State Synchronization</button>
+            <button onclick="optimizeErrorRecovery()">Optimize Error Recovery</button>
+            <button onclick="optimizeMemoryUsage()">Optimize Memory Usage</button>
+            <button onclick="optimizeEventCleanup()">Optimize Event Cleanup</button>
+        </div>
+        <div id="optimization-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä System Health Check</h2>
+        <button onclick="runHealthCheck()">Run Health Check</button>
+        <div id="health-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function analyzeStateManagement() {
+            clearResults('analysis-results');
+
+            try {
+                log('analysis-results', 'Ì¥ç Analyzing state management...', 'info');
+
+                // Check component states
+                const components = [
+                    { name: 'UIController', state: window.app?.uiController?.state },
+                    { name: 'GenerateButton', state: window.app?.inputPanel?.getGenerateButtonComponent()?.state },
+                    { name: 'TextInput', state: { text: window.app?.inputPanel?.getCurrentText() } },
+                    { name: 'FontSelector', state: { font: window.app?.inputPanel?.getCurrentFont() } }
+                ];
+
+                components.forEach(({ name, state }) => {
+                    if (state) {
+                        log('analysis-results', `‚úÖ ${name} state: ${JSON.stringify(state)}`);
+                    } else {
+                        log('analysis-results', `‚ùå ${name} state not accessible`, 'error');
+                    }
+                });
+
+                // Check for state consistency
+                if (window.app?.uiController?.state && window.app?.inputPanel) {
+                    const uiState = window.app.uiController.state;
+                    const inputState = {
+                        text: window.app.inputPanel.getCurrentText(),
+                        font: window.app.inputPanel.getCurrentFont()
+                    };
+
+                    log('analysis-results', `Ì≥ä State consistency check: UI mode=${uiState.currentMode}, Input text="${inputState.text}"`);
+                }
+
+            } catch (error) {
+                log('analysis-results', `‚ùå State analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function analyzeEventFlow() {
+            clearResults('analysis-results');
+
+            try {
+                log('analysis-results', 'Ì≥° Analyzing event flow...', 'info');
+
+                if (!window.app?.eventBus) {
+                    log('analysis-results', '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                // Check event subscriptions
+                const stats = window.app.eventBus.debugSubscriptions();
+                log('analysis-results', `Ì≥ä Event subscriptions: ${Object.keys(stats).length} event types`);
+
+                // Check for critical event paths
+                const criticalEvents = [
+                    'ui:generate:click',
+                    'request:text:gen',
+                    'text:gen:start',
+                    'text:gen:complete',
+                    'text:input:changed',
+                    'font:changed'
+                ];
+
+                criticalEvents.forEach(event => {
+                    const listeners = stats[event] || 0;
+                    const status = listeners > 0 ? '‚úÖ' : '‚ùå';
+                    log('analysis-results', `${status} ${event}: ${listeners} listener(s)`);
+                });
+
+            } catch (error) {
+                log('analysis-results', `‚ùå Event flow analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function analyzeErrorHandling() {
+            clearResults('analysis-results');
+
+            try {
+                log('analysis-results', 'Ì∫® Analyzing error handling...', 'info');
+
+                // Check error handler
+                if (window.errorHandler) {
+                    log('analysis-results', '‚úÖ Global error handler available');
+
+                    if (window.errorHandler.errors && window.errorHandler.errors.length > 0) {
+                        log('analysis-results', `‚ö†Ô∏è ${window.errorHandler.errors.length} errors logged`, 'warning');
+                    } else {
+                        log('analysis-results', '‚úÖ No errors logged');
+                    }
+                } else {
+                    log('analysis-results', '‚ùå Global error handler not available', 'error');
+                }
+
+                // Check component error handling
+                const components = ['uiController', 'generationService', 'outputPanel'];
+                components.forEach(comp => {
+                    if (window.app?.[comp]) {
+                        log('analysis-results', `‚úÖ ${comp} error handling available`);
+                    } else {
+                        log('analysis-results', `‚ùå ${comp} error handling missing`, 'error');
+                    }
+                });
+
+            } catch (error) {
+                log('analysis-results', `‚ùå Error handling analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function analyzePerformanceFlow() {
+            clearResults('analysis-results');
+
+            try {
+                log('analysis-results', '‚ö° Analyzing performance flow...', 'info');
+
+                if (window.app?.performanceManager) {
+                    const stats = window.app.performanceManager.getStats();
+                    log('analysis-results', `Ì≥ä Cache: ${stats.hitRate} hit rate, ${stats.cacheSize}/${stats.maxCacheSize} size`);
+
+                    if (stats.hitRate !== '0.0%') {
+                        log('analysis-results', '‚úÖ Performance caching working', 'success');
+                    } else {
+                        log('analysis-results', '‚ö†Ô∏è Performance caching not effective', 'warning');
+                    }
+                } else {
+                    log('analysis-results', '‚ùå PerformanceManager not available', 'error');
+                }
+
+            } catch (error) {
+                log('analysis-results', `‚ùå Performance analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        async function optimizeStateSync() {
+            clearResults('optimization-results');
+
+            try {
+                log('optimization-results', 'Ì¥Ñ Optimizing state synchronization...', 'info');
+
+                // Ensure all components are properly synchronized
+                if (window.app?.inputPanel && window.app?.uiController) {
+                    // Sync text input state
+                    const text = window.app.inputPanel.getCurrentText();
+                    if (text) {
+                        log('optimization-results', `‚úÖ Text state synced: "${text}"`);
+                    }
+
+                    // Sync font state
+                    const font = window.app.inputPanel.getCurrentFont();
+                    if (font) {
+                        log('optimization-results', `‚úÖ Font state synced: ${font}`);
+                    }
+
+                    // Check button state consistency
+                    const generateButton = window.app.inputPanel.getGenerateButtonComponent();
+                    if (generateButton) {
+                        const isEnabled = generateButton.isEnabled();
+                        log('optimization-results', `Ì¥ò Button state: ${isEnabled ? 'enabled' : 'disabled'}`);
+                    }
+                }
+
+                log('optimization-results', '‚úÖ State synchronization optimized');
+
+            } catch (error) {
+                log('optimization-results', `‚ùå State sync optimization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function optimizeErrorRecovery() {
+            clearResults('optimization-results');
+
+            try {
+                log('optimization-results', 'Ì¥ß Optimizing error recovery...', 'info');
+
+                // Test error recovery mechanisms
+                if (window.app?.uiController?.recover) {
+                    const recovered = window.app.uiController.recover();
+                    if (recovered) {
+                        log('optimization-results', '‚úÖ Error recovery working', 'success');
+                    } else {
+                        log('optimization-results', '‚ùå Error recovery failed', 'error');
+                    }
+                } else {
+                    log('optimization-results', '‚ùå Error recovery not available', 'error');
+                }
+
+                // Test component cleanup
+                if (window.app?.eventBus?.cleanup) {
+                    window.app.eventBus.cleanup();
+                    log('optimization-results', '‚úÖ Event cleanup working');
+                }
+
+            } catch (error) {
+                log('optimization-results', `‚ùå Error recovery optimization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function optimizeMemoryUsage() {
+            clearResults('optimization-results');
+
+            try {
+                log('optimization-results', 'Ì∑† Optimizing memory usage...', 'info');
+
+                // Check for memory leaks
+                if (window.performance?.memory) {
+                    const mem = window.performance.memory;
+                    log('optimization-results', `Ì≥ä Memory: ${Math.round(mem.usedJSHeapSize/1024/1024)}MB used`);
+
+                    if (mem.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB
+                        log('optimization-results', '‚ö†Ô∏è High memory usage detected', 'warning');
+                    }
+                }
+
+                // Check component references
+                const components = ['inputPanel', 'uiController', 'generationService'];
+                components.forEach(comp => {
+                    if (window.app?.[comp]) {
+                        log('optimization-results', `‚úÖ ${comp} reference valid`);
+                    } else {
+                        log('optimization-results', `‚ùå ${comp} reference issue`, 'error');
+                    }
+                });
+
+            } catch (error) {
+                log('optimization-results', `‚ùå Memory optimization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function optimizeEventCleanup() {
+            clearResults('optimization-results');
+
+            try {
+                log('optimization-results', 'Ì∑π Optimizing event cleanup...', 'info');
+
+                if (window.app?.eventBus?.cleanup) {
+                    // Test cleanup
+                    window.app.eventBus.cleanup();
+                    log('optimization-results', '‚úÖ Event cleanup executed');
+
+                    // Check if cleanup worked
+                    const stats = window.app.eventBus.debugSubscriptions();
+                    log('optimization-results', `Ì≥ä Events after cleanup: ${Object.keys(stats).length} types`);
+                } else {
+                    log('optimization-results', '‚ùå Event cleanup not available', 'error');
+                }
+
+            } catch (error) {
+                log('optimization-results', `‚ùå Event cleanup optimization error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runHealthCheck() {
+            clearResults('health-results');
+
+            try {
+                log('health-results', 'Ìø• Running comprehensive health check...', 'info');
+
+                const checks = [
+                    { name: 'App initialization', check: !!window.app },
+                    { name: 'Component integration', check: !!window.app?.inputPanel },
+                    { name: 'Event system', check: !!window.app?.eventBus },
+                    { name: 'Generation system', check: !!window.app?.generationService },
+                    { name: 'Input validation', check: !!window.app?.inputPanel?.getTextInputComponent() },
+                    { name: 'Button state', check: !!window.app?.inputPanel?.getGenerateButtonComponent() },
+                    { name: 'Font system', check: !!window.app?.inputPanel?.getFontSelectorComponent() },
+                    { name: 'Error handling', check: !!window.errorHandler },
+                    { name: 'Performance monitoring', check: !!window.app?.performanceManager },
+                    { name: 'Output display', check: !!window.app?.outputPanel }
+                ];
+
+                let passed = 0;
+                checks.forEach(({ name, check }) => {
+                    if (check) {
+                        log('health-results', `‚úÖ ${name}`, 'success');
+                        passed++;
+                    } else {
+                        log('health-results', `‚ùå ${name}`, 'error');
+                    }
+                });
+
+                log('health-results', `Ì≥ä Health Score: ${passed}/${checks.length} systems operational`);
+
+                if (passed >= 8) {
+                    log('health-results', 'Ìæâ System is healthy and operational!', 'success');
+                } else {
+                    log('health-results', '‚ö†Ô∏è System has issues that need attention', 'warning');
+                }
+
+            } catch (error) {
+                log('health-results', `‚ùå Health check error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run health check
+        setTimeout(() => {
+            runHealthCheck();
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -167,19 +167,28 @@ class GenerationService {
 
         } catch (error) {
             console.error('⚙️ GenerationService: Text generation error:', error);
-            
+
+            // Enhanced error information
+            const errorInfo = {
+                type: 'TextGenerationError',
+                message: error.message || 'Unknown text generation error',
+                stack: error.stack,
+                timestamp: new Date().toISOString(),
+                options: options,
+                phase: 'text_generation'
+            };
+
             // Log to ErrorHandler if available
             if (window.errorHandler) {
-                window.errorHandler.handleError({
-                    type: 'TextGenerationError',
-                    message: error.message,
-                    stack: error.stack,
-                    timestamp: new Date().toISOString()
-                });
+                window.errorHandler.handleError(errorInfo);
             }
-            
-            // Emit error with the correct event name
-            this.eventBus.emit(EventBus.Events.TEXT_GENERATION_ERROR, error.message);
+
+            // Emit error with detailed information
+            this.eventBus.emit(EventBus.Events.TEXT_GENERATION_ERROR, {
+                message: errorInfo.message,
+                type: errorInfo.type,
+                timestamp: errorInfo.timestamp
+            });
         } finally {
             this.isGenerating = false;
         }

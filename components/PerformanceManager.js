@@ -126,23 +126,94 @@ class PerformanceManager {
     }
 
     /**
-     * Configure cache size
+     * Configure cache size with memory management
      */
     setMaxCacheSize(newSize) {
         if (newSize < 1) {
             console.error('⚡ PerformanceManager: Cache size must be at least 1');
             return false;
         }
-        
-        // If shrinking cache, evict excess items
-        while (this.renderCache.size > newSize) {
-            const firstKey = this.renderCache.keys().next().value;
-            this.renderCache.delete(firstKey);
-        }
-        
+
+        const oldSize = this.maxCacheSize;
         this.maxCacheSize = newSize;
-        console.log(`⚡ PerformanceManager: Max cache size set to ${newSize}`);
+
+        // If shrinking cache, evict excess items
+        if (this.renderCache.size > newSize) {
+            const itemsToRemove = this.renderCache.size - newSize;
+            let removed = 0;
+
+            while (removed < itemsToRemove && this.renderCache.size > 0) {
+                const firstKey = this.renderCache.keys().next().value;
+                if (firstKey) {
+                    this.renderCache.delete(firstKey);
+                    removed++;
+                } else {
+                    break;
+                }
+            }
+
+            console.log(`⚡ PerformanceManager: Evicted ${removed} items, cache now ${this.renderCache.size}/${newSize}`);
+        }
+
+        // If growing cache, log the change
+        if (newSize > oldSize) {
+            console.log(`⚡ PerformanceManager: Cache expanded from ${oldSize} to ${newSize}`);
+        }
+
         return true;
+    }
+
+    /**
+     * Clean up old cache entries based on age
+     */
+    cleanupOldEntries(maxAgeMs = 300000) { // 5 minutes default
+        const now = Date.now();
+        let cleaned = 0;
+
+        for (const [key, value] of this.renderCache.entries()) {
+            if (value.timestamp && (now - value.timestamp) > maxAgeMs) {
+                this.renderCache.delete(key);
+                cleaned++;
+            }
+        }
+
+        if (cleaned > 0) {
+            console.log(`⚡ PerformanceManager: Cleaned up ${cleaned} old cache entries`);
+        }
+
+        return cleaned;
+    }
+
+    /**
+     * Get cache statistics
+     */
+    getCacheStats() {
+        const entries = Array.from(this.renderCache.entries());
+        const totalSize = entries.reduce((sum, [key, value]) => {
+            return sum + (JSON.stringify(value).length || 0);
+        }, 0);
+
+        return {
+            size: this.renderCache.size,
+            maxSize: this.maxCacheSize,
+            totalSizeBytes: totalSize,
+            hitRate: this.stats.totalRequests > 0 ?
+                (this.stats.cacheHits / this.stats.totalRequests * 100).toFixed(1) + '%' : '0.0%'
+        };
+    }
+
+    /**
+     * Force cache refresh for specific text
+     */
+    invalidateCache(text, fontName, color, animation) {
+        const key = this.generateCacheKey(text, fontName, color, animation);
+        const deleted = this.renderCache.delete(key);
+
+        if (deleted) {
+            console.log(`⚡ PerformanceManager: Invalidated cache for "${text}"`);
+        }
+
+        return deleted;
     }
 
     /**

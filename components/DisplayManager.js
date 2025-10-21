@@ -14,9 +14,23 @@ class DisplayManager {
     }
 
     /**
-     * Initialize and subscribe to events
+     * Initialize and subscribe to events with enhanced state management
      */
     initialize() {
+        // Subscribe to generation start events
+        this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, () => {
+            this.panel.setLoadingState('Generating text ASCII art...');
+            this.currentState = 'generating';
+        });
+        this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, () => {
+            this.panel.setLoadingState('Generating image ASCII art...');
+            this.currentState = 'generating';
+        });
+        this.eventBus.on(EventBus.Events.POETRY_GENERATION_START, () => {
+            this.panel.setLoadingState('Generating poetry art...');
+            this.currentState = 'generating';
+        });
+
         // Subscribe to generation completion events
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_COMPLETE, (result) => {
             this.handleGenerationComplete(result);
@@ -39,7 +53,7 @@ class DisplayManager {
             this.handleGenerationError(error);
         });
 
-        console.log('✅ DisplayManager initialized');
+        console.log('✅ DisplayManager initialized with enhanced state management');
     }
 
     /**
@@ -106,7 +120,7 @@ class DisplayManager {
                 message = 'An unknown error occurred';
             }
             
-            this.panel.setDefaultState();
+            this.panel.setErrorState(message);
             this.showError(message);
         } catch (handlerError) {
             console.error('❌ DisplayManager: Error handling generation error:', handlerError);

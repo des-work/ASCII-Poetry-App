@@ -564,21 +564,62 @@ class UIController {
     }
 
     /**
-     * Handle critical errors
+     * Handle critical errors with comprehensive recovery
      */
     handleCriticalError(error) {
         console.error('🚨 UIController: Critical error:', error);
-        
-        // Show error to user
-        this.showNotification(`🚨 Critical error: ${error.message || 'Unknown error'}`, 'error');
-        
-        // Reset UI state
+
+        // Log detailed error information
+        if (window.errorHandler) {
+            window.errorHandler.handleError({
+                type: 'UICriticalError',
+                message: error.message || 'Unknown UI error',
+                stack: error.stack,
+                component: 'UIController',
+                timestamp: new Date().toISOString(),
+                state: { ...this.state }
+            });
+        }
+
+        // Show user-friendly error message
+        this.showNotification(`🚨 Application error: ${error.message || 'Something went wrong'}`, 'error');
+
+        // Comprehensive state reset
         this.state.isGenerating = false;
         this.showLoading(false);
         this.enableGenerateButton();
-        
-        // Suggest recovery
-        console.log('💡 Tip: Use window.app.uiController.recover() to recover, or hardReset() for full reset');
+
+        // Reset all input components if available
+        if (window.app?.inputPanel) {
+            try {
+                window.app.inputPanel.clearAll();
+            } catch (e) {
+                console.error('❌ Failed to clear input components:', e);
+            }
+        }
+
+        // Reset output display
+        if (this.outputPanel) {
+            try {
+                this.outputPanel.setDefaultState();
+            } catch (e) {
+                console.error('❌ Failed to reset output panel:', e);
+            }
+        }
+
+        // Suggest recovery options
+        console.log('💡 Recovery options:');
+        console.log('  • window.app.uiController.recover() - Soft recovery');
+        console.log('  • window.app.uiController.hardReset() - Full reset');
+        console.log('  • Refresh page - Complete restart');
+
+        // Auto-attempt soft recovery after delay
+        setTimeout(() => {
+            if (!this.state.isGenerating) {
+                this.showNotification('🔄 Attempting automatic recovery...', 'info');
+                this.recover();
+            }
+        }, 2000);
     }
 }
 

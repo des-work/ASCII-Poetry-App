@@ -48,7 +48,7 @@ class OutputPanel {
     }
 
     /**
-     * Set default/empty state
+     * Set default/empty state with enhanced state management
      */
     setDefaultState() {
         if (!this.outputElement) return;
@@ -57,12 +57,40 @@ class OutputPanel {
         this.outputElement.textContent = '';
         this.outputElement.className = 'ascii-output';
         this.outputElement.setAttribute('data-state', 'empty');
-        
+        this.outputElement.removeAttribute('data-font');
+        this.outputElement.removeAttribute('data-color');
+
         if (this.statsElement) {
             this.statsElement.textContent = '';
         }
 
         console.log('✨ OutputPanel: Set to default state (placeholder should be visible)');
+    }
+
+    /**
+     * Set loading state
+     */
+    setLoadingState(message = 'Generating ASCII art...') {
+        if (!this.outputElement) return;
+
+        this.outputElement.textContent = message;
+        this.outputElement.className = 'ascii-output loading';
+        this.outputElement.setAttribute('data-state', 'loading');
+
+        console.log('⏳ OutputPanel: Set to loading state');
+    }
+
+    /**
+     * Set error state
+     */
+    setErrorState(message = 'Generation failed') {
+        if (!this.outputElement) return;
+
+        this.outputElement.textContent = `❌ ${message}`;
+        this.outputElement.className = 'ascii-output error';
+        this.outputElement.setAttribute('data-state', 'error');
+
+        console.log('❌ OutputPanel: Set to error state');
     }
 
     /**

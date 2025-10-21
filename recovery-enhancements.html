@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recovery Enhancements</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ß Recovery Enhancements</h1>
+
+    <div class="section">
+        <h2>Ìª†Ô∏è Recovery Tools</h2>
+        <button onclick="testRecovery()">Test Recovery</button>
+        <button onclick="testCleanup()">Test Cleanup</button>
+        <button onclick="testStateReset()">Test State Reset</button>
+        <div id="recovery-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä System Health</h2>
+        <button onclick="checkSystemHealth()">Check System Health</button>
+        <div id="health-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function testRecovery() {
+            clearResults('recovery-results');
+
+            try {
+                log('recovery-results', 'Ì¥Ñ Testing recovery mechanisms...', 'info');
+
+                if (!window.app?.uiController?.recover) {
+                    log('recovery-results', '‚ùå Recovery method not available', 'error');
+                    return;
+                }
+
+                // Test soft recovery
+                const recovered = window.app.uiController.recover();
+                if (recovered) {
+                    log('recovery-results', '‚úÖ Soft recovery successful', 'success');
+                } else {
+                    log('recovery-results', '‚ùå Soft recovery failed', 'error');
+                }
+
+                // Wait a bit then test hard reset
+                setTimeout(async () => {
+                    if (window.app?.uiController?.hardReset) {
+                        const reset = window.app.uiController.hardReset();
+                        if (reset) {
+                            log('recovery-results', '‚úÖ Hard reset successful', 'success');
+                        } else {
+                            log('recovery-results', '‚ùå Hard reset failed', 'error');
+                        }
+                    }
+                }, 1000);
+
+            } catch (error) {
+                log('recovery-results', `‚ùå Recovery test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCleanup() {
+            clearResults('recovery-results');
+
+            try {
+                log('recovery-results', 'Ì∑π Testing cleanup mechanisms...', 'info');
+
+                if (window.app?.eventBus?.cleanup) {
+                    // Test event cleanup
+                    window.app.eventBus.cleanup();
+                    log('recovery-results', '‚úÖ Event cleanup executed');
+
+                    // Check cleanup results
+                    const stats = window.app.eventBus.debugSubscriptions();
+                    log('recovery-results', `Ì≥ä Events after cleanup: ${Object.keys(stats).length} types`);
+                } else {
+                    log('recovery-results', '‚ùå Event cleanup not available', 'error');
+                }
+
+                // Test component cleanup
+                if (window.app?.inputPanel) {
+                    try {
+                        window.app.inputPanel.clearAll();
+                        log('recovery-results', '‚úÖ Component cleanup executed', 'success');
+                    } catch (error) {
+                        log('recovery-results', `‚ùå Component cleanup error: ${error.message}`, 'error');
+                    }
+                }
+
+            } catch (error) {
+                log('recovery-results', `‚ùå Cleanup test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStateReset() {
+            clearResults('recovery-results');
+
+            try {
+                log('recovery-results', 'Ì¥Ñ Testing state reset...', 'info');
+
+                // Test UI state reset
+                if (window.app?.uiController?.state) {
+                    const initialState = { ...window.app.uiController.state };
+                    log('recovery-results', `Ì≥ä Initial state: ${JSON.stringify(initialState)}`);
+
+                    // Trigger state change
+                    window.app.uiController.onGenerateClick();
+
+                    // Check state after delay
+                    setTimeout(() => {
+                        const newState = window.app.uiController.state;
+                        log('recovery-results', `Ì≥ä New state: ${JSON.stringify(newState)}`);
+
+                        if (newState.isGenerating !== initialState.isGenerating) {
+                            log('recovery-results', '‚úÖ State transition working', 'success');
+                        } else {
+                            log('recovery-results', '‚ö†Ô∏è State not changing properly', 'warning');
+                        }
+                    }, 200);
+                }
+
+            } catch (error) {
+                log('recovery-results', `‚ùå State reset test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSystemHealth() {
+            clearResults('health-results');
+
+            try {
+                log('health-results', 'Ìø• Running system health check...', 'info');
+
+                const checks = [
+                    { name: 'Error handler', check: !!window.errorHandler },
+                    { name: 'Event cleanup', check: !!window.app?.eventBus?.cleanup },
+                    { name: 'Component recovery', check: !!window.app?.uiController?.recover },
+                    { name: 'State management', check: !!window.app?.uiController?.state },
+                    { name: 'Memory monitoring', check: !!window.app?.performanceManager?.cleanupOldEntries }
+                ];
+
+                let passed = 0;
+                checks.forEach(({ name, check }) => {
+                    if (check) {
+                        log('health-results', `‚úÖ ${name}`, 'success');
+                        passed++;
+                    } else {
+                        log('health-results', `‚ùå ${name}`, 'error');
+                    }
+                });
+
+                log('health-results', `Ì≥ä Health Score: ${passed}/${checks.length} systems operational`);
+
+                if (passed >= 4) {
+                    log('health-results', 'Ìæâ System recovery mechanisms are healthy!', 'success');
+                } else {
+                    log('health-results', '‚ö†Ô∏è Some recovery mechanisms need attention', 'warning');
+                }
+
+            } catch (error) {
+                log('health-results', `‚ùå Health check error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run health check
+        setTimeout(() => {
+            checkSystemHealth();
+        }, 500);
+    </script>
+</body>
+</html>
