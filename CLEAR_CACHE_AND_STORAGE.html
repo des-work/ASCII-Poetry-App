@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache & Storage</title>
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 40px;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #0f0;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #0ff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            display: block;
+            margin: 20px auto;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        button:hover {
+            background: #0ff;
+        }
+        .status {
+            background: #111;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 1px solid #333;
+        }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Browser Cache & Storage</h1>
+        
+        <div class="status">
+            <p class="info">This tool will clear:</p>
+            <ul>
+                <li>✅ All localStorage data</li>
+                <li>✅ All sessionStorage data</li>
+                <li>✅ All cookies</li>
+                <li>✅ ConsoleOverlay settings</li>
+            </ul>
+        </div>
+
+        <button onclick="clearAll()">🗑️ CLEAR ALL STORAGE NOW</button>
+
+        <div id="result"></div>
+
+        <div class="status">
+            <p class="warning"><strong>MANUAL STEPS (IMPORTANT):</strong></p>
+            <ol>
+                <li><strong>Windows/Linux:</strong> Press <code>Ctrl + Shift + Delete</code></li>
+                <li><strong>Mac:</strong> Press <code>Cmd + Shift + Delete</code></li>
+                <li>Select "Cached images and files"</li>
+                <li>Click "Clear data"</li>
+                <li><strong>Close this tab</strong></li>
+                <li><strong>Restart your local server</strong></li>
+                <li><strong>Open your app fresh</strong></li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function clearAll() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div class="status"><p class="success">Starting cleanup...</p></div>';
+            
+            let messages = [];
+
+            // Clear localStorage
+            try {
+                const keys = Object.keys(localStorage);
+                messages.push(`Found ${keys.length} localStorage items`);
+                
+                // List what we're removing
+                keys.forEach(key => {
+                    messages.push(`Removing: ${key}`);
+                });
+                
+                localStorage.clear();
+                messages.push('<span class="success">✅ localStorage cleared</span>');
+            } catch (e) {
+                messages.push('<span class="warning">⚠️ Error clearing localStorage: ' + e.message + '</span>');
+            }
+
+            // Clear sessionStorage
+            try {
+                sessionStorage.clear();
+                messages.push('<span class="success">✅ sessionStorage cleared</span>');
+            } catch (e) {
+                messages.push('<span class="warning">⚠️ Error clearing sessionStorage: ' + e.message + '</span>');
+            }
+
+            // Clear cookies
+            try {
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                messages.push('<span class="success">✅ Cookies cleared</span>');
+            } catch (e) {
+                messages.push('<span class="warning">⚠️ Error clearing cookies: ' + e.message + '</span>');
+            }
+
+            // Show results
+            result.innerHTML = `
+                <div class="status">
+                    ${messages.map(m => `<p>${m}</p>`).join('')}
+                    <p class="success" style="margin-top: 20px; font-size: 18px; font-weight: bold;">
+                        ✅ STORAGE CLEARED!
+                    </p>
+                    <p class="warning" style="margin-top: 20px;">
+                        Now do the MANUAL STEPS above to clear the browser cache!
+                    </p>
+                </div>
+            `;
+        }
+
+        // Auto-check what's in storage
+        window.addEventListener('load', () => {
+            const keys = Object.keys(localStorage);
+            console.log('Current localStorage items:', keys);
+            
+            // Check specifically for ConsoleOverlay
+            const consoleOverlayOpen = localStorage.getItem('consoleOverlay:isOpen');
+            if (consoleOverlayOpen !== null) {
+                alert('⚠️ FOUND ConsoleOverlay setting in storage!\nClick the button to clear it.');
+            }
+        });
+    </script>
+</body>
+</html>
