@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Test Suite</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .test-controls { margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥¨ Comprehensive Test Suite</h1>
+
+    <div class="test-section">
+        <h2>ÌøóÔ∏è System Initialization</h2>
+        <div class="test-controls">
+            <button onclick="testInitialization()">Test Initialization</button>
+            <button onclick="testComponents()">Test Components</button>
+        </div>
+        <div id="init-results" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Ì≥ù Input System</h2>
+        <div class="test-controls">
+            <button onclick="testInputValidation()">Test Input Validation</button>
+            <button onclick="testInputReading()">Test Input Reading</button>
+        </div>
+        <div id="input-results" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>‚ö° Event System</h2>
+        <div class="test-controls">
+            <button onclick="testEventFlow()">Test Event Flow</button>
+            <button onclick="testButtonEvents()">Test Button Events</button>
+        </div>
+        <div id="event-results" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Ìæ® Generation System</h2>
+        <div class="test-controls">
+            <button onclick="testFontLoading()">Test Font Loading</button>
+            <button onclick="testTextGeneration()">Test Text Generation</button>
+            <button onclick="testDisplaySystem()">Test Display System</button>
+        </div>
+        <div id="generation-results" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Ì¥ß Error Handling</h2>
+        <div class="test-controls">
+            <button onclick="testErrorHandling()">Test Error Handling</button>
+            <button onclick="testRecovery()">Test Recovery</button>
+        </div>
+        <div id="error-results" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Ì≥ä Performance</h2>
+        <div class="test-controls">
+            <button onclick="testPerformance()">Test Performance</button>
+            <button onclick="testMemory()">Test Memory</button>
+        </div>
+        <div id="performance-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        async function testInitialization() {
+            const resultsId = 'init-results';
+            document.getElementById(resultsId).innerHTML = '';
+
+            try {
+                // Test window.app availability
+                if (!window.app) {
+                    log(resultsId, '‚ùå window.app not available', 'error');
+                    return;
+                }
+                log(resultsId, '‚úÖ window.app available');
+
+                // Test core components
+                const components = ['eventBus', 'uiController', 'generationService', 'displayManager', 'outputPanel'];
+                for (const comp of components) {
+                    if (window.app[comp]) {
+                        log(resultsId, `‚úÖ ${comp} available`);
+                    } else {
+                        log(resultsId, `‚ùå ${comp} missing`, 'error');
+                    }
+                }
+
+                // Test AppConfig
+                if (window.AppConfig) {
+                    log(resultsId, '‚úÖ AppConfig available');
+                } else {
+                    log(resultsId, '‚ùå AppConfig missing', 'error');
+                }
+
+                // Test DOM elements
+                const elements = ['text-input', 'generate-main', 'ascii-output', 'font-select'];
+                for (const id of elements) {
+                    if (document.getElementById(id)) {
+                        log(resultsId, `‚úÖ DOM element #${id} found`);
+                    } else {
+                        log(resultsId, `‚ùå DOM element #${id} missing`, 'error');
+                    }
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testComponents() {
+            const resultsId = 'init-results';
+
+            try {
+                // Test EventBus subscriptions
+                if (window.app?.eventBus?.debugSubscriptions) {
+                    const stats = window.app.eventBus.debugSubscriptions();
+                    log(resultsId, `Ì≥ä EventBus: ${Object.keys(stats).length} event types, ${Object.values(stats).reduce((a,b)=>a+b,0)} total listeners`);
+                }
+
+                // Test UI Controller state
+                if (window.app?.uiController?.state) {
+                    log(resultsId, `ÌæÆ UI State: ${JSON.stringify(window.app.uiController.state)}`);
+                }
+
+                // Test Performance Manager
+                if (window.app?.performanceManager?.getStats) {
+                    const stats = window.app.performanceManager.getStats();
+                    log(resultsId, `‚ö° Performance: ${stats.hitRate} cache hit rate`);
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Component test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInputValidation() {
+            const resultsId = 'input-results';
+            document.getElementById(resultsId).innerHTML = '';
+
+            try {
+                if (!window.app?.inputValidator) {
+                    log(resultsId, '‚ùå InputValidator not available', 'error');
+                    return;
+                }
+
+                // Test valid input
+                const validResult = window.app.inputValidator.validateText('Hello World');
+                if (validResult.valid) {
+                    log(resultsId, `‚úÖ Valid input accepted: "${validResult.value}"`);
+                } else {
+                    log(resultsId, `‚ùå Valid input rejected: ${validResult.error}`, 'error');
+                }
+
+                // Test empty input
+                const emptyResult = window.app.inputValidator.validateText('');
+                if (!emptyResult.valid) {
+                    log(resultsId, `‚úÖ Empty input rejected: ${emptyResult.error}`);
+                } else {
+                    log(resultsId, `‚ùå Empty input should be rejected`, 'error');
+                }
+
+                // Test long input
+                const longText = 'A'.repeat(6000);
+                const longResult = window.app.inputValidator.validateText(longText);
+                if (!longResult.valid) {
+                    log(resultsId, `‚úÖ Long input rejected: ${longResult.error}`);
+                } else {
+                    log(resultsId, `‚ùå Long input should be rejected`, 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Input validation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInputReading() {
+            const resultsId = 'input-results';
+
+            try {
+                if (!window.app?.inputReader) {
+                    log(resultsId, '‚ùå InputReader not available', 'error');
+                    return;
+                }
+
+                // Set test values
+                const textInput = document.getElementById('text-input');
+                const fontSelect = document.getElementById('font-select');
+                const colorSelect = document.getElementById('color-select');
+
+                if (textInput && fontSelect && colorSelect) {
+                    textInput.value = 'TEST INPUT';
+                    fontSelect.value = 'standard';
+                    colorSelect.value = 'none';
+
+                    const result = window.app.inputReader.readTextOptions();
+
+                    if (result.ok) {
+                        log(resultsId, `‚úÖ Input read successfully: "${result.options.text}"`);
+                        log(resultsId, `‚úÖ Font: ${result.options.fontName}, Color: ${result.options.color}`);
+                    } else {
+                        log(resultsId, `‚ùå Input reading failed: ${result.error}`, 'error');
+                    }
+                } else {
+                    log(resultsId, '‚ùå Required DOM elements missing for input test', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Input reading test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEventFlow() {
+            const resultsId = 'event-results';
+            document.getElementById(resultsId).innerHTML = '';
+
+            try {
+                if (!window.app?.eventBus) {
+                    log(resultsId, '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì¥Ñ Testing event flow...');
+
+                // Listen for test events
+                const eventsReceived = [];
+
+                window.app.eventBus.on('test:button:click', () => {
+                    eventsReceived.push('button:click');
+                    log(resultsId, '‚úÖ Button click event received');
+                });
+
+                window.app.eventBus.on('test:generation:start', () => {
+                    eventsReceived.push('generation:start');
+                    log(resultsId, '‚úÖ Generation start event received');
+                });
+
+                window.app.eventBus.on('test:generation:complete', () => {
+                    eventsReceived.push('generation:complete');
+                    log(resultsId, '‚úÖ Generation complete event received');
+                });
+
+                // Emit test events
+                window.app.eventBus.emit('test:button:click');
+                await new Promise(resolve => setTimeout(resolve, 100));
+                window.app.eventBus.emit('test:generation:start');
+                await new Promise(resolve => setTimeout(resolve, 100));
+                window.app.eventBus.emit('test:generation:complete');
+
+                // Cleanup
+                window.app.eventBus.off('test:button:click');
+                window.app.eventBus.off('test:generation:start');
+                window.app.eventBus.off('test:generation:complete');
+
+                if (eventsReceived.length === 3) {
+                    log(resultsId, `‚úÖ All events received successfully (${eventsReceived.length}/3)`);
+                } else {
+                    log(resultsId, `‚ùå Missing events: ${3 - eventsReceived.length}`, 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Event flow test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testButtonEvents() {
+            const resultsId = 'event-results';
+
+            try {
+                if (!window.app?.eventBus) {
+                    log(resultsId, '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì∂±Ô∏è Testing button events...');
+
+                // Listen for UI events
+                window.app.eventBus.on('ui:generate:click', () => {
+                    log(resultsId, '‚úÖ Generate button click detected');
+                });
+
+                // Simulate button click
+                const generateBtn = document.getElementById('generate-main');
+                if (generateBtn) {
+                    generateBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    window.app.eventBus.off('ui:generate:click');
+                    log(resultsId, '‚úÖ Button click simulation completed');
+                } else {
+                    log(resultsId, '‚ùå Generate button not found', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Button event test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFontLoading() {
+            const resultsId = 'generation-results';
+
+            try {
+                if (!window.app?.fontManager) {
+                    log(resultsId, '‚ùå FontManager not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì¥§ Testing font loading...');
+
+                // Test standard font
+                const font = window.app.fontManager.getFont('standard');
+                if (font && font.A) {
+                    log(resultsId, `‚úÖ Standard font loaded: ${font.A.length} lines for 'A'`);
+                } else {
+                    log(resultsId, '‚ùå Standard font not loaded properly', 'error');
+                }
+
+                // Test font cache
+                const font2 = window.app.fontManager.getFont('standard');
+                if (font === font2) {
+                    log(resultsId, '‚úÖ Font caching working');
+                } else {
+                    log(resultsId, '‚ùå Font caching not working', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Font loading test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTextGeneration() {
+            const resultsId = 'generation-results';
+
+            try {
+                if (!window.app?.generationService) {
+                    log(resultsId, '‚ùå GenerationService not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ìæ® Testing text generation...');
+
+                // Test direct generation
+                const result = await window.app.generationService.generateText({
+                    text: 'TEST',
+                    fontName: 'standard',
+                    color: 'none',
+                    animation: 'none'
+                });
+
+                if (result && result.ascii) {
+                    log(resultsId, `‚úÖ Generation successful: ${result.ascii.length} characters`);
+                } else {
+                    log(resultsId, '‚ùå Generation returned invalid result', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Text generation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDisplaySystem() {
+            const resultsId = 'generation-results';
+
+            try {
+                if (!window.app?.outputPanel) {
+                    log(resultsId, '‚ùå OutputPanel not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì≥∫ Testing display system...');
+
+                // Test display
+                const testAscii = "TEST\nART";
+                const displayed = window.app.outputPanel.display(testAscii);
+
+                if (displayed) {
+                    log(resultsId, `‚úÖ Display successful`);
+                } else {
+                    log(resultsId, '‚ùå Display failed', 'error');
+                }
+
+                // Test clear
+                window.app.outputPanel.clear();
+                log(resultsId, '‚úÖ Clear completed');
+
+            } catch (error) {
+                log(resultsId, `‚ùå Display test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testErrorHandling() {
+            const resultsId = 'error-results';
+
+            try {
+                if (!window.app?.uiController) {
+                    log(resultsId, '‚ùå UIController not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì∫® Testing error handling...');
+
+                // Test invalid input
+                window.app.uiController.onGenerateClick(); // Should handle empty input
+
+                // Test recovery
+                const recovered = window.app.uiController.recover();
+                if (recovered) {
+                    log(resultsId, '‚úÖ Recovery successful');
+                } else {
+                    log(resultsId, '‚ùå Recovery failed', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Error handling test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRecovery() {
+            const resultsId = 'error-results';
+
+            try {
+                if (!window.app?.uiController) {
+                    log(resultsId, '‚ùå UIController not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì¥Ñ Testing recovery system...');
+
+                // Test hard reset
+                const reset = window.app.uiController.hardReset();
+                if (reset) {
+                    log(resultsId, '‚úÖ Hard reset successful');
+                } else {
+                    log(resultsId, '‚ùå Hard reset failed', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Recovery test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPerformance() {
+            const resultsId = 'performance-results';
+
+            try {
+                if (!window.app?.performanceManager) {
+                    log(resultsId, '‚ùå PerformanceManager not available', 'error');
+                    return;
+                }
+
+                log(resultsId, '‚ö° Testing performance...');
+
+                // Test cache performance
+                const startTime = performance.now();
+
+                for (let i = 0; i < 10; i++) {
+                    await window.app.generationService.generateText({
+                        text: `TEST${i}`,
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    });
+                }
+
+                const endTime = performance.now();
+                const avgTime = (endTime - startTime) / 10;
+
+                log(resultsId, `‚úÖ Performance test: ${avgTime.toFixed(2)}ms average per generation`);
+
+                // Test cache stats
+                const stats = window.app.performanceManager.getStats();
+                log(resultsId, `Ì≥ä Cache stats: ${stats.hitRate} hit rate`);
+
+            } catch (error) {
+                log(resultsId, `‚ùå Performance test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMemory() {
+            const resultsId = 'performance-results';
+
+            try {
+                if (!window.app?.performanceManager) {
+                    log(resultsId, '‚ùå PerformanceManager not available', 'error');
+                    return;
+                }
+
+                log(resultsId, 'Ì∑† Testing memory usage...');
+
+                // Test cache size management
+                const initialSize = window.app.performanceManager.renderCache.size;
+                log(resultsId, `Ì≥è Initial cache size: ${initialSize}`);
+
+                // Generate multiple items to test LRU
+                for (let i = 0; i < 15; i++) {
+                    await window.app.generationService.generateText({
+                        text: `MEM${i}`,
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    });
+                }
+
+                const finalSize = window.app.performanceManager.renderCache.size;
+                log(resultsId, `Ì≥è Final cache size: ${finalSize}`);
+
+                if (finalSize <= window.app.performanceManager.maxCacheSize) {
+                    log(resultsId, '‚úÖ Cache size management working');
+                } else {
+                    log(resultsId, '‚ùå Cache size exceeded limit', 'error');
+                }
+
+            } catch (error) {
+                log(resultsId, `‚ùå Memory test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run initialization test
+        setTimeout(testInitialization, 500);
+    </script>
+</body>
+</html>

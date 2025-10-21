@@ -182,6 +182,12 @@ class UIController {
      * Subscribe to generation events
      */
     subscribeToEvents() {
+        // Button click events
+        this.eventBus.on('ui:generate:click', () => this.onGenerateClick());
+        this.eventBus.on('ui:copy:click', () => this.onCopyClick());
+        this.eventBus.on('ui:download:click', () => this.onDownloadClick());
+        this.eventBus.on('ui:clear:click', () => this.onClearClick());
+
         // Generation start
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, () => this.onGenerationStart('text'));
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_START, () => this.onGenerationStart('image'));
@@ -196,6 +202,9 @@ class UIController {
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_ERROR, (error) => this.onGenerationError(error));
         this.eventBus.on(EventBus.Events.IMAGE_GENERATION_ERROR, (error) => this.onGenerationError(error));
         this.eventBus.on(EventBus.Events.POETRY_GENERATION_ERROR, (error) => this.onGenerationError(error));
+
+        // UI notifications (for warnings, status updates)
+        this.eventBus.on('ui:notification', (notification) => this.showNotification(notification.message, notification.type));
 
         console.log('🔗 UIController: Event subscriptions complete');
     }
@@ -223,7 +232,7 @@ class UIController {
             this.disableGenerateButton();
             
             // Emit generation request
-            this.eventBus.emit(EventBus.Events.REQUEST_TEXT_GENERATION, options);
+            this.eventBus.emit('request:text:gen', options);
             console.log('📤 UIController: Generation request emitted');
         } catch (error) {
             console.error('❌ UIController: Generate error:', error);

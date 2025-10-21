@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generation Test</title>
+</head>
+<body>
+    <h1>Ì¥ß Generation Test</h1>
+    <p>Open browser console and run:</p>
+    <pre>
+// Test 1: Check if app is loaded
+console.log('App loaded:', !!window.app);
+
+// Test 2: Check event subscriptions
+window.app.eventBus.debugSubscriptions();
+
+// Test 3: Manual generation test
+window.app.eventBus.emit('request:text:gen', {
+    text: 'HELLO',
+    fontName: 'standard',
+    color: 'none',
+    animation: 'none'
+});
+
+// Test 4: Check UI controller state
+console.log('UI state:', window.app.uiController.state);
+
+// Test 5: Check if generate button works
+document.getElementById('generate-main').click();
+    </pre>
+    
+    <p><a href="index.html">‚Üê Back to main app</a></p>
+</body>
+</html>

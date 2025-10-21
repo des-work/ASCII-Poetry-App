@@ -177,6 +177,9 @@ Object.freeze(AppConfig.performance);
 Object.freeze(AppConfig.debug);
 Object.freeze(AppConfig.features);
 
+// Assign to window object for global access
+window.AppConfig = AppConfig;
+
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AppConfig;

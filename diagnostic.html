@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Diagnostic Tool</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        button { background: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .log { background: #2a2a2a; padding: 10px; margin: 10px 0; border-radius: 3px; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ç ASCII Art Poetry - Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>Ì≥ã System Status</h2>
+        <div id="status"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ó Event Listeners</h2>
+        <button onclick="checkEventListeners()">Check Event Listeners</button>
+        <div id="listeners"></div>
+    </div>
+
+    <div class="section">
+        <h2>‚ö° Component Status</h2>
+        <button onclick="checkComponents()">Check Components</button>
+        <div id="components"></div>
+    </div>
+
+    <div class="section">
+        <h2>ÌæØ Test Generation</h2>
+        <input type="text" id="testInput" placeholder="Enter test text..." value="HELLO">
+        <button onclick="testGeneration()">Test Generation</button>
+        <div id="testResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä Event Flow Test</h2>
+        <button onclick="testEventFlow()">Test Event Flow</button>
+        <div id="eventFlow"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ç Console Log</h2>
+        <div id="consoleLog" class="log"></div>
+    </div>
+
+    <script>
+        // Capture console logs
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        const logs = [];
+        function addLog(level, ...args) {
+            logs.push({ level, message: args.join(' '), timestamp: new Date() });
+            if (logs.length > 50) logs.shift();
+            updateLogDisplay();
+        }
+
+        console.log = (...args) => { originalConsole.log(...args); addLog('log', ...args); };
+        console.error = (...args) => { originalConsole.error(...args); addLog('error', ...args); };
+        console.warn = (...args) => { originalConsole.warn(...args); addLog('warn', ...args); };
+        console.info = (...args) => { originalConsole.info(...args); addLog('info', ...args); };
+
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('consoleLog');
+            logDiv.innerHTML = logs.map(log => 
+                `<div class="${log.level}">[${log.timestamp.toLocaleTimeString()}] ${log.message}</div>`
+            ).join('');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function checkStatus() {
+            const statusDiv = document.getElementById('status');
+            const checks = [];
+
+            // Check if window.app exists
+            checks.push({
+                name: 'Window App Object',
+                status: !!window.app,
+                details: window.app ? 'Available' : 'Missing'
+            });
+
+            // Check if AppConfig exists
+            checks.push({
+                name: 'AppConfig',
+                status: !!window.AppConfig,
+                details: window.AppConfig ? 'Available' : 'Missing'
+            });
+
+            // Check if core components exist
+            const coreComponents = ['eventBus', 'uiController', 'generationService', 'displayManager'];
+            coreComponents.forEach(comp => {
+                checks.push({
+                    name: `App.${comp}`,
+                    status: !!window.app?.[comp],
+                    details: window.app?.[comp] ? 'Available' : 'Missing'
+                });
+            });
+
+            // Check DOM elements
+            const domElements = ['text-input', 'generate-main', 'font-select', 'ascii-output'];
+            domElements.forEach(id => {
+                checks.push({
+                    name: `DOM #${id}`,
+                    status: !!document.getElementById(id),
+                    details: document.getElementById(id) ? 'Found' : 'Missing'
+                });
+            });
+
+            statusDiv.innerHTML = checks.map(check => 
+                `<div class="${check.status ? 'success' : 'error'}">
+                    ${check.name}: ${check.details}
+                </div>`
+            ).join('');
+        }
+
+        function checkEventListeners() {
+            const listenersDiv = document.getElementById('listeners');
+            
+            if (!window.app?.eventBus) {
+                listenersDiv.innerHTML = '<div class="error">EventBus not available</div>';
+                return;
+            }
+
+            const stats = window.app.eventBus.debugSubscriptions();
+            listenersDiv.innerHTML = `<pre>${JSON.stringify(stats, null, 2)}</pre>`;
+        }
+
+        function checkComponents() {
+            const componentsDiv = document.getElementById('components');
+            const checks = [];
+
+            if (window.app?.uiController) {
+                checks.push({
+                    name: 'UI Controller State',
+                    status: window.app.uiController.state,
+                    details: `Mode: ${window.app.uiController.state?.currentMode || 'unknown'}`
+                });
+            }
+
+            if (window.app?.generationService) {
+                checks.push({
+                    name: 'Generation Service',
+                    status: !window.app.generationService.isGenerating,
+                    details: `Generating: ${window.app.generationService.isGenerating}`
+                });
+            }
+
+            componentsDiv.innerHTML = checks.map(check => 
+                `<div class="${check.status ? 'success' : 'warning'}">
+                    ${check.name}: ${JSON.stringify(check.details)}
+                </div>`
+            ).join('');
+        }
+
+        async function testGeneration() {
+            const testResultDiv = document.getElementById('testResult');
+            const testInput = document.getElementById('testInput').value;
+            
+            if (!testInput.trim()) {
+                testResultDiv.innerHTML = '<div class="error">Please enter test text</div>';
+                return;
+            }
+
+            testResultDiv.innerHTML = '<div class="warning">Testing generation...</div>';
+
+            try {
+                // Direct test
+                if (window.app?.generationService) {
+                    const result = await window.app.generationService.generateText({
+                        text: testInput,
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    });
+                    
+                    testResultDiv.innerHTML = `<div class="success">
+                        ‚úÖ Generation successful!<br>
+                        <pre>${result.ascii}</pre>
+                    </div>`;
+                } else {
+                    testResultDiv.innerHTML = '<div class="error">Generation service not available</div>';
+                }
+            } catch (error) {
+                testResultDiv.innerHTML = `<div class="error">‚ùå Generation failed: ${error.message}</div>`;
+            }
+        }
+
+        function testEventFlow() {
+            const eventFlowDiv = document.getElementById('eventFlow');
+            
+            if (!window.app?.eventBus) {
+                eventFlowDiv.innerHTML = '<div class="error">EventBus not available</div>';
+                return;
+            }
+
+            eventFlowDiv.innerHTML = '<div class="warning">Testing event flow...</div>';
+
+            // Listen for generation events
+            const startTime = Date.now();
+            
+            function onGenerationStart() {
+                eventFlowDiv.innerHTML += '<div class="success">Ì≥® Generation started</div>';
+            }
+            
+            function onGenerationComplete(result) {
+                const duration = Date.now() - startTime;
+                eventFlowDiv.innerHTML += `<div class="success">‚úÖ Generation completed in ${duration}ms</div>`;
+                cleanup();
+            }
+            
+            function onGenerationError(error) {
+                const duration = Date.now() - startTime;
+                eventFlowDiv.innerHTML += `<div class="error">‚ùå Generation failed after ${duration}ms: ${error}</div>`;
+                cleanup();
+            }
+            
+            function cleanup() {
+                window.app.eventBus.off('text:gen:start', onGenerationStart);
+                window.app.eventBus.off('text:gen:complete', onGenerationComplete);
+                window.app.eventBus.off('text:gen:error', onGenerationError);
+            }
+            
+            // Attach listeners
+            window.app.eventBus.on('text:gen:start', onGenerationStart);
+            window.app.eventBus.on('text:gen:complete', onGenerationComplete);
+            window.app.eventBus.on('text:gen:error', onGenerationError);
+            
+            // Emit test event
+            window.app.eventBus.emit('request:text:gen', {
+                text: 'TEST',
+                fontName: 'standard',
+                color: 'none',
+                animation: 'none'
+            });
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                if (eventFlowDiv.innerHTML.includes('Testing')) {
+                    eventFlowDiv.innerHTML = '<div class="error">‚ùå Event flow test timed out</div>';
+                    cleanup();
+                }
+            }, 5000);
+        }
+
+        // Initialize
+        setInterval(checkStatus, 1000);
+        checkStatus();
+    </script>
+</body>
+</html>

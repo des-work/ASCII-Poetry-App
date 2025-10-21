@@ -34,18 +34,32 @@ class InputReader {
 	 * Returns { ok, options, error }
 	 */
 	readTextOptions() {
-		// Validate input element exists
+		// Validate DOM elements exist
 		if (!this.dom?.textInput) {
-			return { 
-				ok: false, 
-				options: null, 
-				error: '❌ Input element not found. Please refresh the page.' 
+			return {
+				ok: false,
+				options: null,
+				error: '❌ Text input not found. Please refresh the page.'
+			};
+		}
+		if (!this.dom?.fontSelect) {
+			return {
+				ok: false,
+				options: null,
+				error: '❌ Font selector not found. Please refresh the page.'
+			};
+		}
+		if (!this.dom?.colorSelect) {
+			return {
+				ok: false,
+				options: null,
+				error: '❌ Color selector not found. Please refresh the page.'
 			};
 		}
 
 		const text = this.dom.textInput.value ?? '';
-		const fontName = this.dom?.fontSelect?.value ?? 'standard';
-		const color = this.dom?.colorSelect?.value ?? 'none';
+		const fontName = this.dom.fontSelect.value ?? 'standard';
+		const color = this.dom.colorSelect.value ?? 'none';
 		const animation = this.dom?.animationSelect?.value ?? 'none';
 
 		if (!text || !text.trim()) {

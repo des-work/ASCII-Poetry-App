@@ -16,15 +16,22 @@ console.log('🚀 ASCII ART POETRY - Initializing Application...\n');
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        console.log('🚀 Starting application initialization...');
         // ============================================================
         // PHASE 1: CORE UTILITIES
         // ============================================================
         console.log('📦 PHASE 1: Initializing core utilities...');
-        
+
+        // Check AppConfig availability
+        if (!window.AppConfig) {
+            console.error('❌ AppConfig not found! Make sure config/app.config.js is loaded before app-new.js');
+            throw new Error('AppConfig not available');
+        }
+
         const eventBus = new EventBus();
         const fontManager = new FontManager();
         const asciiRenderer = new ASCIIRenderer();
-        const inputValidator = new InputValidator(window.AppConfig?.validation || {});
+        const inputValidator = new InputValidator(window.AppConfig.validation || {});
         
         console.log('✅ Core utilities ready\n');
 
@@ -54,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayManager = new DisplayManager(eventBus, outputPanel);
         
         // Input reading system
+        console.log('📦 Initializing input system...');
+
+        // Wait a bit to ensure all DOM elements are loaded
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const domCache = {
             textInput: document.getElementById('text-input'),
             imageInput: document.getElementById('image-input'),
@@ -66,8 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
             poetryLayoutSelect: document.getElementById('poetry-layout'),
             poetryDecorationSelect: document.getElementById('poetry-decoration')
         };
-        
+
+        // Check for critical DOM elements
+        const criticalElements = ['textInput', 'fontSelect', 'colorSelect'];
+        const missingElements = criticalElements.filter(key => !domCache[key]);
+
+        if (missingElements.length > 0) {
+            console.error('❌ Critical DOM elements missing:', missingElements);
+            throw new Error(`Missing critical DOM elements: ${missingElements.join(', ')}`);
+        }
+
         const inputReader = new InputReader(domCache);
+        console.log('✅ Input system ready');
         
         // Main UI controller (clean, single-responsibility design)
         const uiController = new UIController(eventBus, window.AppConfig, inputReader, inputValidator, outputPanel);
