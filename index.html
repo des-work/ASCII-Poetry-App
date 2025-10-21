@@ -17,91 +17,94 @@
             </div>
         </header>
 
-        <!-- Simple Layout -->
-        <div class="simple-layout">
-            <!-- Mode Selector -->
-            <div class="mode-section">
-                <label>Mode:</label>
-                <div class="mode-buttons">
-                    <button id="mode-text" class="mode-btn active" data-mode="text">✨ Text</button>
-                    <button id="mode-poetry" class="mode-btn" data-mode="poetry">📜 Poetry</button>
+        <!-- Two-Column Layout -->
+        <div class="main-layout">
+            <!-- Left Panel: Input Controls -->
+            <div class="input-panel">
+                <!-- Mode Selector -->
+                <div class="mode-section">
+                    <label>Mode:</label>
+                    <div class="mode-buttons">
+                        <button id="mode-text" class="mode-btn active" data-mode="text">✨ Text</button>
+                        <button id="mode-poetry" class="mode-btn" data-mode="poetry">📜 Poetry</button>
+                    </div>
+                </div>
+
+                <!-- Input Section -->
+                <div class="input-section">
+                    <h2 id="input-title">ASCII Art Generator</h2>
+
+                    <div class="input-group">
+                        <label for="text-input" id="text-input-label">Enter your text:</label>
+                        <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="font-select">Font:</label>
+                        <select id="font-select">
+                            <option value="standard">Standard</option>
+                            <option value="block">Block</option>
+                            <option value="mini">Mini</option>
+                            <option value="small">Small</option>
+                            <option value="bubble">Bubble</option>
+                            <option value="3d">3D</option>
+                        </select>
+                    </div>
+
+                    <!-- Text Color Selector (Text Mode) -->
+                    <div class="input-group" id="color-group">
+                        <label for="color-select">Color:</label>
+                        <select id="color-select">
+                            <option value="none">None (default)</option>
+                            <option value="red">Red</option>
+                            <option value="green">Green</option>
+                            <option value="blue">Blue</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="cyan">Cyan</option>
+                            <option value="magenta">Magenta</option>
+                            <option value="white">White</option>
+                            <option value="rainbow">🌈 Rainbow</option>
+                        </select>
+                    </div>
+
+                    <!-- Border Selector (Poetry Mode) -->
+                    <div class="input-group" id="border-group" style="display: none;">
+                        <label for="border-select">Border Style:</label>
+                        <select id="border-select">
+                            <option value="none">None</option>
+                            <option value="box">Box (━)</option>
+                            <option value="double">Double (═)</option>
+                            <option value="rounded">Rounded (╭)</option>
+                            <option value="stars">Stars (✦)</option>
+                            <option value="dashes">Dashes (─)</option>
+                            <option value="thick">Thick (█)</option>
+                        </select>
+                    </div>
+
+                    <!-- Poetry Color Selector -->
+                    <div class="input-group" id="poetry-color-group" style="display: none;">
+                        <label for="poetry-color-select">Poem Color:</label>
+                        <select id="poetry-color-select">
+                            <option value="none">None (default)</option>
+                            <option value="red">Red</option>
+                            <option value="green">Green</option>
+                            <option value="blue">Blue</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="cyan">Cyan</option>
+                            <option value="magenta">Magenta</option>
+                            <option value="white">White</option>
+                            <option value="rainbow">🌈 Rainbow</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="generate-main" class="generate-btn">✨ Generate</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Input Section -->
-            <div class="input-section">
-                <h2 id="input-title">ASCII Art Generator</h2>
-
-                <div class="input-group">
-                    <label for="text-input" id="text-input-label">Enter your text:</label>
-                    <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
-                </div>
-
-                <div class="input-group">
-                    <label for="font-select">Font:</label>
-                    <select id="font-select">
-                        <option value="standard">Standard</option>
-                        <option value="block">Block</option>
-                        <option value="mini">Mini</option>
-                        <option value="small">Small</option>
-                        <option value="bubble">Bubble</option>
-                        <option value="3d">3D</option>
-                    </select>
-                </div>
-
-                <!-- Text Color Selector (Text Mode) -->
-                <div class="input-group" id="color-group">
-                    <label for="color-select">Color:</label>
-                    <select id="color-select">
-                        <option value="none">None (default)</option>
-                        <option value="red">Red</option>
-                        <option value="green">Green</option>
-                        <option value="blue">Blue</option>
-                        <option value="yellow">Yellow</option>
-                        <option value="cyan">Cyan</option>
-                        <option value="magenta">Magenta</option>
-                        <option value="white">White</option>
-                        <option value="rainbow">🌈 Rainbow</option>
-                    </select>
-                </div>
-
-                <!-- Border Selector (Poetry Mode) -->
-                <div class="input-group" id="border-group" style="display: none;">
-                    <label for="border-select">Border Style:</label>
-                    <select id="border-select">
-                        <option value="none">None</option>
-                        <option value="box">Box (━)</option>
-                        <option value="double">Double (═)</option>
-                        <option value="rounded">Rounded (╭)</option>
-                        <option value="stars">Stars (✦)</option>
-                        <option value="dashes">Dashes (─)</option>
-                        <option value="thick">Thick (█)</option>
-                    </select>
-                </div>
-
-                <!-- Poetry Color Selector -->
-                <div class="input-group" id="poetry-color-group" style="display: none;">
-                    <label for="poetry-color-select">Poem Color:</label>
-                    <select id="poetry-color-select">
-                        <option value="none">None (default)</option>
-                        <option value="red">Red</option>
-                        <option value="green">Green</option>
-                        <option value="blue">Blue</option>
-                        <option value="yellow">Yellow</option>
-                        <option value="cyan">Cyan</option>
-                        <option value="magenta">Magenta</option>
-                        <option value="white">White</option>
-                        <option value="rainbow">🌈 Rainbow</option>
-                    </select>
-                </div>
-
-                <div class="button-group">
-                    <button id="generate-main" class="generate-btn">✨ Generate ASCII Art</button>
-                </div>
-            </div>
-
-            <!-- Output Section -->
-            <div class="output-section">
+            <!-- Right Panel: Output Display -->
+            <div class="output-panel">
                 <h2>Output</h2>
                 <pre id="ascii-output" class="ascii-output"></pre>
             </div>
