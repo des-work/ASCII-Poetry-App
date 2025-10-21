@@ -126,41 +126,15 @@ class UIController {
      * Attach DOM event listeners
      */
     attachEventListeners() {
-        // Generate button
-        if (this.dom.generateBtn) {
-            this.dom.generateBtn.addEventListener('click', () => this.onGenerateClick());
-        }
+        // NOTE: Button clicks are now handled by ButtonController's event delegation
+        // Only attach non-button specific listeners here
 
-        // Output control buttons
-        if (this.dom.copyBtn) {
-            this.dom.copyBtn.addEventListener('click', () => this.onCopyClick());
-        }
-        if (this.dom.downloadBtn) {
-            this.dom.downloadBtn.addEventListener('click', () => this.onDownloadClick());
-        }
-        if (this.dom.clearBtn) {
-            this.dom.clearBtn.addEventListener('click', () => this.onClearClick());
-        }
+        // Input validation listeners (for real-time button state updates)
+        this.dom.textInput?.addEventListener('input', () => this.updateGenerateButtonState());
+        this.dom.imageInput?.addEventListener('change', () => this.updateGenerateButtonState());
+        this.dom.poemInput?.addEventListener('input', () => this.updateGenerateButtonState());
 
-        // Theme button
-        if (this.dom.themeBtn) {
-            this.dom.themeBtn.addEventListener('click', () => this.onThemeClick());
-        }
-
-        // Mode buttons
-        this.dom.modeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mode = btn.dataset.mode;
-                if (mode) this.switchMode(mode);
-            });
-        });
-
-        // Auto-detect keywords
-        if (this.dom.autoDetectBtn) {
-            this.dom.autoDetectBtn.addEventListener('click', () => this.onAutoDetectClick());
-        }
-
-        // Keyword input
+        // Keyword input (not a button)
         if (this.dom.keywordsInput) {
             this.dom.keywordsInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -170,12 +144,7 @@ class UIController {
             });
         }
 
-        // Input validation listeners
-        this.dom.textInput?.addEventListener('input', () => this.updateGenerateButtonState());
-        this.dom.imageInput?.addEventListener('change', () => this.updateGenerateButtonState());
-        this.dom.poemInput?.addEventListener('input', () => this.updateGenerateButtonState());
-
-        console.log('📌 UIController: Event listeners attached');
+        console.log('📌 UIController: Event listeners attached (buttons handled by delegation)');
     }
 
     /**
@@ -187,6 +156,7 @@ class UIController {
         this.eventBus.on('ui:copy:click', () => this.onCopyClick());
         this.eventBus.on('ui:download:click', () => this.onDownloadClick());
         this.eventBus.on('ui:clear:click', () => this.onClearClick());
+        this.eventBus.on('ui:mode:switch', (data) => this.switchMode(data.mode));
 
         // Generation start
         this.eventBus.on(EventBus.Events.TEXT_GENERATION_START, () => this.onGenerationStart('text'));

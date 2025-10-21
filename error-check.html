@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Check Tool</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Ì∫® Error Detection Tool</h1>
+    <div id="results" class="result"></div>
+
+    <script>
+        const errors = [];
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            const errorInfo = {
+                message: message,
+                source: source,
+                line: lineno,
+                column: colno,
+                error: error,
+                timestamp: new Date()
+            };
+            
+            errors.push(errorInfo);
+            log(`‚ùå JavaScript Error: ${message} at ${source}:${lineno}:${colno}`, 'error');
+            
+            // Update error count
+            document.getElementById('results').innerHTML = 
+                `<div class="error">‚ùå ${errors.length} JavaScript error(s) detected</div>` + 
+                document.getElementById('results').innerHTML;
+            
+            return false; // Don't suppress the error
+        };
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', function(event) {
+            const errorInfo = {
+                message: event.reason?.message || String(event.reason),
+                source: 'unhandled_promise_rejection',
+                timestamp: new Date()
+            };
+            
+            errors.push(errorInfo);
+            log(`‚ùå Unhandled Promise Rejection: ${errorInfo.message}`, 'error');
+        });
+
+        log('Ì∫Ä Starting error detection...');
+
+        // Test 1: Check if basic JavaScript works
+        try {
+            const test = 1 + 1;
+            if (test === 2) {
+                log('‚úÖ Basic JavaScript working', 'success');
+            } else {
+                log('‚ùå Basic JavaScript broken', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Basic JavaScript error: ${error.message}`, 'error');
+        }
+
+        // Test 2: Check async/await
+        (async () => {
+            try {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                log('‚úÖ Async/await working', 'success');
+            } catch (error) {
+                log(`‚ùå Async/await error: ${error.message}`, 'error');
+            }
+        })();
+
+        // Test 3: Check class syntax
+        try {
+            class TestClass {
+                constructor() {
+                    this.test = 'ok';
+                }
+            }
+            const instance = new TestClass();
+            if (instance.test === 'ok') {
+                log('‚úÖ Class syntax working', 'success');
+            } else {
+                log('‚ùå Class syntax broken', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Class syntax error: ${error.message}`, 'error');
+        }
+
+        // Test 4: Check if scripts are loading
+        setTimeout(() => {
+            log('Ì¥ç Checking script loading...', 'info');
+
+            const scriptChecks = [
+                { name: 'AppConfig', check: typeof window.AppConfig !== 'undefined' },
+                { name: 'EventBus', check: typeof EventBus !== 'undefined' },
+                { name: 'FontManager', check: typeof FontManager !== 'undefined' }
+            ];
+
+            scriptChecks.forEach(({ name, check }) => {
+                if (check) {
+                    log(`‚úÖ ${name} loaded`, 'success');
+                } else {
+                    log(`‚ùå ${name} not loaded`, 'error');
+                }
+            });
+
+            if (errors.length > 0) {
+                log(`Ì∫® Total errors detected: ${errors.length}`, 'error');
+            } else {
+                log('‚úÖ No errors detected', 'success');
+            }
+        }, 200);
+    </script>
+</body>
+</html>

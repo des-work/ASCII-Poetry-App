@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Debug Tool</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .console-output { 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px; 
+            font-family: monospace; 
+            white-space: pre; 
+            max-height: 200px; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Ì∞õ Console Debug Tool</h1>
+
+    <div class="section">
+        <h2>Ì¥ç Console Analysis</h2>
+        <button onclick="analyzeConsole()">Analyze Console</button>
+        <button onclick="testConsoleOutput()">Test Console Output</button>
+        <button onclick="checkErrors()">Check for Errors</button>
+        <div id="console-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ù Console Output Monitor</h2>
+        <div id="console-monitor" class="console-output"></div>
+        <button onclick="clearMonitor()">Clear Monitor</button>
+    </div>
+
+    <script>
+        // Capture console output
+        const consoleMonitor = [];
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function addToMonitor(level, ...args) {
+            const message = args.join(' ');
+            consoleMonitor.push({ level, message, timestamp: new Date() });
+            
+            if (consoleMonitor.length > 50) {
+                consoleMonitor.shift();
+            }
+            
+            updateMonitorDisplay();
+        }
+
+        console.log = (...args) => { originalConsole.log(...args); addToMonitor('log', ...args); };
+        console.error = (...args) => { originalConsole.error(...args); addToMonitor('error', ...args); };
+        console.warn = (...args) => { originalConsole.warn(...args); addToMonitor('warn', ...args); };
+        console.info = (...args) => { originalConsole.info(...args); addToMonitor('info', ...args); };
+
+        function updateMonitorDisplay() {
+            const monitor = document.getElementById('console-monitor');
+            monitor.innerHTML = consoleMonitor.map(entry => 
+                `<div class="${entry.level}">[${entry.timestamp.toLocaleTimeString()}] ${entry.message}</div>`
+            ).join('');
+            monitor.scrollTop = monitor.scrollHeight;
+        }
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function analyzeConsole() {
+            clearResults('console-results');
+
+            try {
+                log('console-results', 'Ì¥ç Analyzing console state...', 'info');
+
+                // Check if console is available
+                if (typeof console === 'undefined') {
+                    log('console-results', '‚ùå Console not available', 'error');
+                    return;
+                }
+
+                log('console-results', '‚úÖ Console available');
+
+                // Check console methods
+                const methods = ['log', 'error', 'warn', 'info'];
+                methods.forEach(method => {
+                    if (typeof console[method] === 'function') {
+                        log('console-results', `‚úÖ console.${method} available`);
+                    } else {
+                        log('console-results', `‚ùå console.${method} missing`, 'error');
+                    }
+                });
+
+                // Check if our overrides are working
+                const monitorLength = consoleMonitor.length;
+                log('console-results', `Ì≥ä Monitor captured: ${monitorLength} messages`);
+
+                if (monitorLength === 0) {
+                    log('console-results', '‚ö†Ô∏è No messages captured yet', 'warning');
+                } else {
+                    log('console-results', '‚úÖ Message capture working');
+                }
+
+            } catch (error) {
+                log('console-results', `‚ùå Console analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function testConsoleOutput() {
+            clearResults('console-results');
+
+            try {
+                log('console-results', 'Ì∑™ Testing console output...', 'info');
+
+                // Test different console methods
+                console.log('Ì∫Ä Test log message');
+                console.info('‚ÑπÔ∏è Test info message');
+                console.warn('‚ö†Ô∏è Test warning message');
+                console.error('‚ùå Test error message');
+
+                // Check if they were captured
+                setTimeout(() => {
+                    const logMessages = consoleMonitor.filter(m => m.message.includes('Test'));
+                    if (logMessages.length >= 4) {
+                        log('console-results', `‚úÖ All console methods working (${logMessages.length}/4)`, 'success');
+                    } else {
+                        log('console-results', `‚ùå Console methods not working (${logMessages.length}/4)`, 'error');
+                    }
+                }, 100);
+
+            } catch (error) {
+                log('console-results', `‚ùå Console output test error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkErrors() {
+            clearResults('console-results');
+
+            try {
+                log('console-results', 'Ì¥ç Checking for JavaScript errors...', 'info');
+
+                // Check for error messages in monitor
+                const errors = consoleMonitor.filter(m => m.level === 'error');
+                const warnings = consoleMonitor.filter(m => m.level === 'warn');
+
+                log('console-results', `Ì≥ä Error summary: ${errors.length} errors, ${warnings.length} warnings`);
+
+                if (errors.length > 0) {
+                    errors.forEach((error, index) => {
+                        log('console-results', `‚ùå Error ${index + 1}: ${error.message}`, 'error');
+                    });
+                } else {
+                    log('console-results', '‚úÖ No errors detected');
+                }
+
+                if (warnings.length > 0) {
+                    warnings.forEach((warning, index) => {
+                        log('console-results', `‚ö†Ô∏è Warning ${index + 1}: ${warning.message}`, 'warning');
+                    });
+                }
+
+            } catch (error) {
+                log('console-results', `‚ùå Error check failed: ${error.message}`, 'error');
+            }
+        }
+
+        function clearMonitor() {
+            consoleMonitor.length = 0;
+            updateMonitorDisplay();
+        }
+
+        // Auto-analyze
+        setTimeout(() => {
+            analyzeConsole();
+            testConsoleOutput();
+        }, 500);
+    </script>
+</body>
+</html>

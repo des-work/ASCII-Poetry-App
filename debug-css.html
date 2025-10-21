@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Debug</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .test-output { 
+            background: #2a2a2a; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre;
+            border: 2px solid #444;
+        }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .info { margin: 10px 0; padding: 10px; background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Ìæ® CSS & Display Debug</h1>
+
+    <div class="info">
+        <h3>Instructions:</h3>
+        <p>1. Open browser DevTools (F12)</p>
+        <p>2. Go to Console tab</p>
+        <p>3. Run the commands below to test CSS and display</p>
+        <p>4. Check if output appears in the test area below</p>
+    </div>
+
+    <h3>Console Commands:</h3>
+    <pre>
+// Test 1: Check if app is loaded
+console.log('App loaded:', !!window.app);
+
+// Test 2: Check CSS styles
+const output = document.getElementById('ascii-output');
+if (output) {
+    console.log('Output element styles:', getComputedStyle(output));
+    console.log('Output visibility:', output.offsetParent !== null);
+    console.log('Output dimensions:', { width: output.offsetWidth, height: output.offsetHeight });
+}
+
+// Test 3: Manual display test
+if (window.app?.outputPanel) {
+    const testArt = "TEST\nART\nHERE";
+    window.app.outputPanel.display(testArt);
+    console.log('Manual display attempted');
+}
+
+// Test 4: Check for CSS conflicts
+const allStyles = Array.from(document.styleSheets).flatMap(sheet => 
+    Array.from(sheet.cssRules || []).map(rule => rule.selectorText)
+).filter(Boolean);
+console.log('CSS rules loaded:', allStyles.length);
+    </pre>
+
+    <h3>Test Output Area:</h3>
+    <div id="test-output-area" class="test-output">
+        Test output will appear here...
+    </div>
+
+    <div class="info">
+        <p><strong>If you can see output here but not in the main app, there might be a CSS issue.</strong></p>
+        <p><strong>If nothing appears, there might be a JavaScript issue.</strong></p>
+    </div>
+
+    <script>
+        // Auto-test CSS
+        setTimeout(() => {
+            const output = document.getElementById('ascii-output');
+            if (output) {
+                console.log('‚úÖ Main output element found');
+                console.log('Output styles:', {
+                    display: getComputedStyle(output).display,
+                    visibility: getComputedStyle(output).visibility,
+                    opacity: getComputedStyle(output).opacity,
+                    position: getComputedStyle(output).position,
+                    zIndex: getComputedStyle(output).zIndex
+                });
+            } else {
+                console.error('‚ùå Main output element not found');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

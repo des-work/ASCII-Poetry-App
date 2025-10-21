@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Output Debug Tool</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .test-output { 
+            background: #333; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border: 2px solid #666;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre;
+            min-height: 100px;
+        }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>Ì≥∫ Output System Debug Tool</h1>
+
+    <div class="section">
+        <h2>Ì¥ç Output Analysis</h2>
+        <button onclick="analyzeOutput()">Analyze Output Element</button>
+        <button onclick="testOutputPanel()">Test OutputPanel</button>
+        <button onclick="testDisplayManager()">Test DisplayManager</button>
+        <div id="output-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì∑™ Manual Output Tests</h2>
+        <button onclick="testDirectOutput()">Test Direct Output</button>
+        <button onclick="testCSSOutput()">Test CSS Output</button>
+        <button onclick="testOutputVisibility()">Test Output Visibility</button>
+        <div id="manual-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ìæ® Test Output Area</h2>
+        <div id="test-output-area" class="test-output">
+            Test output will appear here...
+        </div>
+        <button onclick="clearTestArea()">Clear Test Area</button>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function analyzeOutput() {
+            clearResults('output-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('output-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('output-results', 'Ì¥ç Analyzing output element...', 'info');
+
+                const computed = getComputedStyle(outputEl);
+                const rect = outputEl.getBoundingClientRect();
+
+                log('output-results', `Ì≥è Dimensions: ${rect.width}√ó${rect.height}px`);
+                log('output-results', `Ì≥ç Position: ${rect.left}, ${rect.top}`);
+                log('output-results', `Ìæ® Styles: ${computed.fontSize} ${computed.fontFamily}`);
+                log('output-results', `Ì±ÅÔ∏è Visible: ${rect.top < window.innerHeight && rect.bottom > 0 ? '‚úÖ' : '‚ùå'}`);
+
+                // Check content
+                const content = outputEl.textContent;
+                log('output-results', `Ì≥ù Content: ${content.length} characters`);
+
+                if (content.length > 0) {
+                    log('output-results', `Ì≥ù Content preview: "${content.substring(0, 50)}..."`);
+                } else {
+                    log('output-results', 'Ì≥ù Content is empty');
+                }
+
+                // Check data-state
+                const dataState = outputEl.getAttribute('data-state');
+                log('output-results', `Ìø∑Ô∏è Data state: ${dataState || 'none'}`);
+
+            } catch (error) {
+                log('output-results', `‚ùå Output analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function testOutputPanel() {
+            clearResults('output-results');
+
+            try {
+                if (!window.app?.outputPanel) {
+                    log('output-results', '‚ùå OutputPanel not available', 'error');
+                    return;
+                }
+
+                log('output-results', 'Ì∑™ Testing OutputPanel...', 'info');
+
+                // Test display method
+                const testContent = "TEST\nOUTPUT\nPANEL";
+                const result = window.app.outputPanel.display(testContent);
+
+                if (result) {
+                    log('output-results', `‚úÖ OutputPanel display: ${testContent.length} characters`, 'success');
+                } else {
+                    log('output-results', '‚ùå OutputPanel display failed', 'error');
+                }
+
+                // Test clear method
+                window.app.outputPanel.clear();
+                log('output-results', '‚úÖ OutputPanel clear completed');
+
+            } catch (error) {
+                log('output-results', `‚ùå OutputPanel test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testDisplayManager() {
+            clearResults('output-results');
+
+            try {
+                if (!window.app?.displayManager) {
+                    log('output-results', '‚ùå DisplayManager not available', 'error');
+                    return;
+                }
+
+                log('output-results', 'Ì∑™ Testing DisplayManager...', 'info');
+
+                // Test display method
+                const testResult = {
+                    success: true,
+                    ascii: "DISPLAY\nMANAGER\nTEST",
+                    metadata: { color: 'none', animation: 'none' }
+                };
+
+                const result = window.app.displayManager.panel.display(testResult.ascii, testResult.metadata);
+
+                if (result) {
+                    log('output-results', '‚úÖ DisplayManager working', 'success');
+                } else {
+                    log('output-results', '‚ùå DisplayManager failed', 'error');
+                }
+
+            } catch (error) {
+                log('output-results', `‚ùå DisplayManager test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testDirectOutput() {
+            clearResults('manual-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('manual-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('manual-results', 'Ì∂±Ô∏è Testing direct output manipulation...', 'info');
+
+                const testContent = 
+`‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà
+‚ñà‚ñà      ‚ñà‚ñà
+‚ñà‚ñà  ‚ñà‚ñà‚ñà‚ñà  ‚ñà‚ñà
+‚ñà‚ñà      ‚ñà‚ñà
+‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà`;
+
+                // Direct DOM manipulation
+                outputEl.textContent = testContent;
+                outputEl.className = 'ascii-output';
+                outputEl.setAttribute('data-state', 'filled');
+
+                log('manual-results', `‚úÖ Direct output: ${testContent.length} characters`, 'success');
+
+                // Also update test area
+                const testArea = document.getElementById('test-output-area');
+                if (testArea) {
+                    testArea.textContent = testContent;
+                }
+
+            } catch (error) {
+                log('manual-results', `‚ùå Direct output test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testCSSOutput() {
+            clearResults('manual-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('manual-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('manual-results', 'Ìæ® Testing CSS output classes...', 'info');
+
+                // Test different CSS states
+                const states = [
+                    { className: 'ascii-output', dataState: 'empty', content: '' },
+                    { className: 'ascii-output', dataState: 'filled', content: 'CSS TEST' },
+                    { className: 'ascii-output', dataState: 'filled', content: 'MULTI\nLINE\nTEST' }
+                ];
+
+                states.forEach((state, index) => {
+                    setTimeout(() => {
+                        outputEl.className = state.className;
+                        outputEl.setAttribute('data-state', state.dataState);
+                        outputEl.textContent = state.content;
+
+                        const computed = getComputedStyle(outputEl);
+                        log('manual-results', `Ìæ≠ State ${index + 1}: ${computed.display} ${computed.visibility} ${computed.opacity}`);
+                    }, index * 500);
+                });
+
+            } catch (error) {
+                log('manual-results', `‚ùå CSS output test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testOutputVisibility() {
+            clearResults('manual-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('manual-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('manual-results', 'Ì±ÅÔ∏è Testing output visibility...', 'info');
+
+                // Check if element is visible
+                const rect = outputEl.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
+
+                log('manual-results', `Ì≥ê Bounding rect: ${rect.width}√ó${rect.height} at (${rect.left}, ${rect.top})`);
+                log('manual-results', `Ì±ÅÔ∏è In viewport: ${isVisible ? '‚úÖ Yes' : '‚ùå No'}`);
+
+                // Check parent visibility
+                let parent = outputEl.parentElement;
+                let depth = 0;
+                while (parent && parent !== document.body && depth < 5) {
+                    const parentComputed = getComputedStyle(parent);
+                    if (parentComputed.display === 'none' || parentComputed.visibility === 'hidden') {
+                        log('manual-results', `‚ö†Ô∏è Hidden parent: ${parent.tagName.toLowerCase()}`, 'warning');
+                        break;
+                    }
+                    parent = parent.parentElement;
+                    depth++;
+                }
+
+            } catch (error) {
+                log('manual-results', `‚ùå Output visibility test error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearTestArea() {
+            const testArea = document.getElementById('test-output-area');
+            if (testArea) {
+                testArea.textContent = 'Test output will appear here...';
+            }
+            clearResults('manual-results');
+        }
+
+        // Auto-run analysis
+        setTimeout(() => {
+            analyzeOutput();
+            testOutputPanel();
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@
 
 console.log('🚀 ASCII ART POETRY - Initializing Application...\n');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('🚀 Starting application initialization...');
         // ============================================================
@@ -32,14 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const fontManager = new FontManager();
         const asciiRenderer = new ASCIIRenderer();
         const inputValidator = new InputValidator(window.AppConfig.validation || {});
-        
+
         console.log('✅ Core utilities ready\n');
 
         // ============================================================
         // PHASE 2: SERVICES & MANAGERS
         // ============================================================
         console.log('📦 PHASE 2: Initializing services...');
-        
+
         const performanceManager = new PerformanceManager(window.AppConfig);
         const generationService = new GenerationService(
             fontManager,
@@ -48,18 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
             eventBus,
             performanceManager
         );
-        
+
         console.log('✅ Services initialized\n');
 
         // ============================================================
         // PHASE 3: UI COMPONENTS
         // ============================================================
         console.log('📦 PHASE 3: Initializing UI components...');
-        
+
         // Output display system (clean, dedicated architecture)
         const outputPanel = new OutputPanel();
         const displayManager = new DisplayManager(eventBus, outputPanel);
-        
+
         // Input reading system
         console.log('📦 Initializing input system...');
 

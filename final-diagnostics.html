@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Diagnostics</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥¨ Final Comprehensive Diagnostics</h1>
+
+    <div class="section">
+        <h2>ÌæØ Quick Tests</h2>
+        <div class="test-grid">
+            <button onclick="testBasicGeneration()">Test Basic Generation</button>
+            <button onclick="testButtonEvents()">Test Button Events</button>
+            <button onclick="testFontLoading()">Test Font Loading</button>
+            <button onclick="testEventFlow()">Test Event Flow</button>
+            <button onclick="testInputValidation()">Test Input Validation</button>
+            <button onclick="testDisplaySystem()">Test Display System</button>
+        </div>
+        <div id="quick-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä System Health Check</h2>
+        <button onclick="runHealthCheck()">Run Health Check</button>
+        <div id="health-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function testBasicGeneration() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.generationService) {
+                    log('quick-results', '‚ùå GenerationService not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ìæ® Testing basic generation...', 'info');
+
+                // Set test input
+                const textInput = document.getElementById('text-input');
+                if (textInput) {
+                    textInput.value = 'TEST';
+                }
+
+                // Test direct generation
+                const result = await window.app.generationService.generateText({
+                    text: 'TEST',
+                    fontName: 'standard',
+                    color: 'none',
+                    animation: 'none'
+                });
+
+                if (result && result.ascii) {
+                    log('quick-results', `‚úÖ Generation successful: ${result.ascii.length} characters`, 'success');
+                } else {
+                    log('quick-results', '‚ùå Generation returned invalid result', 'error');
+                }
+
+            } catch (error) {
+                log('quick-results', `‚ùå Basic generation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testButtonEvents() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('quick-results', '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ì∂±Ô∏è Testing button events...', 'info');
+
+                // Listen for button click
+                window.app.eventBus.on('ui:generate:click', () => {
+                    log('quick-results', '‚úÖ Button click event received', 'success');
+                });
+
+                // Simulate button click
+                const generateBtn = document.getElementById('generate-main');
+                if (generateBtn) {
+                    generateBtn.click();
+                    log('quick-results', 'Ì∂±Ô∏è Button clicked', 'info');
+
+                    // Clean up after 1 second
+                    setTimeout(() => {
+                        window.app.eventBus.off('ui:generate:click');
+                    }, 1000);
+                } else {
+                    log('quick-results', '‚ùå Generate button not found', 'error');
+                }
+
+            } catch (error) {
+                log('quick-results', `‚ùå Button event test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFontLoading() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.fontManager) {
+                    log('quick-results', '‚ùå FontManager not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ì¥§ Testing font loading...', 'info');
+
+                const font = window.app.fontManager.getFont('standard');
+                if (font && font.A && Array.isArray(font.A)) {
+                    log('quick-results', `‚úÖ Font loaded: ${font.A.length} lines for 'A'`, 'success');
+                } else {
+                    log('quick-results', '‚ùå Font not loaded properly', 'error');
+                }
+
+            } catch (error) {
+                log('quick-results', `‚ùå Font loading test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEventFlow() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('quick-results', '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ì≥° Testing event flow...', 'info');
+
+                const eventsReceived = [];
+
+                // Listen for test events
+                window.app.eventBus.on('test:start', () => eventsReceived.push('start'));
+                window.app.eventBus.on('test:complete', () => eventsReceived.push('complete'));
+
+                // Emit test events
+                window.app.eventBus.emit('test:start');
+                await new Promise(resolve => setTimeout(resolve, 50));
+                window.app.eventBus.emit('test:complete');
+
+                // Check results
+                setTimeout(() => {
+                    if (eventsReceived.length === 2) {
+                        log('quick-results', `‚úÖ Event flow working (${eventsReceived.length}/2)`, 'success');
+                    } else {
+                        log('quick-results', `‚ùå Event flow issues (${eventsReceived.length}/2)`, 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('test:start');
+                    window.app.eventBus.off('test:complete');
+                }, 100);
+
+            } catch (error) {
+                log('quick-results', `‚ùå Event flow test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInputValidation() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.inputReader) {
+                    log('quick-results', '‚ùå InputReader not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ì≥ù Testing input validation...', 'info');
+
+                // Set test values
+                const textInput = document.getElementById('text-input');
+                const fontSelect = document.getElementById('font-select');
+                const colorSelect = document.getElementById('color-select');
+
+                if (textInput && fontSelect && colorSelect) {
+                    textInput.value = 'TEST';
+                    fontSelect.value = 'standard';
+                    colorSelect.value = 'none';
+
+                    const result = window.app.inputReader.readTextOptions();
+
+                    if (result.ok) {
+                        log('quick-results', `‚úÖ Input validation passed: "${result.options.text}"`, 'success');
+                    } else {
+                        log('quick-results', `‚ùå Input validation failed: ${result.error}`, 'error');
+                    }
+                } else {
+                    log('quick-results', '‚ùå Required DOM elements missing', 'error');
+                }
+
+            } catch (error) {
+                log('quick-results', `‚ùå Input validation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDisplaySystem() {
+            clearResults('quick-results');
+
+            try {
+                if (!window.app?.outputPanel) {
+                    log('quick-results', '‚ùå OutputPanel not available', 'error');
+                    return;
+                }
+
+                log('quick-results', 'Ì≥∫ Testing display system...', 'info');
+
+                // Test display
+                const testAscii = "TEST\nART";
+                const displayed = window.app.outputPanel.display(testAscii);
+
+                if (displayed) {
+                    log('quick-results', '‚úÖ Display system working', 'success');
+                } else {
+                    log('quick-results', '‚ùå Display system failed', 'error');
+                }
+
+            } catch (error) {
+                log('quick-results', `‚ùå Display test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runHealthCheck() {
+            clearResults('health-results');
+
+            const checks = [
+                { name: 'window.app', check: !!window.app },
+                { name: 'EventBus', check: !!window.app?.eventBus },
+                { name: 'UIController', check: !!window.app?.uiController },
+                { name: 'GenerationService', check: !!window.app?.generationService },
+                { name: 'FontManager', check: !!window.app?.fontManager },
+                { name: 'InputReader', check: !!window.app?.inputReader },
+                { name: 'OutputPanel', check: !!window.app?.outputPanel },
+                { name: 'DisplayManager', check: !!window.app?.displayManager },
+                { name: 'AppConfig', check: !!window.AppConfig },
+                { name: 'DOM text-input', check: !!document.getElementById('text-input') },
+                { name: 'DOM generate-main', check: !!document.getElementById('generate-main') },
+                { name: 'DOM ascii-output', check: !!document.getElementById('ascii-output') },
+            ];
+
+            let passed = 0;
+            let total = checks.length;
+
+            checks.forEach(check => {
+                if (check.check) {
+                    log('health-results', `‚úÖ ${check.name}`, 'success');
+                    passed++;
+                } else {
+                    log('health-results', `‚ùå ${check.name}`, 'error');
+                }
+            });
+
+            log('health-results', `Ì≥ä Health Score: ${passed}/${total} (${Math.round(passed/total*100)}%)`, passed === total ? 'success' : 'error');
+
+            if (passed === total) {
+                log('health-results', 'Ìæâ System appears healthy! Try generating text now.', 'success');
+            } else {
+                log('health-results', '‚ö†Ô∏è Some components are missing. Check the errors above.', 'warning');
+            }
+        }
+
+        // Auto-run health check
+        setTimeout(runHealthCheck, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Test - All Issues Fixed</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>‚úÖ Final Test - All Issues Fixed</h1>
+
+    <div class="section">
+        <h2>Ì∫Ä Quick Test</h2>
+        <div class="test-grid">
+            <button onclick="testBasicGeneration()">Test Basic Generation</button>
+            <button onclick="testEventFlow()">Test Event Flow</button>
+            <button onclick="testAllComponents()">Test All Components</button>
+            <button onclick="runFullTest()">Run Full Test</button>
+        </div>
+        <div id="test-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥ä System Status</h2>
+        <button onclick="checkSystemStatus()">Check System Status</button>
+        <div id="status-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function testBasicGeneration() {
+            clearResults('test-results');
+
+            try {
+                if (!window.app?.generationService) {
+                    log('test-results', '‚ùå GenerationService not available', 'error');
+                    return;
+                }
+
+                log('test-results', 'Ìæ® Testing basic generation...', 'info');
+
+                // Listen for events
+                window.app.eventBus.on('text:gen:start', () => log('test-results', '‚è≥ Generation started', 'info'));
+                window.app.eventBus.on('text:gen:complete', (result) => {
+                    log('test-results', `‚úÖ Generation completed: ${result.ascii?.length || 0} characters`, 'success');
+                });
+                window.app.eventBus.on('text:gen:error', (error) => {
+                    log('test-results', `‚ùå Generation error: ${error}`, 'error');
+                });
+
+                // Generate
+                const result = await window.app.generationService.generateText({
+                    text: 'FINAL TEST',
+                    fontName: 'standard',
+                    color: 'none',
+                    animation: 'none'
+                });
+
+                // Cleanup
+                setTimeout(() => {
+                    window.app.eventBus.off('text:gen:start');
+                    window.app.eventBus.off('text:gen:complete');
+                    window.app.eventBus.off('text:gen:error');
+                }, 2000);
+
+            } catch (error) {
+                log('test-results', `‚ùå Basic generation test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEventFlow() {
+            clearResults('test-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('test-results', '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log('test-results', 'Ì≥° Testing event flow...', 'info');
+
+                const eventsReceived = [];
+
+                // Listen for test events
+                window.app.eventBus.on('ui:generate:click', () => eventsReceived.push('click'));
+                window.app.eventBus.on('request:text:gen', () => eventsReceived.push('request'));
+                window.app.eventBus.on('text:gen:start', () => eventsReceived.push('start'));
+
+                // Emit test event
+                window.app.eventBus.emit('ui:generate:click');
+
+                // Check after delay
+                setTimeout(() => {
+                    log('test-results', `Ì≥ä Events received: ${eventsReceived.join(', ')}`);
+
+                    if (eventsReceived.length >= 2) {
+                        log('test-results', '‚úÖ Event flow working', 'success');
+                    } else {
+                        log('test-results', '‚ùå Event flow broken', 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('ui:generate:click');
+                    window.app.eventBus.off('request:text:gen');
+                    window.app.eventBus.off('text:gen:start');
+                }, 500);
+
+            } catch (error) {
+                log('test-results', `‚ùå Event flow test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllComponents() {
+            clearResults('test-results');
+
+            try {
+                log('test-results', 'Ì¥ç Testing all components...', 'info');
+
+                const components = [
+                    { name: 'window.app', check: !!window.app },
+                    { name: 'EventBus', check: !!window.app?.eventBus },
+                    { name: 'UIController', check: !!window.app?.uiController },
+                    { name: 'GenerationService', check: !!window.app?.generationService },
+                    { name: 'FontManager', check: !!window.app?.fontManager },
+                    { name: 'OutputPanel', check: !!window.app?.outputPanel },
+                    { name: 'AppConfig', check: !!window.AppConfig },
+                    { name: 'DOM text-input', check: !!document.getElementById('text-input') },
+                    { name: 'DOM generate-main', check: !!document.getElementById('generate-main') }
+                ];
+
+                let passed = 0;
+                components.forEach(({ name, check }) => {
+                    if (check) {
+                        log('test-results', `‚úÖ ${name}`, 'success');
+                        passed++;
+                    } else {
+                        log('test-results', `‚ùå ${name}`, 'error');
+                    }
+                });
+
+                log('test-results', `Ì≥ä Overall: ${passed}/${components.length} components working`);
+
+            } catch (error) {
+                log('test-results', `‚ùå Component test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runFullTest() {
+            clearResults('test-results');
+
+            try {
+                log('test-results', 'Ì∫Ä Running full test...', 'info');
+
+                // Test 1: Components
+                await testAllComponents();
+
+                // Wait a bit
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Test 2: Event flow
+                await testEventFlow();
+
+                // Wait a bit
+                await new Promise(resolve => setTimeout(resolve, 200));
+
+                // Test 3: Generation
+                await testBasicGeneration();
+
+                log('test-results', 'ÌøÅ Full test completed', 'success');
+
+            } catch (error) {
+                log('test-results', `‚ùå Full test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSystemStatus() {
+            clearResults('status-results');
+
+            try {
+                log('status-results', 'Ì¥ç Checking system status...', 'info');
+
+                // Check if app loaded
+                if (!window.app) {
+                    log('status-results', '‚ùå App not loaded', 'error');
+                    return;
+                }
+
+                // Check event subscriptions
+                if (window.app.eventBus?.debugSubscriptions) {
+                    const stats = window.app.eventBus.debugSubscriptions();
+                    log('status-results', `Ì≥ä Event subscriptions: ${Object.keys(stats).length} types`);
+                }
+
+                // Check UI state
+                if (window.app.uiController?.state) {
+                    log('status-results', `ÌæÆ UI state: ${JSON.stringify(window.app.uiController.state)}`);
+                }
+
+                // Check button state
+                const generateBtn = document.getElementById('generate-main');
+                if (generateBtn) {
+                    log('status-results', `Ì¥ò Button state: ${generateBtn.disabled ? 'disabled' : 'enabled'}`);
+                }
+
+                log('status-results', '‚úÖ System status check complete');
+
+            } catch (error) {
+                log('status-results', `‚ùå Status check error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run status check
+        setTimeout(checkSystemStatus, 1000);
+    </script>
+</body>
+</html>

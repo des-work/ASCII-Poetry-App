@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step-by-Step Debug</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .step { margin: 5px 0; padding: 5px; border-radius: 3px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>ï¿½ï¿½ Step-by-Step Debug Tool</h1>
+    <div id="results" class="result"></div>
+
+    <div class="section">
+        <h2>íº€ Manual Step Testing</h2>
+        <button onclick="testStep1()">Step 1: Basic Setup</button>
+        <button onclick="testStep2()">Step 2: Core Components</button>
+        <button onclick="testStep3()">Step 3: Services</button>
+        <button onclick="testStep4()">Step 4: UI Components</button>
+        <button onclick="testStep5()">Step 5: Full Initialization</button>
+    </div>
+
+    <script>
+        let stepCounter = 0;
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="step ${type}">[${timestamp}] Step ${++stepCounter}: ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] Step ${stepCounter}: ${message}`);
+        }
+
+        async function testStep1() {
+            log('í´§ Testing basic JavaScript setup...', 'info');
+
+            try {
+                // Test basic operations
+                const test = 1 + 1;
+                if (test === 2) {
+                    log('âœ… Basic arithmetic working', 'success');
+                } else {
+                    log('âŒ Basic arithmetic broken', 'error');
+                }
+
+                // Test console
+                console.log('í³ Console test from step 1');
+                log('âœ… Console working', 'success');
+
+                // Test DOM access
+                if (document.body) {
+                    log('âœ… DOM body accessible', 'success');
+                } else {
+                    log('âŒ DOM body not accessible', 'error');
+                }
+
+            } catch (error) {
+                log(`âŒ Step 1 error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStep2() {
+            log('í¿—ï¸ Testing core components...', 'info');
+
+            try {
+                // Check if core classes are available
+                const classes = ['EventBus', 'FontManager', 'ASCIIRenderer'];
+                let loaded = 0;
+
+                classes.forEach(className => {
+                    try {
+                        if (typeof eval(className) !== 'undefined') {
+                            log(`âœ… ${className} class loaded`, 'success');
+                            loaded++;
+                        } else {
+                            log(`âŒ ${className} class not found`, 'error');
+                        }
+                    } catch (e) {
+                        log(`âŒ Error checking ${className}: ${e.message}`, 'error');
+                    }
+                });
+
+                log(`í³Š Core classes: ${loaded}/${classes.length} loaded`);
+
+            } catch (error) {
+                log(`âŒ Step 2 error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStep3() {
+            log('âš™ï¸ Testing services...', 'info');
+
+            try {
+                // Check if AppConfig is loaded
+                if (window.AppConfig) {
+                    log('âœ… AppConfig loaded', 'success');
+                    log(`í³‹ App version: ${window.AppConfig.app?.version || 'unknown'}`);
+                } else {
+                    log('âŒ AppConfig not loaded', 'error');
+                }
+
+                // Check if core services can be instantiated
+                try {
+                    if (typeof EventBus !== 'undefined') {
+                        const eventBus = new EventBus();
+                        if (eventBus) {
+                            log('âœ… EventBus instantiation working', 'success');
+                        } else {
+                            log('âŒ EventBus instantiation failed', 'error');
+                        }
+                    }
+                } catch (error) {
+                    log(`âŒ EventBus instantiation error: ${error.message}`, 'error');
+                }
+
+            } catch (error) {
+                log(`âŒ Step 3 error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStep4() {
+            log('í¶¥ï¸ Testing UI components...', 'info');
+
+            try {
+                // Check if DOM elements are available
+                const elements = ['text-input', 'generate-main', 'ascii-output'];
+                let found = 0;
+
+                elements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        log(`âœ… DOM element #${id} found`, 'success');
+                        found++;
+                    } else {
+                        log(`âŒ DOM element #${id} missing`, 'error');
+                    }
+                });
+
+                log(`í¿—ï¸ DOM elements: ${found}/${elements.length} found`);
+
+            } catch (error) {
+                log(`âŒ Step 4 error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStep5() {
+            log('íº€ Testing full initialization...', 'info');
+
+            try {
+                // Check if main app object exists
+                if (window.app) {
+                    log('âœ… Main app object exists', 'success');
+                    
+                    // Check app components
+                    const components = ['eventBus', 'uiController', 'generationService'];
+                    components.forEach(comp => {
+                        if (window.app[comp]) {
+                            log(`âœ… App.${comp} available`, 'success');
+                        } else {
+                            log(`âŒ App.${comp} missing`, 'error');
+                        }
+                    });
+                } else {
+                    log('âŒ Main app object not initialized', 'error');
+                }
+
+                // Test if we can trigger generation
+                try {
+                    const generateBtn = document.getElementById('generate-main');
+                    if (generateBtn && !generateBtn.disabled) {
+                        log('âœ… Generate button available and enabled', 'success');
+                        
+                        // Try to click it
+                        generateBtn.click();
+                        log('í¶±ï¸ Generate button clicked', 'info');
+                    } else {
+                        log('âŒ Generate button not available or disabled', 'error');
+                    }
+                } catch (error) {
+                    log(`âŒ Button click error: ${error.message}`, 'error');
+                }
+
+            } catch (error) {
+                log(`âŒ Step 5 error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-start step 1
+        setTimeout(() => {
+            testStep1();
+        }, 100);
+    </script>
+</body>
+</html>

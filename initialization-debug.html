@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialization Debug</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .timeline { margin: 15px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #333; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .timeline-item { margin: 5px 0; padding: 3px 8px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <h1>‚è±Ô∏è Initialization Debug Tool</h1>
+
+    <div class="section">
+        <h2>Ì¥Ñ Initialization Timeline</h2>
+        <div class="timeline">
+            <div id="timeline" class="result"></div>
+        </div>
+        <button onclick="traceInitialization()">Trace Initialization</button>
+        <button onclick="checkComponentOrder()">Check Component Order</button>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ó Dependency Analysis</h2>
+        <button onclick="analyzeDependencies()">Analyze Dependencies</button>
+        <div id="dependency-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>‚ö° Timing Analysis</h2>
+        <button onclick="measureTiming()">Measure Timing</button>
+        <div id="timing-results" class="result"></div>
+    </div>
+
+    <script>
+        const initTimeline = [];
+
+        // Override console methods to track initialization
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            originalLog(...args);
+            if (args[0] && typeof args[0] === 'string' && (
+                args[0].includes('Initializing') ||
+                args[0].includes('initialized') ||
+                args[0].includes('ready') ||
+                args[0].includes('loaded')
+            )) {
+                initTimeline.push({
+                    time: performance.now(),
+                    type: 'log',
+                    message: args.join(' ')
+                });
+            }
+        };
+
+        console.error = function(...args) {
+            originalError(...args);
+            initTimeline.push({
+                time: performance.now(),
+                type: 'error',
+                message: args.join(' ')
+            });
+        };
+
+        console.warn = function(...args) {
+            originalWarn(...args);
+            initTimeline.push({
+                time: performance.now(),
+                type: 'warn',
+                message: args.join(' ')
+            });
+        };
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="timeline-item ${type}">[${timestamp}] ${message}</div>`;
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function traceInitialization() {
+            clearResults('timeline');
+
+            try {
+                log('timeline', 'Ì¥Ñ Tracing initialization timeline...', 'info');
+
+                if (initTimeline.length === 0) {
+                    log('timeline', '‚ö†Ô∏è No initialization events captured yet', 'warning');
+                    return;
+                }
+
+                // Sort by time
+                const sortedTimeline = initTimeline.sort((a, b) => a.time - b.time);
+
+                log('timeline', `Ì≥ä Found ${sortedTimeline.length} initialization events`);
+
+                sortedTimeline.forEach((event, index) => {
+                    const time = (event.time - sortedTimeline[0].time).toFixed(2);
+                    log('timeline', `${time}ms: ${event.message}`, event.type);
+                });
+
+                // Analyze timing gaps
+                for (let i = 1; i < sortedTimeline.length; i++) {
+                    const gap = sortedTimeline[i].time - sortedTimeline[i-1].time;
+                    if (gap > 100) {
+                        log('timeline', `‚ö†Ô∏è Large gap (${gap.toFixed(2)}ms) between events`, 'warning');
+                    }
+                }
+
+            } catch (error) {
+                log('timeline', `‚ùå Timeline trace error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkComponentOrder() {
+            clearResults('timeline');
+
+            try {
+                log('timeline', 'Ì¥ç Checking component initialization order...', 'info');
+
+                const expectedOrder = [
+                    'EventBus',
+                    'FontManager',
+                    'ASCIIRenderer',
+                    'InputValidator',
+                    'PerformanceManager',
+                    'GenerationService',
+                    'OutputPanel',
+                    'DisplayManager',
+                    'InputReader',
+                    'UIController'
+                ];
+
+                const actualOrder = [];
+                initTimeline.forEach(event => {
+                    if (event.message.includes('initialized') || event.message.includes('ready')) {
+                        expectedOrder.forEach(comp => {
+                            if (event.message.includes(comp)) {
+                                actualOrder.push(comp);
+                            }
+                        });
+                    }
+                });
+
+                log('timeline', `Ì≥ã Expected order: ${expectedOrder.join(' ‚Üí ')}`);
+                log('timeline', `Ì≥ã Actual order: ${actualOrder.join(' ‚Üí ')}`);
+
+                // Check for dependency violations
+                const violations = [];
+                if (actualOrder.indexOf('GenerationService') < actualOrder.indexOf('FontManager')) {
+                    violations.push('GenerationService before FontManager');
+                }
+                if (actualOrder.indexOf('GenerationService') < actualOrder.indexOf('ASCIIRenderer')) {
+                    violations.push('GenerationService before ASCIIRenderer');
+                }
+                if (actualOrder.indexOf('UIController') < actualOrder.indexOf('GenerationService')) {
+                    violations.push('UIController before GenerationService');
+                }
+
+                if (violations.length > 0) {
+                    log('timeline', `‚ùå Dependency violations: ${violations.join(', ')}`, 'error');
+                } else {
+                    log('timeline', '‚úÖ No dependency violations detected');
+                }
+
+            } catch (error) {
+                log('timeline', `‚ùå Component order check error: ${error.message}`, 'error');
+            }
+        }
+
+        function analyzeDependencies() {
+            clearResults('dependency-results');
+
+            try {
+                log('dependency-results', 'Ì¥ó Analyzing component dependencies...', 'info');
+
+                const dependencies = {
+                    GenerationService: ['FontManager', 'ASCIIRenderer', 'InputValidator', 'EventBus', 'PerformanceManager'],
+                    UIController: ['EventBus', 'InputReader', 'OutputPanel'],
+                    DisplayManager: ['EventBus', 'OutputPanel'],
+                    InputReader: ['DOM elements'],
+                    OutputPanel: ['DOM element']
+                };
+
+                Object.entries(dependencies).forEach(([component, deps]) => {
+                    const available = deps.filter(dep => {
+                        if (dep.includes('DOM')) return !!document.getElementById('text-input');
+                        return !!window.app?.[dep.toLowerCase().replace('manager', 'Manager')];
+                    });
+
+                    const status = available.length === deps.length ? '‚úÖ' : '‚ùå';
+                    log('dependency-results', `${status} ${component}: ${available.length}/${deps.length} dependencies available`);
+                });
+
+            } catch (error) {
+                log('dependency-results', `‚ùå Dependency analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function measureTiming() {
+            clearResults('timing-results');
+
+            try {
+                log('timing-results', '‚è±Ô∏è Measuring component timing...', 'info');
+
+                const startTime = performance.now();
+
+                // Measure font loading time
+                if (window.app?.fontManager) {
+                    const fontStart = performance.now();
+                    window.app.fontManager.getFont('standard');
+                    const fontTime = performance.now() - fontStart;
+                    log('timing-results', `‚è±Ô∏è Font loading: ${fontTime.toFixed(2)}ms`);
+                }
+
+                // Measure generation time
+                if (window.app?.generationService) {
+                    const genStart = performance.now();
+                    window.app.generationService.generateText({
+                        text: 'TIMING',
+                        fontName: 'standard',
+                        color: 'none',
+                        animation: 'none'
+                    }).catch(() => {}); // Ignore errors for timing
+                    const genTime = performance.now() - genStart;
+                    log('timing-results', `‚è±Ô∏è Generation: ${genTime.toFixed(2)}ms`);
+                }
+
+                const totalTime = performance.now() - startTime;
+                log('timing-results', `‚è±Ô∏è Total measurement time: ${totalTime.toFixed(2)}ms`);
+
+                if (totalTime > 1000) {
+                    log('timing-results', '‚ö†Ô∏è Operations are slow', 'warning');
+                }
+
+            } catch (error) {
+                log('timing-results', `‚ùå Timing measurement error: ${error.message}`, 'error');
+            }
+        }
+
+        // Start monitoring initialization
+        console.log('Ì¥ç Initialization monitoring started...');
+    </script>
+</body>
+</html>

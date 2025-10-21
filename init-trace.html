@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialization Trace</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .timeline { 
+            background: #333; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+        }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ç Initialization Trace Tool</h1>
+    <div id="results" class="result"></div>
+    <div id="timeline" class="timeline"></div>
+
+    <script>
+        const initEvents = [];
+
+        // Override console to capture initialization events
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function captureInit(level, ...args) {
+            const message = args.join(' ');
+            
+            // Check if this is an initialization-related message
+            if (message.includes('Initializing') || 
+                message.includes('initialized') || 
+                message.includes('ready') ||
+                message.includes('Core utilities') ||
+                message.includes('Services initialized') ||
+                message.includes('UI components') ||
+                message.includes('Application ready')) {
+                
+                initEvents.push({
+                    level: level,
+                    message: message,
+                    timestamp: Date.now()
+                });
+            }
+            
+            // Call original
+            originalConsole[level](...args);
+            
+            updateTimeline();
+        }
+
+        console.log = (...args) => captureInit('log', ...args);
+        console.error = (...args) => captureInit('error', ...args);
+        console.warn = (...args) => captureInit('warn', ...args);
+        console.info = (...args) => captureInit('info', ...args);
+
+        function updateTimeline() {
+            const timelineDiv = document.getElementById('timeline');
+            timelineDiv.innerHTML = initEvents.map((event, index) => {
+                const time = index === 0 ? '0.00s' : `${((event.timestamp - initEvents[0].timestamp) / 1000).toFixed(2)}s`;
+                return `<div class="${event.level}">[${time}] ${event.message}</div>`;
+            }).join('');
+            timelineDiv.scrollTop = timelineDiv.scrollHeight;
+        }
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Test initialization capture
+        log('results', 'Ì∫Ä Starting initialization trace...', 'info');
+        console.log('Ì≥ù Test initialization message');
+
+        // Check for initialization events after delay
+        setTimeout(() => {
+            log('results', `Ì≥ä Found ${initEvents.length} initialization events`);
+
+            if (initEvents.length === 0) {
+                log('results', '‚ö†Ô∏è No initialization messages captured', 'warning');
+                log('results', 'Ì≤° This suggests the app initialization code may not be running', 'warning');
+            } else {
+                log('results', '‚úÖ Initialization messages are being captured', 'success');
+            }
+
+            // Check for specific phases
+            const phases = ['Core utilities', 'Services initialized', 'UI components'];
+            phases.forEach(phase => {
+                const found = initEvents.some(e => e.message.includes(phase));
+                if (found) {
+                    log('results', `‚úÖ "${phase}" phase detected`, 'success');
+                } else {
+                    log('results', `‚ö†Ô∏è "${phase}" phase not found`, 'warning');
+                }
+            });
+
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep System Analysis</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; max-height: 300px; overflow-y: auto; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .analysis-item { margin: 5px 0; padding: 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥¨ Deep System Analysis</h1>
+
+    <div class="section">
+        <h2>Ì¥ç System Inspection</h2>
+        <div class="test-grid">
+            <button onclick="inspectEventBus()">Inspect EventBus</button>
+            <button onclick="inspectComponents()">Inspect Components</button>
+            <button onclick="inspectDOM()">Inspect DOM</button>
+            <button onclick="inspectCSS()">Inspect CSS</button>
+            <button onclick="inspectMemory()">Inspect Memory</button>
+            <button onclick="inspectPerformance()">Inspect Performance</button>
+        </div>
+        <div id="inspection-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥¨ Race Condition Tests</h2>
+        <div class="test-grid">
+            <button onclick="testRapidClicks()">Test Rapid Clicks</button>
+            <button onclick="testConcurrentGeneration()">Test Concurrent Generation</button>
+            <button onclick="testStateTransitions()">Test State Transitions</button>
+            <button onclick="testEventTiming()">Test Event Timing</button>
+        </div>
+        <div id="race-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>ÌæØ Edge Case Tests</h2>
+        <div class="test-grid">
+            <button onclick="testEmptyInput()">Test Empty Input</button>
+            <button onclick="testLongInput()">Test Long Input</button>
+            <button onclick="testSpecialCharacters()">Test Special Characters</button>
+            <button onclick="testInvalidFont()">Test Invalid Font</button>
+            <button onclick="testNetworkIssues()">Test Network Issues</button>
+        </div>
+        <div id="edge-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì¥ß System Stress Tests</h2>
+        <div class="test-grid">
+            <button onclick="stressTestGeneration()">Stress Test Generation</button>
+            <button onclick="stressTestEvents()">Stress Test Events</button>
+            <button onclick="stressTestMemory()">Stress Test Memory</button>
+        </div>
+        <div id="stress-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="analysis-item ${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function inspectEventBus() {
+            clearResults('inspection-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('inspection-results', '‚ùå EventBus not available', 'error');
+                    return;
+                }
+
+                log('inspection-results', 'Ì¥ç Inspecting EventBus...', 'info');
+
+                // Check subscriptions
+                const stats = window.app.eventBus.debugSubscriptions();
+                log('inspection-results', `Ì≥ä Event subscriptions: ${Object.keys(stats).length} types, ${Object.values(stats).reduce((a,b)=>a+b,0)} total listeners`);
+
+                // Check for potential issues
+                Object.entries(stats).forEach(([event, count]) => {
+                    if (count > 5) {
+                        log('inspection-results', `‚ö†Ô∏è High listener count for ${event}: ${count}`, 'warning');
+                    }
+                });
+
+                // Check EventBus state
+                const eventBusState = {
+                    events: Object.keys(window.app.eventBus.events || {}).length,
+                    subscriptions: Object.keys(stats).length
+                };
+                log('inspection-results', `Ì≥à EventBus state: ${JSON.stringify(eventBusState)}`);
+
+            } catch (error) {
+                log('inspection-results', `‚ùå EventBus inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function inspectComponents() {
+            clearResults('inspection-results');
+
+            try {
+                log('inspection-results', 'Ì¥ç Inspecting components...', 'info');
+
+                const components = [
+                    { name: 'UIController', obj: window.app?.uiController, props: ['state', 'dom'] },
+                    { name: 'GenerationService', obj: window.app?.generationService, props: ['isGenerating', 'eventBus', 'renderer'] },
+                    { name: 'OutputPanel', obj: window.app?.outputPanel, props: ['outputElement', 'statsElement'] },
+                    { name: 'FontManager', obj: window.app?.fontManager, props: ['fontCache'] },
+                    { name: 'PerformanceManager', obj: window.app?.performanceManager, props: ['renderCache', 'stats'] }
+                ];
+
+                components.forEach(({ name, obj, props }) => {
+                    if (obj) {
+                        log('inspection-results', `‚úÖ ${name} available`);
+
+                        props.forEach(prop => {
+                            if (obj[prop] !== undefined) {
+                                const value = typeof obj[prop] === 'object' ?
+                                    JSON.stringify(obj[prop]).substring(0, 100) + '...' :
+                                    String(obj[prop]);
+                                log('inspection-results', `  ${prop}: ${value}`);
+                            } else {
+                                log('inspection-results', `  ${prop}: undefined`, 'warning');
+                            }
+                        });
+                    } else {
+                        log('inspection-results', `‚ùå ${name} missing`, 'error');
+                    }
+                });
+
+            } catch (error) {
+                log('inspection-results', `‚ùå Component inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function inspectDOM() {
+            clearResults('inspection-results');
+
+            try {
+                log('inspection-results', 'Ì¥ç Inspecting DOM...', 'info');
+
+                const criticalElements = [
+                    'text-input', 'generate-main', 'font-select', 'color-select',
+                    'ascii-output', 'copy-btn', 'download-btn', 'clear-btn'
+                ];
+
+                criticalElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const computed = getComputedStyle(el);
+                        const issues = [];
+
+                        if (computed.display === 'none') issues.push('hidden');
+                        if (computed.visibility === 'hidden') issues.push('invisible');
+                        if (parseFloat(computed.opacity) < 0.1) issues.push('transparent');
+                        if (el.disabled) issues.push('disabled');
+
+                        const status = issues.length > 0 ?
+                            `‚ö†Ô∏è (${issues.join(', ')})` :
+                            '‚úÖ OK';
+
+                        log('inspection-results', `${status} #${id}: ${el.tagName.toLowerCase()}${el.className ? ` .${el.className}` : ''}`);
+                    } else {
+                        log('inspection-results', `‚ùå #${id} not found`, 'error');
+                    }
+                });
+
+            } catch (error) {
+                log('inspection-results', `‚ùå DOM inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function inspectCSS() {
+            clearResults('inspection-results');
+
+            try {
+                log('inspection-results', 'Ì¥ç Inspecting CSS...', 'info');
+
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('inspection-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                const computed = getComputedStyle(outputEl);
+
+                // Check for potential CSS issues
+                const issues = [];
+
+                if (computed.display === 'none') issues.push('display:none');
+                if (computed.visibility === 'hidden') issues.push('visibility:hidden');
+                if (parseFloat(computed.opacity) === 0) issues.push('opacity:0');
+                if (computed.position === 'absolute' && computed.top === 'auto') issues.push('positioned incorrectly');
+                if (computed.fontSize === '0px') issues.push('font-size:0');
+
+                // Check pseudo-elements
+                const pseudoIssues = [];
+                const testDiv = document.createElement('div');
+                testDiv.innerHTML = '<div id="css-test"></div>';
+                document.body.appendChild(testDiv);
+
+                const testEl = document.getElementById('css-test');
+                testEl.className = 'ascii-output';
+                testEl.textContent = 'test';
+
+                const testComputed = getComputedStyle(testEl);
+                if (testComputed.color === 'rgba(0, 0, 0, 0)' || testComputed.color === 'transparent') {
+                    pseudoIssues.push('color issue');
+                }
+
+                document.body.removeChild(testDiv);
+
+                if (issues.length > 0) {
+                    log('inspection-results', `‚ö†Ô∏è CSS issues found: ${issues.join(', ')}`, 'warning');
+                } else {
+                    log('inspection-results', '‚úÖ No major CSS issues detected');
+                }
+
+                if (pseudoIssues.length > 0) {
+                    log('inspection-results', `‚ö†Ô∏è Pseudo-element issues: ${pseudoIssues.join(', ')}`, 'warning');
+                }
+
+                log('inspection-results', `Ì≥è Output dimensions: ${outputEl.offsetWidth}√ó${outputEl.offsetHeight}`);
+
+            } catch (error) {
+                log('inspection-results', `‚ùå CSS inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function inspectMemory() {
+            clearResults('inspection-results');
+
+            try {
+                log('inspection-results', 'Ì¥ç Inspecting memory usage...', 'info');
+
+                if (window.performance?.memory) {
+                    const mem = window.performance.memory;
+                    log('inspection-results', `Ì≥ä Memory: ${Math.round(mem.usedJSHeapSize/1024/1024)}MB used, ${Math.round(mem.totalJSHeapSize/1024/1024)}MB total`);
+                } else {
+                    log('inspection-results', 'Ì≥ä Memory API not available');
+                }
+
+                // Check component references
+                const components = ['uiController', 'generationService', 'outputPanel', 'fontManager'];
+                components.forEach(comp => {
+                    if (window.app?.[comp]) {
+                        log('inspection-results', `‚úÖ ${comp} has valid reference`);
+                    } else {
+                        log('inspection-results', `‚ùå ${comp} reference issue`, 'error');
+                    }
+                });
+
+            } catch (error) {
+                log('inspection-results', `‚ùå Memory inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function inspectPerformance() {
+            clearResults('inspection-results');
+
+            try {
+                log('inspection-results', 'Ì¥ç Inspecting performance...', 'info');
+
+                if (window.app?.performanceManager) {
+                    const stats = window.app.performanceManager.getStats();
+                    log('inspection-results', `Ì≥ä Cache stats: ${stats.hitRate} hit rate, ${stats.cacheSize}/${stats.maxCacheSize} cache size`);
+                }
+
+                // Check for performance bottlenecks
+                const startTime = performance.now();
+
+                // Test font loading
+                if (window.app?.fontManager) {
+                    window.app.fontManager.getFont('standard');
+                }
+
+                const fontTime = performance.now() - startTime;
+
+                // Test generation
+                if (window.app?.generationService) {
+                    try {
+                        await window.app.generationService.generateText({
+                            text: 'PERF',
+                            fontName: 'standard',
+                            color: 'none',
+                            animation: 'none'
+                        });
+                    } catch (e) {
+                        // Ignore errors for timing test
+                    }
+                }
+
+                const genTime = performance.now() - startTime - fontTime;
+
+                log('inspection-results', `‚è±Ô∏è Font loading: ${fontTime.toFixed(2)}ms`);
+                log('inspection-results', `‚è±Ô∏è Generation: ${genTime.toFixed(2)}ms`);
+
+                if (fontTime > 100) {
+                    log('inspection-results', '‚ö†Ô∏è Font loading slow', 'warning');
+                }
+                if (genTime > 500) {
+                    log('inspection-results', '‚ö†Ô∏è Generation slow', 'warning');
+                }
+
+            } catch (error) {
+                log('inspection-results', `‚ùå Performance inspection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRapidClicks() {
+            clearResults('race-results');
+
+            try {
+                log('race-results', 'Ì∂±Ô∏è Testing rapid clicks...', 'info');
+
+                const button = document.getElementById('generate-main');
+                if (!button) {
+                    log('race-results', '‚ùå Generate button not found', 'error');
+                    return;
+                }
+
+                // Listen for events
+                const eventsReceived = [];
+                window.app.eventBus.on('ui:generate:click', () => {
+                    eventsReceived.push(Date.now());
+                });
+
+                // Simulate rapid clicks
+                const numClicks = 5;
+                for (let i = 0; i < numClicks; i++) {
+                    button.click();
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+
+                // Check results after delay
+                setTimeout(() => {
+                    if (eventsReceived.length === numClicks) {
+                        log('race-results', `‚úÖ All ${numClicks} clicks processed`, 'success');
+                    } else if (eventsReceived.length > numClicks) {
+                        log('race-results', `‚ö†Ô∏è Extra events: ${eventsReceived.length}/${numClicks}`, 'warning');
+                    } else {
+                        log('race-results', `‚ùå Missing events: ${eventsReceived.length}/${numClicks}`, 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('ui:generate:click');
+                }, 200);
+
+            } catch (error) {
+                log('race-results', `‚ùå Rapid click test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testConcurrentGeneration() {
+            clearResults('race-results');
+
+            try {
+                log('race-results', '‚ö° Testing concurrent generation...', 'info');
+
+                if (!window.app?.generationService) {
+                    log('race-results', '‚ùå GenerationService not available', 'error');
+                    return;
+                }
+
+                // Listen for events
+                const startEvents = [];
+                const completeEvents = [];
+
+                window.app.eventBus.on('text:gen:start', () => startEvents.push(Date.now()));
+                window.app.eventBus.on('text:gen:complete', () => completeEvents.push(Date.now()));
+
+                // Start multiple generations
+                const promises = [];
+                for (let i = 0; i < 3; i++) {
+                    promises.push(
+                        window.app.generationService.generateText({
+                            text: `CONCURRENT${i}`,
+                            fontName: 'standard',
+                            color: 'none',
+                            animation: 'none'
+                        })
+                    );
+                }
+
+                // Wait for all to complete
+                await Promise.allSettled(promises);
+
+                // Check results
+                setTimeout(() => {
+                    log('race-results', `Ì≥ä Started: ${startEvents.length}, Completed: ${completeEvents.length}`);
+
+                    if (startEvents.length === 3 && completeEvents.length === 3) {
+                        log('race-results', '‚úÖ Concurrent generation working', 'success');
+                    } else {
+                        log('race-results', '‚ùå Concurrent generation issues', 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('text:gen:start');
+                    window.app.eventBus.off('text:gen:complete');
+                }, 1000);
+
+            } catch (error) {
+                log('race-results', `‚ùå Concurrent generation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStateTransitions() {
+            clearResults('race-results');
+
+            try {
+                log('race-results', 'Ì¥Ñ Testing state transitions...', 'info');
+
+                if (!window.app?.uiController) {
+                    log('race-results', '‚ùå UIController not available', 'error');
+                    return;
+                }
+
+                const initialState = { ...window.app.uiController.state };
+
+                // Test state changes
+                log('race-results', `Ì≥ä Initial state: ${JSON.stringify(initialState)}`);
+
+                // Try to trigger generation
+                window.app.uiController.onGenerateClick();
+
+                // Check state after delay
+                setTimeout(() => {
+                    const newState = window.app.uiController.state;
+                    log('race-results', `Ì≥ä New state: ${JSON.stringify(newState)}`);
+
+                    if (newState.isGenerating !== initialState.isGenerating) {
+                        log('race-results', '‚úÖ State transition detected', 'success');
+                    } else {
+                        log('race-results', '‚ö†Ô∏è No state transition', 'warning');
+                    }
+                }, 200);
+
+            } catch (error) {
+                log('race-results', `‚ùå State transition test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEventTiming() {
+            clearResults('race-results');
+
+            try {
+                log('race-results', '‚è±Ô∏è Testing event timing...', 'info');
+
+                const timings = [];
+
+                // Listen for events with timestamps
+                window.app.eventBus.on('ui:generate:click', () => timings.push({ event: 'click', time: Date.now() }));
+                window.app.eventBus.on('request:text:gen', () => timings.push({ event: 'request', time: Date.now() }));
+                window.app.eventBus.on('text:gen:start', () => timings.push({ event: 'start', time: Date.now() }));
+                window.app.eventBus.on('text:gen:complete', () => timings.push({ event: 'complete', time: Date.now() }));
+
+                // Trigger generation
+                const button = document.getElementById('generate-main');
+                if (button) {
+                    button.click();
+                }
+
+                // Check timing after delay
+                setTimeout(() => {
+                    if (timings.length >= 2) {
+                        const totalTime = timings[timings.length - 1].time - timings[0].time;
+                        log('race-results', `‚è±Ô∏è Event chain: ${timings.length} events in ${totalTime}ms`, 'success');
+
+                        // Check for timing issues
+                        for (let i = 1; i < timings.length; i++) {
+                            const gap = timings[i].time - timings[i-1].time;
+                            if (gap > 1000) {
+                                log('race-results', `‚ö†Ô∏è Large gap between ${timings[i-1].event} and ${timings[i].event}: ${gap}ms`, 'warning');
+                            }
+                        }
+                    } else {
+                        log('race-results', `‚ùå Incomplete event chain: ${timings.length} events`, 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('ui:generate:click');
+                    window.app.eventBus.off('request:text:gen');
+                    window.app.eventBus.off('text:gen:start');
+                    window.app.eventBus.off('text:gen:complete');
+                }, 2000);
+
+            } catch (error) {
+                log('race-results', `‚ùå Event timing test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run inspections
+        setTimeout(() => {
+            inspectEventBus();
+            inspectComponents();
+            inspectDOM();
+        }, 1000);
+    </script>
+</body>
+</html>

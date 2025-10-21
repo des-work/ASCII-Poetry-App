@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Diagnostics</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        .test-controls { margin: 15px 0; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 12px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .log-entry { margin: 2px 0; padding: 2px 5px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <h1>í´¬ Advanced Diagnostics Suite</h1>
+
+    <div class="section">
+        <h2>í´„ Initialization Flow</h2>
+        <div class="test-controls">
+            <button onclick="traceInitialization()">Trace Initialization</button>
+            <button onclick="checkTiming()">Check Timing</button>
+        </div>
+        <div id="init-trace" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>í¾¯ Component Interaction</h2>
+        <div class="test-controls">
+            <button onclick="testComponentCommunication()">Test Component Communication</button>
+            <button onclick="testEventPropagation()">Test Event Propagation</button>
+        </div>
+        <div id="component-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>í¾¨ Rendering Pipeline</h2>
+        <div class="test-controls">
+            <button onclick="testFontPipeline()">Test Font Pipeline</button>
+            <button onclick="testRenderingPipeline()">Test Rendering Pipeline</button>
+        </div>
+        <div id="rendering-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>í³Š State Management</h2>
+        <div class="test-controls">
+            <button onclick="checkStateConsistency()">Check State Consistency</button>
+            <button onclick="monitorStateChanges()">Monitor State Changes</button>
+        </div>
+        <div id="state-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>íº¨ Error Analysis</h2>
+        <div class="test-controls">
+            <button onclick="analyzeErrorPatterns()">Analyze Error Patterns</button>
+            <button onclick="testErrorRecovery()">Test Error Recovery</button>
+        </div>
+        <div id="error-results" class="result"></div>
+    </div>
+
+    <script>
+        let stateMonitorInterval = null;
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="log-entry ${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        async function traceInitialization() {
+            clearResults('init-trace');
+            log('init-trace', 'ï¿½ï¿½ Tracing initialization flow...', 'info');
+
+            try {
+                // Check if window.app exists
+                if (!window.app) {
+                    log('init-trace', 'âŒ window.app not initialized', 'error');
+                    return;
+                }
+                log('init-trace', 'âœ… window.app available');
+
+                // Check initialization order
+                const initOrder = [];
+                if (window.app.eventBus) initOrder.push('EventBus');
+                if (window.app.fontManager) initOrder.push('FontManager');
+                if (window.app.asciiRenderer) initOrder.push('ASCIIRenderer');
+                if (window.app.inputValidator) initOrder.push('InputValidator');
+                if (window.app.performanceManager) initOrder.push('PerformanceManager');
+                if (window.app.generationService) initOrder.push('GenerationService');
+                if (window.app.outputPanel) initOrder.push('OutputPanel');
+                if (window.app.displayManager) initOrder.push('DisplayManager');
+                if (window.app.inputReader) initOrder.push('InputReader');
+                if (window.app.uiController) initOrder.push('UIController');
+
+                log('init-trace', `í³‹ Initialization order: ${initOrder.join(' â†’ ')}`);
+
+                // Check for dependency issues
+                if (!window.app.fontManager && window.app.generationService) {
+                    log('init-trace', 'âš ï¸ GenerationService initialized before FontManager', 'warning');
+                }
+
+                if (!window.app.asciiRenderer && window.app.generationService) {
+                    log('init-trace', 'âš ï¸ GenerationService initialized before ASCIIRenderer', 'warning');
+                }
+
+                log('init-trace', 'âœ… Initialization trace complete');
+
+            } catch (error) {
+                log('init-trace', `âŒ Trace error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkTiming() {
+            clearResults('init-trace');
+
+            const startTime = performance.now();
+            log('init-trace', 'â±ï¸ Checking component initialization timing...', 'info');
+
+            // Test DOM readiness
+            if (document.readyState === 'loading') {
+                log('init-trace', 'âš ï¸ DOM still loading when check started', 'warning');
+            } else {
+                log('init-trace', `âœ… DOM ready state: ${document.readyState}`);
+            }
+
+            // Check if all components are ready
+            const components = ['eventBus', 'uiController', 'generationService'];
+            let readyCount = 0;
+
+            components.forEach(comp => {
+                if (window.app?.[comp]) {
+                    readyCount++;
+                    log('init-trace', `âœ… ${comp} ready`);
+                } else {
+                    log('init-trace', `âŒ ${comp} not ready`, 'error');
+                }
+            });
+
+            const endTime = performance.now();
+            log('init-trace', `â±ï¸ Check completed in ${(endTime - startTime).toFixed(2)}ms (${readyCount}/${components.length} components ready)`);
+        }
+
+        async function testComponentCommunication() {
+            clearResults('component-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('component-results', 'âŒ EventBus not available', 'error');
+                    return;
+                }
+
+                log('component-results', 'í´„ Testing component communication...', 'info');
+
+                // Test UI Controller â†’ Generation Service communication
+                const testData = { text: 'TEST', fontName: 'standard' };
+
+                // Listen for the request
+                window.app.eventBus.on('request:text:gen', (data) => {
+                    if (data.text === 'TEST') {
+                        log('component-results', 'âœ… UI â†’ Generation communication working');
+                    }
+                });
+
+                // Emit the request (simulate UI controller)
+                window.app.eventBus.emit('request:text:gen', testData);
+
+                // Clean up
+                setTimeout(() => {
+                    window.app.eventBus.off('request:text:gen');
+                }, 100);
+
+            } catch (error) {
+                log('component-results', `âŒ Communication test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEventPropagation() {
+            clearResults('component-results');
+
+            try {
+                if (!window.app?.eventBus) {
+                    log('component-results', 'âŒ EventBus not available', 'error');
+                    return;
+                }
+
+                log('component-results', 'í³¡ Testing event propagation...', 'info');
+
+                const eventsReceived = [];
+
+                // Listen for multiple event types
+                window.app.eventBus.on('test:event1', () => eventsReceived.push('event1'));
+                window.app.eventBus.on('test:event2', () => eventsReceived.push('event2'));
+                window.app.eventBus.on('test:event3', () => eventsReceived.push('event3'));
+
+                // Emit events with delays
+                setTimeout(() => window.app.eventBus.emit('test:event1'), 50);
+                setTimeout(() => window.app.eventBus.emit('test:event2'), 100);
+                setTimeout(() => window.app.eventBus.emit('test:event3'), 150);
+
+                // Check after 300ms
+                setTimeout(() => {
+                    if (eventsReceived.length === 3) {
+                        log('component-results', `âœ… Event propagation working (${eventsReceived.length}/3 events received)`);
+                    } else {
+                        log('component-results', `âŒ Event propagation issues (${eventsReceived.length}/3 events received)`, 'error');
+                    }
+
+                    // Cleanup
+                    window.app.eventBus.off('test:event1');
+                    window.app.eventBus.off('test:event2');
+                    window.app.eventBus.off('test:event3');
+                }, 300);
+
+            } catch (error) {
+                log('component-results', `âŒ Event propagation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFontPipeline() {
+            clearResults('rendering-results');
+
+            try {
+                if (!window.app?.fontManager) {
+                    log('rendering-results', 'âŒ FontManager not available', 'error');
+                    return;
+                }
+
+                log('rendering-results', 'í´¤ Testing font pipeline...', 'info');
+
+                // Test font loading
+                const font = window.app.fontManager.getFont('standard');
+                if (!font) {
+                    log('rendering-results', 'âŒ Font loading failed', 'error');
+                    return;
+                }
+
+                // Check font structure
+                if (!font.A || !Array.isArray(font.A)) {
+                    log('rendering-results', 'âŒ Font structure invalid', 'error');
+                    return;
+                }
+
+                log('rendering-results', `âœ… Font loaded: ${font.A.length} lines for 'A'`);
+
+                // Test font caching
+                const font2 = window.app.fontManager.getFont('standard');
+                if (font === font2) {
+                    log('rendering-results', 'âœ… Font caching working');
+                } else {
+                    log('rendering-results', 'âŒ Font caching not working', 'error');
+                }
+
+            } catch (error) {
+                log('rendering-results', `âŒ Font pipeline test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRenderingPipeline() {
+            clearResults('rendering-results');
+
+            try {
+                if (!window.app?.fontManager || !window.app?.asciiRenderer) {
+                    log('rendering-results', 'âŒ Required components not available', 'error');
+                    return;
+                }
+
+                log('rendering-results', 'í¾¨ Testing rendering pipeline...', 'info');
+
+                // Load font
+                const font = window.app.fontManager.getFont('standard');
+                if (!font) {
+                    log('rendering-results', 'âŒ Font loading failed', 'error');
+                    return;
+                }
+
+                // Test rendering
+                const result = window.app.asciiRenderer.renderTextWithFont('TEST', font);
+
+                if (result && result.includes('TEST')) {
+                    log('rendering-results', `âœ… Rendering successful: ${result.length} characters`);
+                } else {
+                    log('rendering-results', 'âŒ Rendering failed or returned invalid result', 'error');
+                }
+
+            } catch (error) {
+                log('rendering-results', `âŒ Rendering pipeline test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkStateConsistency() {
+            clearResults('state-results');
+
+            try {
+                log('state-results', 'í´ Checking state consistency...', 'info');
+
+                // Check UI Controller state
+                if (window.app?.uiController?.state) {
+                    const uiState = window.app.uiController.state;
+                    log('state-results', `í¾® UI State: ${JSON.stringify(uiState)}`);
+
+                    if (uiState.isGenerating !== false) {
+                        log('state-results', 'âš ï¸ UI state shows generation in progress', 'warning');
+                    }
+                }
+
+                // Check Generation Service state
+                if (window.app?.generationService) {
+                    const genState = {
+                        isGenerating: window.app.generationService.isGenerating,
+                        hasEventBus: !!window.app.generationService.eventBus,
+                        hasRenderer: !!window.app.generationService.renderer,
+                        hasFontManager: !!window.app.generationService.fontManager
+                    };
+                    log('state-results', `âš™ï¸ Generation State: ${JSON.stringify(genState)}`);
+                }
+
+                // Check DOM state
+                const generateBtn = document.getElementById('generate-main');
+                if (generateBtn) {
+                    log('state-results', `í´˜ Button state: disabled=${generateBtn.disabled}, visible=${generateBtn.offsetParent !== null}`);
+                }
+
+                log('state-results', 'âœ… State consistency check complete');
+
+            } catch (error) {
+                log('state-results', `âŒ State check error: ${error.message}`, 'error');
+            }
+        }
+
+        function monitorStateChanges() {
+            clearResults('state-results');
+
+            if (stateMonitorInterval) {
+                clearInterval(stateMonitorInterval);
+                stateMonitorInterval = null;
+                log('state-results', 'â¹ï¸ State monitoring stopped', 'info');
+                return;
+            }
+
+            log('state-results', 'â–¶ï¸ Starting state monitoring...', 'info');
+            stateMonitorInterval = setInterval(checkStateConsistency, 1000);
+        }
+
+        async function analyzeErrorPatterns() {
+            clearResults('error-results');
+
+            try {
+                log('error-results', 'í´ Analyzing error patterns...', 'info');
+
+                // Check for common error indicators
+                const errorIndicators = {
+                    'EventBus warnings': window.app?.eventBus && Object.keys(window.app.eventBus.events || {}).length === 0,
+                    'Missing components': !window.app?.uiController || !window.app?.generationService,
+                    'DOM issues': !document.getElementById('text-input') || !document.getElementById('generate-main'),
+                    'Button disabled': document.getElementById('generate-main')?.disabled,
+                    'UI generating': window.app?.uiController?.state?.isGenerating
+                };
+
+                Object.entries(errorIndicators).forEach(([indicator, value]) => {
+                    if (value) {
+                        log('error-results', `âš ï¸ ${indicator}: ${value}`, 'warning');
+                    } else {
+                        log('error-results', `âœ… ${indicator}: OK`);
+                    }
+                });
+
+                log('error-results', 'âœ… Error pattern analysis complete');
+
+            } catch (error) {
+                log('error-results', `âŒ Error analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testErrorRecovery() {
+            clearResults('error-results');
+
+            try {
+                if (!window.app?.uiController) {
+                    log('error-results', 'âŒ UIController not available for recovery test', 'error');
+                    return;
+                }
+
+                log('error-results', 'í´„ Testing error recovery...', 'info');
+
+                // Test recovery method
+                const recovered = window.app.uiController.recover();
+                if (recovered) {
+                    log('error-results', 'âœ… Recovery method executed successfully');
+                } else {
+                    log('error-results', 'âŒ Recovery method failed', 'error');
+                }
+
+                // Test hard reset
+                const reset = window.app.uiController.hardReset();
+                if (reset) {
+                    log('error-results', 'âœ… Hard reset executed successfully');
+                } else {
+                    log('error-results', 'âŒ Hard reset failed', 'error');
+                }
+
+            } catch (error) {
+                log('error-results', `âŒ Error recovery test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic checks
+        setTimeout(() => {
+            traceInitialization();
+            checkStateConsistency();
+        }, 1000);
+    </script>
+</body>
+</html>

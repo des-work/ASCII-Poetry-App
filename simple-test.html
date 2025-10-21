@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ß Simple JavaScript Test</h1>
+    <div id="results" class="result"></div>
+
+    <script>
+        // Test 1: Basic console
+        console.log('Ì∫Ä Basic console test');
+        document.getElementById('results').innerHTML += '<div class="success">‚úÖ Basic console working</div>';
+
+        // Test 2: DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Ì≥¶ DOM ready');
+            document.getElementById('results').innerHTML += '<div class="success">‚úÖ DOM ready event fired</div>';
+        });
+
+        // Test 3: Async function
+        (async () => {
+            console.log('‚ö° Async function test');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            console.log('‚è±Ô∏è Async completed');
+            document.getElementById('results').innerHTML += '<div class="success">‚úÖ Async/await working</div>';
+        })();
+
+        // Test 4: Check for app
+        setTimeout(() => {
+            if (window.app) {
+                document.getElementById('results').innerHTML += '<div class="success">‚úÖ App loaded</div>';
+            } else {
+                document.getElementById('results').innerHTML += '<div class="error">‚ùå App not loaded</div>';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

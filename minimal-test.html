@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Test</title>
+</head>
+<body>
+    <h1>Minimal JavaScript Test</h1>
+    <div id="output"></div>
+
+    <script>
+        // Test 1: Basic console
+        console.log('Ì∫Ä Starting minimal test');
+        document.getElementById('output').innerHTML += '<p>‚úÖ Basic JavaScript working</p>';
+
+        // Test 2: DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Ì≥¶ DOM Content Loaded');
+            document.getElementById('output').innerHTML += '<p>‚úÖ DOM ready event fired</p>';
+        });
+
+        // Test 3: Check if console exists
+        if (typeof console !== 'undefined') {
+            document.getElementById('output').innerHTML += '<p>‚úÖ Console available</p>';
+        } else {
+            document.getElementById('output').innerHTML += '<p>‚ùå Console not available</p>';
+        }
+
+        // Test 4: Check for errors
+        window.onerror = function(message, source, lineno, colno, error) {
+            document.getElementById('output').innerHTML += `<p>‚ùå JavaScript Error: ${message} at ${source}:${lineno}</p>`;
+            console.error('JavaScript Error:', message, source, lineno);
+            return false;
+        };
+
+        // Test 5: Check async support
+        (async () => {
+            console.log('‚ö° Testing async/await');
+            await new Promise(resolve => setTimeout(resolve, 50));
+            console.log('‚úÖ Async/await working');
+            document.getElementById('output').innerHTML += '<p>‚úÖ Async/await working</p>';
+        })();
+
+        // Test 6: Check if we can load external scripts
+        setTimeout(() => {
+            document.getElementById('output').innerHTML += '<p>Ì¥ç Checking for external script loading...</p>';
+            
+            // Try to access classes that should be loaded
+            if (typeof EventBus !== 'undefined') {
+                document.getElementById('output').innerHTML += '<p>‚úÖ EventBus class loaded</p>';
+            } else {
+                document.getElementById('output').innerHTML += '<p>‚ùå EventBus class not loaded</p>';
+            }
+
+            if (typeof AppConfig !== 'undefined') {
+                document.getElementById('output').innerHTML += '<p>‚úÖ AppConfig loaded</p>';
+            } else {
+                document.getElementById('output').innerHTML += '<p>‚ùå AppConfig not loaded</p>';
+            }
+        }, 100);
+    </script>
+</body>
+</html>

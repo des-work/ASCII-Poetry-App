@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Debug Tool</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 5px; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; font-size: 11px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        .test-output { 
+            background: #333; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border: 2px solid #666;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ìæ® CSS & Display Debug Tool</h1>
+
+    <div class="section">
+        <h2>Ì¥ç CSS Analysis</h2>
+        <button onclick="analyzeCSS()">Analyze CSS</button>
+        <button onclick="testOutputVisibility()">Test Output Visibility</button>
+        <div id="css-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì≥∫ Display Tests</h2>
+        <button onclick="testManualDisplay()">Test Manual Display</button>
+        <button onclick="testCSSClasses()">Test CSS Classes</button>
+        <div id="display-results" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Ì∑™ Test Output Area</h2>
+        <div id="test-output" class="test-output">
+            Test output will appear here...
+        </div>
+        <button onclick="clearTestOutput()">Clear Test Output</button>
+    </div>
+
+    <script>
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        function analyzeCSS() {
+            clearResults('css-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('css-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('css-results', 'Ì¥ç Analyzing CSS...', 'info');
+
+                const computed = getComputedStyle(outputEl);
+                const issues = [];
+
+                // Check for visibility issues
+                if (computed.display === 'none') issues.push('display: none');
+                if (computed.visibility === 'hidden') issues.push('visibility: hidden');
+                if (parseFloat(computed.opacity) < 0.1) issues.push('opacity too low');
+                if (computed.position === 'absolute' && computed.top === 'auto') issues.push('positioned incorrectly');
+                if (parseInt(computed.width) === 0) issues.push('zero width');
+                if (parseInt(computed.height) === 0) issues.push('zero height');
+
+                // Check font issues
+                if (computed.fontSize === '0px') issues.push('font-size: 0px');
+                if (computed.fontFamily === 'serif') issues.push('wrong font family');
+
+                // Check pseudo-elements
+                const hasContent = outputEl.textContent.trim().length > 0;
+                const isEmpty = outputEl.textContent.trim().length === 0;
+
+                if (hasContent) {
+                    log('css-results', `‚úÖ Output has content: ${outputEl.textContent.length} characters`);
+                } else {
+                    log('css-results', '‚ö†Ô∏è Output is empty');
+                }
+
+                if (issues.length > 0) {
+                    log('css-results', `‚ö†Ô∏è CSS issues found: ${issues.join(', ')}`, 'warning');
+                } else {
+                    log('css-results', '‚úÖ No major CSS issues detected');
+                }
+
+                log('css-results', `Ì≥è Dimensions: ${outputEl.offsetWidth}√ó${outputEl.offsetHeight}px`);
+                log('css-results', `Ìæ® Styles: ${computed.fontSize} ${computed.fontFamily}, ${computed.color}`);
+
+            } catch (error) {
+                log('css-results', `‚ùå CSS analysis error: ${error.message}`, 'error');
+            }
+        }
+
+        function testOutputVisibility() {
+            clearResults('css-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('css-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('css-results', 'Ì±ÅÔ∏è Testing output visibility...', 'info');
+
+                // Check if element is in viewport
+                const rect = outputEl.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
+
+                log('css-results', `Ì≥ê Bounding rect: ${rect.width}√ó${rect.height} at (${rect.left}, ${rect.top})`);
+                log('css-results', `ÔøΩÔøΩÔ∏è In viewport: ${isVisible ? '‚úÖ Yes' : '‚ùå No'}`);
+
+                // Check z-index
+                const computed = getComputedStyle(outputEl);
+                log('css-results', `Ìæ≠ Z-index: ${computed.zIndex}, Position: ${computed.position}`);
+
+                // Check parent visibility
+                let parent = outputEl.parentElement;
+                while (parent && parent !== document.body) {
+                    const parentComputed = getComputedStyle(parent);
+                    if (parentComputed.display === 'none' || parentComputed.visibility === 'hidden') {
+                        log('css-results', `‚ö†Ô∏è Hidden parent: ${parent.tagName.toLowerCase()}`, 'warning');
+                        break;
+                    }
+                    parent = parent.parentElement;
+                }
+
+            } catch (error) {
+                log('css-results', `‚ùå Visibility test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testManualDisplay() {
+            clearResults('display-results');
+
+            try {
+                log('display-results', 'Ì≥∫ Testing manual display...', 'info');
+
+                // Test direct DOM manipulation
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('display-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                const testContent = 
+`‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà
+‚ñà‚ñà      ‚ñà‚ñà
+‚ñà‚ñà  ‚ñà‚ñà‚ñà‚ñà  ‚ñà‚ñà
+‚ñà‚ñà      ‚ñà‚ñà
+‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà‚ñà`;
+
+                // Direct DOM manipulation
+                outputEl.textContent = testContent;
+                outputEl.className = 'ascii-output';
+                outputEl.setAttribute('data-state', 'filled');
+
+                log('display-results', `‚úÖ Manual display: ${testContent.length} characters`, 'success');
+
+                // Also test the test output area
+                const testOutput = document.getElementById('test-output');
+                if (testOutput) {
+                    testOutput.textContent = testContent;
+                    log('display-results', '‚úÖ Test area updated');
+                }
+
+            } catch (error) {
+                log('display-results', `‚ùå Manual display error: ${error.message}`, 'error');
+            }
+        }
+
+        function testCSSClasses() {
+            clearResults('display-results');
+
+            try {
+                const outputEl = document.getElementById('ascii-output');
+                if (!outputEl) {
+                    log('display-results', '‚ùå Output element not found', 'error');
+                    return;
+                }
+
+                log('display-results', 'Ìæ® Testing CSS classes...', 'info');
+
+                // Test different states
+                const states = [
+                    { className: 'ascii-output', state: 'default' },
+                    { className: 'ascii-output', state: 'filled', dataState: 'filled' },
+                    { className: 'ascii-output', state: 'empty', dataState: 'empty' }
+                ];
+
+                states.forEach(({ className, state, dataState }) => {
+                    outputEl.className = className;
+                    if (dataState) {
+                        outputEl.setAttribute('data-state', dataState);
+                    }
+
+                    const computed = getComputedStyle(outputEl);
+                    log('display-results', `Ìæ≠ State "${state}": ${computed.display} ${computed.visibility} ${computed.opacity}`);
+                });
+
+            } catch (error) {
+                log('display-results', `‚ùå CSS class test error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearTestOutput() {
+            const testOutput = document.getElementById('test-output');
+            if (testOutput) {
+                testOutput.textContent = 'Test output will appear here...';
+            }
+            clearResults('display-results');
+        }
+
+        // Auto-run CSS analysis
+        setTimeout(() => {
+            analyzeCSS();
+            testOutputVisibility();
+        }, 1000);
+    </script>
+</body>
+</html>

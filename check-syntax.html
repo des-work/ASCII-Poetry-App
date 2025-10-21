@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax Check</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Ì¥ç JavaScript Syntax Check</h1>
+    <div id="results" class="result"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Test 1: Check for basic JavaScript functionality
+        log('Ì∫Ä Starting syntax check...');
+
+        // Test 2: Check async/await support
+        try {
+            (async () => {
+                await new Promise(resolve => setTimeout(resolve, 10));
+                log('‚úÖ Async/await syntax working', 'success');
+            })();
+        } catch (error) {
+            log(`‚ùå Async/await syntax error: ${error.message}`, 'error');
+        }
+
+        // Test 3: Check class syntax
+        try {
+            class TestClass {
+                constructor() {
+                    this.test = 'working';
+                }
+            }
+            const instance = new TestClass();
+            if (instance.test === 'working') {
+                log('‚úÖ Class syntax working', 'success');
+            } else {
+                log('‚ùå Class syntax not working', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Class syntax error: ${error.message}`, 'error');
+        }
+
+        // Test 4: Check arrow functions
+        try {
+            const testArrow = () => 'working';
+            if (testArrow() === 'working') {
+                log('‚úÖ Arrow functions working', 'success');
+            } else {
+                log('‚ùå Arrow functions not working', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Arrow function error: ${error.message}`, 'error');
+        }
+
+        // Test 5: Check template literals
+        try {
+            const test = 'world';
+            const template = `Hello ${test}`;
+            if (template === 'Hello world') {
+                log('‚úÖ Template literals working', 'success');
+            } else {
+                log('‚ùå Template literals not working', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Template literal error: ${error.message}`, 'error');
+        }
+
+        // Test 6: Check destructuring
+        try {
+            const obj = { a: 1, b: 2 };
+            const { a, b } = obj;
+            if (a === 1 && b === 2) {
+                log('‚úÖ Destructuring working', 'success');
+            } else {
+                log('‚ùå Destructuring not working', 'error');
+            }
+        } catch (error) {
+            log(`‚ùå Destructuring error: ${error.message}`, 'error');
+        }
+
+        // Test 7: Check for common syntax issues
+        log('Ì¥ç Checking for common syntax issues...');
+
+        // Check if there are any unclosed brackets or parentheses
+        const testCode = `
+            function test() {
+                if (true) {
+                    return "test";
+                }
+            }
+            test();
+        `;
+
+        try {
+            eval(testCode);
+            log('‚úÖ Basic syntax validation passed', 'success');
+        } catch (error) {
+            log(`‚ùå Syntax validation failed: ${error.message}`, 'error');
+        }
+
+        // Test 8: Check module loading
+        setTimeout(() => {
+            log('Ì¥ç Checking module loading...');
+
+            if (typeof EventBus !== 'undefined') {
+                log('‚úÖ EventBus class loaded', 'success');
+            } else {
+                log('‚ùå EventBus class not loaded', 'error');
+            }
+
+            if (typeof FontManager !== 'undefined') {
+                log('‚úÖ FontManager class loaded', 'success');
+            } else {
+                log('‚ùå FontManager class not loaded', 'error');
+            }
+
+            if (typeof AppConfig !== 'undefined') {
+                log('‚úÖ AppConfig loaded', 'success');
+            } else {
+                log('‚ùå AppConfig not loaded', 'error');
+            }
+        }, 200);
+    </script>
+</body>
+</html>

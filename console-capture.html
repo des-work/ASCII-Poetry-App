@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Capture Test</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #2a2a2a; border-radius: 3px; }
+        .console-capture { 
+            background: #000; 
+            color: #fff; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px; 
+            font-family: monospace; 
+            white-space: pre; 
+            max-height: 300px; 
+            overflow-y: auto; 
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #FF9800; }
+        .info { color: #2196F3; }
+        button { background: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 3px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0b7dda; }
+    </style>
+</head>
+<body>
+    <h1>Ì≥ù Console Capture Test</h1>
+    <div id="results" class="result"></div>
+    <div id="console-capture" class="console-capture"></div>
+
+    <script>
+        const capturedMessages = [];
+        
+        // Override console methods to capture output
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        function captureConsole(level, ...args) {
+            const message = args.join(' ');
+            capturedMessages.push({
+                level: level,
+                message: message,
+                timestamp: new Date(),
+                source: 'captured'
+            });
+            
+            // Also call original
+            originalConsole[level](...args);
+            
+            updateCaptureDisplay();
+        }
+
+        console.log = (...args) => captureConsole('log', ...args);
+        console.error = (...args) => captureConsole('error', ...args);
+        console.warn = (...args) => captureConsole('warn', ...args);
+        console.info = (...args) => captureConsole('info', ...args);
+
+        function updateCaptureDisplay() {
+            const captureDiv = document.getElementById('console-capture');
+            captureDiv.innerHTML = capturedMessages.map(msg => 
+                `<div class="${msg.level}">[${msg.timestamp.toLocaleTimeString()}] ${msg.message}</div>`
+            ).join('');
+            captureDiv.scrollTop = captureDiv.scrollHeight;
+        }
+
+        function log(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearResults(sectionId) {
+            document.getElementById(sectionId).innerHTML = '';
+        }
+
+        // Test console capture
+        log('results', 'Ì∫Ä Testing console capture...', 'info');
+        console.log('Ì≥ù This should be captured');
+        console.info('‚ÑπÔ∏è Info message');
+        console.warn('‚ö†Ô∏è Warning message');
+        console.error('‚ùå Error message');
+
+        // Check capture after delay
+        setTimeout(() => {
+            log('results', `Ì≥ä Captured ${capturedMessages.length} messages`);
+            
+            if (capturedMessages.length >= 4) {
+                log('results', '‚úÖ Console capture working', 'success');
+            } else {
+                log('results', '‚ùå Console capture not working', 'error');
+            }
+
+            // Check for initialization messages
+            const initMessages = capturedMessages.filter(m => 
+                m.message.includes('Initializing') || 
+                m.message.includes('initialized') || 
+                m.message.includes('ready')
+            );
+
+            if (initMessages.length > 0) {
+                log('results', `‚úÖ Found ${initMessages.length} initialization messages`, 'success');
+            } else {
+                log('results', '‚ö†Ô∏è No initialization messages found', 'warning');
+            }
+        }, 200);
+    </script>
+</body>
+</html>
