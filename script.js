@@ -142,7 +142,7 @@ class FontManager {
                 'I': ['###', ' # ', ' # ', ' # ', '###'],
                 'J': ['  #', '  #', '  #', '# #', '## '],
                 'K': ['# #', ' ##', '#  ', ' ##', '# #'],
-                'L': ['#  ', '#  ', '#  ', '#  ', '###'],
+                'L': ['#  ', '#  ', '#    ', '#  ', '###'],
                 'M': ['# #', '###', '# #', '# #', '# #'],
                 'N': ['##', '# #', '# #', '# #', '##'],
                 'O': ['## ', '# #', '# #', '# #', '## '],
@@ -1184,6 +1184,7 @@ class SimpleASCIIArt {
             // Settings save/test buttons
             this.saveApiBtn?.addEventListener('click', () => this.saveSettings());
             this.testApiBtn?.addEventListener('click', () => this.testAPIConnection());
+            document.getElementById('auto-detect-btn')?.addEventListener('click', () => this.autoDetectServices());
 
             console.log('🔗 Event listeners attached');
         } catch (error) {
@@ -1260,31 +1261,106 @@ class SimpleASCIIArt {
                 return;
             }
 
-            const response = await fetch(`${apiUrl}/api/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
+            // Show connection log
+            this.clearConnectionLog();
+            const connectionLog = document.getElementById('connection-log');
+            if (connectionLog) connectionLog.style.display = 'block';
+
+            const container = document.getElementById('api-status-container');
+            if (container) container.style.display = 'flex';
+
+            this.addLog('🔍 Testing connection...', 'info');
+
+            // Step 1: Check if proxy is running
+            this.addLog('[1/3] Checking proxy server...', 'info');
+            try {
+                const proxyCheck = await fetch('http://localhost:8001/api/proxy', {
+                    method: 'OPTIONS'
+                });
+                this.updateStatusDot('proxy-status-dot', 'connected', 'Proxy: Connected ✓');
+                this.addLog('✅ Proxy is running on port 8001', 'success');
+            } catch (error) {
+                this.updateStatusDot('proxy-status-dot', 'disconnected', 'Proxy: Disconnected ✗');
+                this.addLog('❌ Proxy not detected on port 8001', 'error');
+                this.addLog('💡 Run: python proxy.py in a new terminal', 'warning');
+                this.showNotification('❌ Proxy server not running. Start it with: python proxy.py', 'error');
+                return;
+            }
+
+            // Step 2: Check OpenWebUI
+            this.addLog('[2/3] Checking OpenWebUI...', 'info');
+            try {
+                const webUICheck = await fetch(apiUrl, { mode: 'no-cors', method: 'HEAD' });
+                this.updateStatusDot('openwebui-status', 'connected', 'OpenWebUI: Connected ✓');
+                this.addLog(`✅ OpenWebUI is running at ${apiUrl}`, 'success');
+            } catch (error) {
+                this.updateStatusDot('openwebui-status', 'disconnected', 'OpenWebUI: Disconnected ✗');
+                this.addLog(`❌ Cannot reach OpenWebUI at ${apiUrl}`, 'error');
+                this.addLog('💡 Start OpenWebUI: docker run -d -p 8000:8000 ghcr.io/open-webui/open-webui:latest', 'warning');
+                this.showNotification(`❌ Cannot reach OpenWebUI at ${apiUrl}`, 'error');
+                return;
+            }
+
+            // Step 3: Test API key through proxy
+            this.addLog('[3/3] Testing API key...', 'info');
+            const testPayload = {
+                url: `${apiUrl}/api/chat/completions`,
+                apiKey: apiKey,
+                data: {
                     model: this.settingsModel?.value || 'mistral',
                     messages: [{ role: 'user', content: 'test' }],
                     max_tokens: 10
-                })
+                }
+            };
+
+            const response = await fetch('http://localhost:8001/api/proxy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(testPayload)
             });
 
+            const responseData = await response.json();
+
             if (response.ok) {
-                this.showNotification('✅ API connection successful!', 'success');
-                console.log('✅ API test passed');
+                this.addLog('✅ API connection successful!', 'success');
+                this.addLog('🎉 All systems ready for AI generation', 'success');
+                this.showNotification('✅ All systems ready! You can now generate AI ASCII art.', 'success');
             } else {
-                this.showNotification(`❌ API error: ${response.status}`, 'error');
+                const errorMsg = responseData.details || responseData.error || `API error: ${response.status}`;
+                this.addLog(`❌ API Error: ${errorMsg}`, 'error');
+                this.showNotification(`❌ API Error: ${errorMsg}`, 'error');
             }
         } catch (error) {
-            this.showNotification(`❌ Connection failed: ${error.message}`, 'error');
-            console.error('API test failed:', error);
+            if (error.message.includes('Failed to fetch')) {
+                this.updateStatusDot('proxy-status-dot', 'disconnected', 'Proxy: Disconnected ✗');
+                this.addLog('❌ Cannot reach proxy server on port 8001', 'error');
+                this.addLog('💡 Run: python proxy.py', 'warning');
+                this.showNotification('❌ Cannot reach proxy server. Run: python proxy.py', 'error');
+            } else {
+                this.addLog(`❌ Test failed: ${error.message}`, 'error');
+                this.showNotification(`❌ Test failed: ${error.message}`, 'error');
+            }
         } finally {
             this.testApiBtn.disabled = false;
             this.testApiBtn.textContent = '🧪 Test Connection';
+        }
+    }
+
+    updateProxyStatus(isConnected) {
+        const statusEl = document.getElementById('proxy-status');
+        const statusText = document.getElementById('proxy-status-text');
+        
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.classList.remove('connected', 'disconnected');
+            
+            if (isConnected) {
+                statusEl.classList.add('connected');
+                statusText.textContent = '🟢 Proxy Connected';
+            } else {
+                statusEl.classList.add('disconnected');
+                statusText.textContent = '🔴 Proxy Disconnected';
+            }
         }
     }
 
@@ -1468,39 +1544,56 @@ class SimpleASCIIArt {
             const finalFont = available.includes(fontName) ? fontName : 'standard';
             const color = this.colorSelect?.value || 'none';
 
-            console.log('🤖 Calling OpenWebUI API...');
+            console.log('🤖 Calling OpenWebUI API through proxy...');
 
-            // Call OpenWebUI API to generate ASCII art
-            const response = await fetch(`${this.settings.apiUrl}/api/chat/completions`, {
+            // Prepare the payload for the actual API
+            const apiPayload = {
+                model: this.settings.model,
+                messages: [{
+                    role: 'user',
+                    content: `Create detailed ASCII art of: ${prompt}\n\nMake it creative, detailed, and visually impressive. Use a variety of characters for shading and texture. Keep it under 50 lines.`
+                }],
+                temperature: this.settings.temperature,
+                max_tokens: this.settings.maxTokens
+            };
+
+            // Send through proxy
+            const proxyRequest = {
+                url: `${this.settings.apiUrl}/api/chat/completions`,
+                apiKey: this.settings.apiKey,
+                data: apiPayload
+            };
+
+            console.log('📤 Sending through proxy server...');
+            const response = await fetch('http://localhost:8001/api/proxy', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.settings.apiKey}`
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    model: this.settings.model,
-                    messages: [{
-                        role: 'user',
-                        content: `Create detailed ASCII art of: ${prompt}\n\nMake it creative, detailed, and visually impressive. Use a variety of characters for shading and texture. Keep it under 50 lines.`
-                    }],
-                    temperature: this.settings.temperature,
-                    max_tokens: this.settings.maxTokens
-                })
+                body: JSON.stringify(proxyRequest)
             });
 
+            const responseData = await response.json();
+
             if (!response.ok) {
-                throw new Error(`API error: ${response.status} ${response.statusText}`);
+                const errorMsg = responseData.details || responseData.error || `API error: ${response.status}`;
+                throw new Error(`OpenWebUI API error: ${errorMsg}`);
             }
 
-            const data = await response.json();
-            let ascii = data.choices?.[0]?.message?.content;
+            let ascii = responseData.choices?.[0]?.message?.content;
 
             if (!ascii) {
                 throw new Error('No ASCII art generated from API');
             }
 
             // Clean up the response (remove markdown code blocks if present)
-            ascii = ascii.replace(/```ascii\n?|\n?```/g, '').trim();
+            ascii = ascii.replace(/```(?:ascii)?\n?|\n?```/g, '').trim();
+
+            if (!ascii) {
+                throw new Error('Generated content was empty after cleanup');
+            }
+
+            console.log('✅ AI generation complete');
 
             return {
                 ascii: ascii,
@@ -1512,10 +1605,16 @@ class SimpleASCIIArt {
                 timestamp: Date.now(),
                 success: true
             };
+
         } catch (error) {
             if (error.requiresSetup) {
                 throw new Error(`API not configured - Click ⚙️ to setup OpenWebUI API key`);
             }
+            
+            if (error.message.includes('Failed to fetch')) {
+                throw new Error('Cannot reach proxy server. Make sure proxy.py is running on port 8001');
+            }
+            
             throw new Error(`AI generation error: ${error.message}`);
         }
     }
@@ -1631,6 +1730,104 @@ class SimpleASCIIArt {
             this.output.textContent = '';
             this.output.className = 'ascii-output';
             console.log('🗑️ Output cleared');
+        }
+    }
+
+    async autoDetectServices() {
+        console.log('🔍 Starting auto-detection...');
+        this.clearConnectionLog();
+        this.addLog('🔍 Auto-detecting services...', 'info');
+        
+        const container = document.getElementById('api-status-container');
+        if (container) container.style.display = 'flex';
+        
+        const connectionLog = document.getElementById('connection-log');
+        if (connectionLog) connectionLog.style.display = 'block';
+
+        try {
+            // Check OpenWebUI
+            this.addLog('[1/2] Checking OpenWebUI at ' + this.settingsApiUrl.value, 'info');
+            const openwebuiConnected = await this.checkOpenWebUI();
+            
+            // Check Proxy
+            this.addLog('[2/2] Checking Proxy Server...', 'info');
+            const proxyConnected = await this.checkProxyServer();
+
+            if (openwebuiConnected && proxyConnected) {
+                this.addLog('✅ All services detected!', 'success');
+                this.showNotification('✅ All services detected! Ready to configure API key.', 'success');
+            } else {
+                if (!openwebuiConnected) {
+                    this.addLog('❌ OpenWebUI not found at ' + this.settingsApiUrl.value, 'error');
+                }
+                if (!proxyConnected) {
+                    this.addLog('❌ Proxy server not running (need: python proxy.py)', 'error');
+                }
+            }
+        } catch (error) {
+            this.addLog(`❌ Error: ${error.message}`, 'error');
+        }
+    }
+
+    async checkOpenWebUI() {
+        try {
+            const url = this.settingsApiUrl.value;
+            const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+            
+            this.updateStatusDot('openwebui-status', 'connected', 'OpenWebUI: Connected ✓');
+            this.addLog('✅ OpenWebUI is running', 'success');
+            return true;
+        } catch (error) {
+            this.updateStatusDot('openwebui-status', 'disconnected', 'OpenWebUI: Not running ✗');
+            this.addLog(`❌ OpenWebUI connection failed: ${error.message}`, 'error');
+            return false;
+        }
+    }
+
+    async checkProxyServer() {
+        try {
+            const response = await fetch('http://localhost:8001/api/proxy', {
+                method: 'OPTIONS',
+                timeout: 5000
+            });
+            
+            this.updateStatusDot('proxy-status-dot', 'connected', 'Proxy: Connected ✓');
+            this.addLog('✅ Proxy server is running on port 8001', 'success');
+            return true;
+        } catch (error) {
+            this.updateStatusDot('proxy-status-dot', 'disconnected', 'Proxy: Not running ✗');
+            this.addLog('❌ Proxy server not running on port 8001', 'error');
+            this.addLog('💡 Start proxy with: python proxy.py', 'warning');
+            return false;
+        }
+    }
+
+    updateStatusDot(elementId, status, text) {
+        const dot = document.getElementById(elementId);
+        if (dot) {
+            dot.setAttribute('data-status', status);
+            dot.parentElement.textContent = text;
+            dot.parentElement.insertBefore(dot, dot.parentElement.firstChild);
+        }
+    }
+
+    addLog(message, type = 'info') {
+        const logContent = document.getElementById('log-content');
+        if (!logContent) return;
+
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logContent.appendChild(entry);
+        
+        // Auto-scroll to bottom
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+
+    clearConnectionLog() {
+        const logContent = document.getElementById('log-content');
+        if (logContent) {
+            logContent.innerHTML = '';
         }
     }
 }
