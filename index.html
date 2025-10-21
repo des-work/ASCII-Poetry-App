@@ -13,226 +13,47 @@
         <header class="compact-header">
             <h1 id="ascii-title">ASCII ART</h1>
             <div class="header-controls">
-                <button id="theme-btn" class="icon-btn" title="Toggle Theme">🌙</button>
-                <span id="build-badge" style="margin-left:8px;font-size:12px;opacity:.7;border:1px solid rgba(102,126,234,.35);padding:2px 6px;border-radius:6px">build: <span id="build-id"></span></span>
+                <button id="theme-btn" class="icon-btn" title="Toggle Theme">���</button>
             </div>
         </header>
 
-        <!-- Two Column Layout -->
-        <div class="main-grid">
-            <!-- Left Sidebar: Compact Input Section -->
-            <aside class="input-panel">
-                <div class="panel-header">
-                    <h2>Create</h2>
+        <!-- Simple Layout -->
+        <div class="simple-layout">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h2>ASCII Art Generator</h2>
+
+                <div class="input-group">
+                    <label for="text-input">Enter your text:</label>
+                    <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
                 </div>
 
-                <!-- Mode Selector (Compact Tabs) -->
-                <div class="mode-selector">
-                    <button class="mode-btn active" data-mode="text" title="Text to ASCII">
-                        <span class="mode-icon">T</span>
-                        <span class="mode-label">Text</span>
-                    </button>
-                    <button class="mode-btn" data-mode="image" title="Image to ASCII">
-                        <span class="mode-icon">🖼</span>
-                        <span class="mode-label">Image</span>
-                    </button>
-                    <button class="mode-btn" data-mode="poetry" title="Poetry Art">
-                        <span class="mode-icon">📝</span>
-                        <span class="mode-label">Poetry</span>
-                    </button>
+                <div class="input-group">
+                    <label for="font-select">Font:</label>
+                    <select id="font-select">
+                        <option value="standard">Standard</option>
+                        <option value="block">Block</option>
+                        <option value="mini">Mini</option>
+                        <option value="small">Small</option>
+                        <option value="bubble">Bubble</option>
+                        <option value="3d">3D</option>
+                    </select>
                 </div>
 
-                <!-- Dynamic Input Area -->
-                <div class="input-area">
-                    <!-- Text Mode -->
-                    <div id="text-mode" class="mode-content active">
-                        <textarea id="text-input" placeholder="Enter your text..." rows="4"></textarea>
-                    </div>
-
-                    <!-- Image Mode -->
-                    <div id="image-mode" class="mode-content">
-                        <div class="file-upload">
-                            <input type="file" id="image-input" accept="image/*" hidden>
-                            <label for="image-input" class="upload-label">
-                                <span class="upload-icon">📁</span>
-                                <span>Choose Image</span>
-                            </label>
-                            <span id="file-name" class="file-name"></span>
-                        </div>
-                        <div class="compact-option">
-                            <label>Width:</label>
-                            <input type="range" id="image-width" min="20" max="200" value="80">
-                            <span id="width-value">80</span>
-                        </div>
-                        <div class="compact-option">
-                            <label>Characters:</label>
-                            <select id="image-chars">
-                                <option value="standard">Standard</option>
-                                <option value="blocks">Blocks</option>
-                                <option value="dots">Dots</option>
-                                <option value="simple">Simple</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Poetry Mode -->
-                    <div id="poetry-mode" class="mode-content">
-                        <textarea id="poem-input" placeholder="Enter your poem..." rows="4"></textarea>
-                        <div class="compact-option">
-                            <label>Keywords:</label>
-                            <input type="text" id="keywords-input" placeholder="love, heart, dream">
-                        </div>
-                        <button id="auto-detect-btn" class="compact-btn">Auto-Detect Keywords</button>
-                        <div id="keyword-chips" class="keyword-chips"></div>
-                    </div>
+                <div class="button-group">
+                    <button id="generate-main" class="generate-btn">✨ Generate ASCII Art</button>
                 </div>
+            </div>
 
-                <!-- Collapsible Options -->
-                <details class="options-details" open>
-                    <summary>Options</summary>
-                    <div class="compact-options">
-                        <div class="compact-option" id="font-option">
-                            <label>Font:</label>
-                            <select id="font-select">
-                                <option value="standard">Standard</option>
-                                <option value="mini">Mini</option>
-                                <option value="small">Small</option>
-                                <option value="block">Block</option>
-                                <option value="bubble">Bubble</option>
-                                <option value="3d">3D</option>
-                                <option value="star">Stars ★</option>
-                                <option value="dot">Dots •</option>
-                                <option value="pixel">Pixel ▓</option>
-                            </select>
-                        </div>
-
-                        <div class="compact-option">
-                            <label>Color:</label>
-                            <select id="color-select">
-                                <option value="none">None</option>
-                                <option value="rainbow">Rainbow</option>
-                                <option value="gradient">Gradient</option>
-                                <option value="blue">Blue</option>
-                                <option value="purple">Purple</option>
-                                <option value="green">Green</option>
-                                <option value="red">Red</option>
-                                <option value="gold">Gold</option>
-                            </select>
-                        </div>
-
-                        <div class="compact-option">
-                            <label>Animation:</label>
-                            <select id="animation-select">
-                                <option value="none">None</option>
-                                <option value="glow">Glow</option>
-                                <option value="wave">Wave</option>
-                                <option value="fade">Fade</option>
-                                <option value="typewriter">Typewriter</option>
-                            </select>
-                        </div>
-
-                        <!-- Poetry-specific options -->
-                        <div class="compact-option poetry-only" style="display: none;">
-                            <label>Layout:</label>
-                            <select id="poetry-layout">
-                                <option value="centered">Centered</option>
-                                <option value="left-aligned">Left</option>
-                                <option value="artistic">Artistic</option>
-                            </select>
-                        </div>
-
-                        <div class="compact-option poetry-only" style="display: none;">
-                            <label>Decoration:</label>
-                            <select id="poetry-decoration">
-                                <option value="none">None</option>
-                                <option value="borders">Borders</option>
-                                <option value="flowers">Flowers 🌸</option>
-                                <option value="stars">Stars ✨</option>
-                                <option value="hearts">Hearts 💖</option>
-                            </select>
-                        </div>
-                    </div>
-                </details>
-
-                <!-- Main Generate Button -->
-                <button id="generate-main" class="main-generate-btn">
-                    <span class="btn-icon">✨</span>
-                    <span class="btn-text">Generate ASCII Art</span>
-                </button>
-
-                <!-- Secondary Action Buttons (Compact) -->
-                <div class="secondary-actions">
-                    <button id="copy-btn" class="action-btn" title="Copy to Clipboard">
-                        <span>📋</span>
-                    </button>
-                    <button id="download-btn" class="action-btn" title="Download">
-                        <span>💾</span>
-                    </button>
-                    <button id="clear-btn" class="action-btn" title="Clear Output">
-                        <span>🗑️</span>
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Right Panel: Maximized Output Display -->
-            <main class="output-panel">
-                <div class="output-header">
-                    <h2>Output</h2>
-                    <div class="output-info">
-                        <span id="output-stats"></span>
-                    </div>
-                </div>
-                <div class="output-container">
-                    <pre id="ascii-output" class="ascii-output"></pre>
-                </div>
-            </main>
+            <!-- Output Section -->
+            <div class="output-section">
+                <h2>ASCII Art Output</h2>
+                <pre id="ascii-output" class="ascii-output"></pre>
+            </div>
         </div>
-    </div>    
+    </div>
 
-    <!-- 1. Global Error Handler (must be first) -->
-    <script src="core/ErrorHandler.js"></script>
-    <!-- 2. Configuration -->
-    <script src="config/app.config.js"></script>
-    <!-- 3. Core Modules -->
-    <script src="core/EventBus.js"></script>
-    <script src="modules/PerformanceOptimizer.js"></script>
-    <script src="modules/FontManager.js"></script>
-    <script src="modules/ASCIIRenderer.js"></script>
-    <script src="modules/InputValidator.js"></script>
-    
-    <!-- NEW SYSTEM COMPONENTS -->
-    <!-- Button System -->
-    <script src="controllers/ButtonController.js"></script>
-    
-    <!-- Banner System -->
-    <script src="components/BannerComponent.js"></script>
-    
-    <!-- Font System -->
-    <script src="components/FontSwitcher.js"></script>
-    
-    <!-- Performance System -->
-    <script src="components/PerformanceManager.js"></script>
-    
-    <!-- Input System -->
-    <script src="components/InputManager.js"></script>
-    <script src="components/TextInputComponent.js"></script>
-    <script src="components/GenerateButtonComponent.js"></script>
-    <script src="components/FontSelectorComponent.js"></script>
-    <script src="components/InputPanelComponent.js"></script>
-    
-    <!-- Generation System -->
-    <script src="services/GenerationService.js"></script>
-    
-    <!-- Output Display System -->
-    <script src="components/DisplayManager.js"></script>
-    <script src="components/OutputPanel.js"></script>
-    
-    <!-- Diagnostic Helper -->
-    <script src="components/DiagnosticHelper.js"></script>
-    
-    <!-- Legacy UI Controller -->
-    <script src="controllers/UIController.js"></script>
-    
-    <!-- NEW Application Bootstrapper -->
-    <script src="app-new.js"></script>
-</body></html>
+    <!-- Simple Application Script -->
+    <script src="script.js"></script>
+</body>
+</html>

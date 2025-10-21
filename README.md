@@ -1,153 +1,146 @@
-# 🎨 ASCII Art Poetry
+# 🎨 ASCII Art Generator - MVP Version
 
-A modern, feature-rich web application for converting text, images, and poetry into beautiful ASCII art with advanced color, animation, and layout options.
+A simple, clean web application for converting text into ASCII art with multiple font options.
 
 ## ✨ Features
 
-### 📝 Text to ASCII
-- **24+ Font Styles**: A massive collection of fonts including `standard`, `block`, `bubble`, `3d`, `pixel`, and many more.
-- **Advanced Colors**: Multiple solid colors plus `rainbow` and `gradient` effects.
-- **Dynamic Animations**: `Glow`, `wave`, `fade`, and `typewriter` effects to bring your art to life.
-
-### 🖼️ Image to ASCII
-- **Easy Upload**: Supports all common image formats (`jpg`, `png`, `webp`, `gif`).
-- **Customizable Output**: Adjust character width and choose from multiple character sets for different styles.
-- **Accurate Aspect Ratio**: Intelligent conversion produces well-proportioned art.
-
-### 📜 Poetry Art
-- **Keyword Highlighting**: Transform specific words in your poem into ASCII art using special fonts.
-- **Auto-Detect Keywords**: Intelligently finds and suggests significant keywords from your poem.
-- **Layouts & Decorations**: Choose from multiple layouts and add decorative borders like `flowers`, `stars`, or `hearts`.
+### 📝 Text to ASCII (MVP)
+- **6 Font Styles**: Choose from `standard`, `block`, `mini`, `small`, `bubble`, and `3d` fonts.
+- **Simple Interface**: Clean, modern UI with dark theme.
+- **One-Click Generation**: Enter text, select font, click generate.
+- **Live Output**: See your ASCII art immediately in the output area.
 
 ### 💎 User Experience
-- **Sleek, Modern UI**: A cyberpunk-inspired interface with a dark theme and neon accents.
-- **Rich Feedback**: Animated loading indicators and toast notifications for all actions.
-- **Export Options**: Easily copy to clipboard or download your creation as a `.txt` file.
-- **Responsive Design**: Flawless experience on both desktop and mobile devices.
-- **Theme Support**: Switch between dark and light themes, with your preference saved locally.
+- **Clean Design**: Modern interface with responsive layout.
+- **Fast Loading**: Minimal dependencies for quick startup.
+- **Error Handling**: Basic error messages and validation.
+- **Easy to Use**: Simple workflow from input to output.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Safari, Edge)
-- A local web server to run the application (due to JavaScript module usage).
+- Python 3 (for the local server)
 
-### Installation
-1. Clone the repository:
+### Quick Start
+1. **Start the server:**
    ```bash
-   git clone https://github.com/des-work/ASCII-Poetry-App.git
-   cd ASCII-Art-Poetry
+   python -m http.server 8000
    ```
 
-2. **Start a local web server.** This project uses JavaScript modules and APIs that require it to be served from a web server. **Do not open the `index.html` file directly in your browser.**
-
-   Here are a few easy ways to start a server. Choose one:
-
-   **Option A: Using Node.js (Recommended)**
-   If you have Node.js installed, this is the simplest method.
-   ```bash
-   npx serve
+2. **Open in browser:**
    ```
-   This will start a server and give you a local URL (like `http://localhost:3000`).
-
-   **Option B: Using Python**
-   If you have Python installed, you can use its built-in web server.
-   ```bash
-   # For Python 3
-   python -m http.server
-
-   # For Python 2
-   python -m SimpleHTTPServer
+   http://localhost:8000
    ```
-   This will typically start a server at `http://localhost:8000`.
 
-3. **Open the application in your browser.**
-   Navigate to the URL provided by your local server (e.g., `http://localhost:3000` or `http://localhost:8000`). The application should now load correctly.
+3. **Use the app:**
+   - Enter text in the input field
+   - Select a font from the dropdown
+   - Click "Generate ASCII Art"
+   - View the result in the output area
 
 ## 📖 Usage
 
-### Text Mode
-1. Select the "Text" mode.
-2. Enter your text in the input field
-3. Choose your preferred font, color, and animation from the "Options" panel.
-4. Click "Generate ASCII Art".
+### Basic Usage
+1. **Enter text** in the textarea (e.g., "HELLO WORLD")
+2. **Choose a font** from the dropdown (Standard, Block, Mini, etc.)
+3. **Click "Generate ASCII Art"** to create your ASCII artwork
+4. **View the result** in the output area below
 
-### Image Mode
-1. Select the "Image" mode.
-2. Upload an image file.
-3. Adjust the width and character set.
-4. Click "Generate ASCII Art".
+### Available Fonts
+- **Standard**: Classic monospace font
+- **Block**: Bold, block-style characters
+- **Mini**: Compact, small characters
+- **Small**: Smaller variant of standard
+- **Bubble**: Rounded, bubble-style letters
+- **3D**: Three-dimensional effect
 
-### Poetry Mode
-1. Select the "Poetry" mode.
-2. Enter your poem.
-3. Add keywords manually or use the "Auto-Detect" button.
-4. Choose a font, layout, and decoration.
-5. Click "Generate ASCII Art".
+### Tips
+- Try different fonts to see various ASCII art styles
+- The app works with any text input
+- Results are displayed immediately after generation
 
-## 🎨 Font Styles
-
-The application includes over 24 fonts, from classic `block` and `standard` styles to artistic and decorative ones like `elegant`, `gothic`, and `star`.
 
 ## 🛠️ Technical Details
 
-### Technologies Used
-- **HTML5**: Semantic markup
-- **CSS3**: Modern styling with CSS Grid and Flexbox
-- **Vanilla JavaScript (ES6+)**: No frameworks, pure modular JavaScript
-- **Canvas API**: For image processing
-- **File API**: For file uploads
-- **Clipboard API**: For copy functionality
+### Technologies Used (MVP)
+- **HTML5**: Clean, semantic markup
+- **CSS3**: Modern styling with responsive design
+- **Vanilla JavaScript**: Simple, dependency-free implementation
+- **FontManager.js**: ASCII font definitions and loading
+- **ASCIIRenderer.js**: Text-to-ASCII conversion logic
 
-### File Structure
+### Architecture
+- **Simple Design**: Direct DOM manipulation for reliability
+- **Minimal Dependencies**: Only essential modules loaded
+- **Clean Code**: Easy to understand and maintain
+- **No Frameworks**: Pure JavaScript for maximum compatibility
+- **No Complex Dependencies**: Simple, maintainable codebase
+
+### File Structure (MVP)
 ```
-ASCII-Poetry-App/
-├── index.html          # Main HTML file
-├── styles.css          # CSS styles
-├── script.js           # JavaScript functionality
-└── README.md           # Documentation
+/ (Project Root)
+├── index.html          # Main application page
+├── script.js           # Core application logic
+├── styles.css          # Application styling
+├── modules/
+│   ├── FontManager.js     # Font definitions & loading
+│   ├── ASCIIRenderer.js   # Text-to-ASCII conversion
+│   └── InputValidator.js  # Basic input validation
+└── config/
+    └── app.config.js      # Configuration settings
 ```
 
-## 🤝 Contributing
+### Simple Architecture
+- **4 Core Files**: Minimal, focused codebase
+- **No Complex Dependencies**: Easy to understand and maintain
+- **Direct Implementation**: No frameworks or complex patterns
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+## 🔧 Troubleshooting
 
-### Development Setup
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Test thoroughly
-5. Commit your changes: `git commit -m 'Add some feature'`
-6. Push to the branch: `git push origin feature-name`
-7. Open a Pull Request
+### Common Issues
 
-## 📝 License
+**❌ "This site can't be reached"**
+- Make sure the server is running: `python -m http.server 8000`
+- Check that port 8000 is available
+- Try refreshing the browser
 
-This project is open source and available under the [MIT License](LICENSE).
+**❌ "App not working"**
+- Hard refresh: `Ctrl+Shift+R`
+- Check browser console for errors
+- Ensure JavaScript is enabled
 
-## 🙏 Acknowledgments
+**❌ "No output appears"**
+- Check console for error messages
+- Verify text input is not empty
+- Try different fonts
 
-- ASCII art fonts inspired by various figlet implementations
-- Modern CSS techniques from the web development community
-- JavaScript best practices from MDN and modern web standards
+### Debug Information
+Open browser console (F12) and check for:
+```
+🚀 Simple ASCII Art Generator - Initializing...
+✅ Simple ASCII Art Generator - Ready!
+🎨 Generating ASCII art for: [your text]
+✅ Generation complete
+📺 ASCII art displayed
+```
 
-## 🔮 Future Enhancements
+## 📈 Future Enhancements
 
-- [ ] Additional font styles
-- [ ] More animation effects
-- [ ] Batch processing for multiple images
-- [ ] Custom character set creation
-- [ ] ASCII art gallery
-- [ ] Social sharing features
-- [ ] Mobile app version
+The MVP provides a solid foundation that can be enhanced with additional features:
 
-## 📞 Support
+### Phase 2 Features (Next)
+- Color options for ASCII art
+- Animation effects (glow, wave, fade)
+- Export functionality (copy to clipboard, download)
+- More font styles
 
-If you encounter any issues or have questions, please:
-1. Check the existing issues on GitHub
-2. Create a new issue with detailed information
-3. Contact the maintainers
+### Phase 3 Features (Future)
+- Image to ASCII conversion
+- Poetry mode with keyword highlighting
+- Advanced customization options
+- Performance optimizations
 
----
+## 📄 License
 
-Made with ❤️ by the ASCII Art Generator team
+This project is open source and available under the MIT License.
