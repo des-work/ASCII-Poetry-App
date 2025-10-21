@@ -53,7 +53,7 @@ class OutputPanel {
     setDefaultState() {
         if (!this.outputElement) return;
 
-        this.outputElement.innerHTML = '';
+        // Clear content - use textContent only to preserve CSS ::after placeholder
         this.outputElement.textContent = '';
         this.outputElement.className = 'ascii-output';
         this.outputElement.setAttribute('data-state', 'empty');
@@ -62,7 +62,7 @@ class OutputPanel {
             this.statsElement.textContent = '';
         }
 
-        console.log('✨ OutputPanel: Set to default state');
+        console.log('✨ OutputPanel: Set to default state (placeholder should be visible)');
     }
 
     /**
@@ -81,11 +81,7 @@ class OutputPanel {
         }
 
         try {
-            // Clear existing content
-            this.outputElement.innerHTML = '';
-            this.outputElement.textContent = '';
-
-            // Set content
+            // Set new content (clearing happens automatically)
             this.outputElement.textContent = ascii;
             this.outputElement.className = 'ascii-output';
             this.outputElement.setAttribute('data-state', 'filled');

@@ -15,11 +15,12 @@
  */
 
 class UIController {
-    constructor(eventBus, config, inputReader, inputValidator) {
+    constructor(eventBus, config, inputReader, inputValidator, outputPanel) {
         this.eventBus = eventBus;
         this.config = config;
         this.inputReader = inputReader;
         this.validator = inputValidator;
+        this.outputPanel = outputPanel;
         this.dom = {};
         this.state = {
             currentMode: 'text',
@@ -201,26 +202,24 @@ class UIController {
 
     onCopyClick() {
         console.log('📋 UIController: Copy clicked');
-        const output = document.getElementById('ascii-output');
-        if (!output || !output.textContent.trim()) {
+        if (!this.outputPanel || !this.outputPanel.hasContent()) {
             this.showNotification('⚠️ Nothing to copy', 'warning');
             return;
         }
 
-        navigator.clipboard.writeText(output.textContent)
+        navigator.clipboard.writeText(this.outputPanel.getOutput())
             .then(() => this.showNotification('✅ Copied to clipboard', 'success'))
             .catch(err => this.showNotification('❌ Copy failed', 'error'));
     }
 
     onDownloadClick() {
         console.log('💾 UIController: Download clicked');
-        const output = document.getElementById('ascii-output');
-        if (!output || !output.textContent.trim()) {
+        if (!this.outputPanel || !this.outputPanel.hasContent()) {
             this.showNotification('⚠️ Nothing to download', 'warning');
             return;
         }
 
-        const blob = new Blob([output.textContent], { type: 'text/plain' });
+        const blob = new Blob([this.outputPanel.getOutput()], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -235,16 +234,10 @@ class UIController {
 
     onClearClick() {
         console.log('🗑️ UIController: Clear clicked');
-        const output = document.getElementById('ascii-output');
-        if (output) {
-            output.innerHTML = '';
-            output.textContent = '';
-            output.className = 'ascii-output';
+        if (this.outputPanel) {
+            this.outputPanel.clear();
+            this.showNotification('🗑️ Cleared', 'info');
         }
-        if (this.dom.outputStats) {
-            this.dom.outputStats.textContent = '';
-        }
-        this.showNotification('🗑️ Cleared', 'info');
     }
 
     onThemeClick() {

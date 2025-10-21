@@ -798,18 +798,14 @@ textarea:focus {
 }
 
 .ascii-output:empty::after {
-    content: '╔═══════════════════════════════════════╗\n║                                       ║\n║   ✨ Generate your Creation  🚀      ║\n║                                       ║\n║       Enter text and click Generate    ║\n║                                       ║\n╚═══════════════════════════════════════╝';
+    content: 'Your ASCII art will appear here...\n\nEnter text and click "Generate ASCII Art" to begin.';
     color: var(--text-tertiary);
-    opacity: 0.4;
+    opacity: 0.5;
     text-align: center;
     display: block;
     padding: 3rem;
-    background: var(--rainbow-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-size: 200% 100%;
-    animation: rainbowFlow 10s linear infinite;
+    font-size: 1rem;
+    line-height: 1.8;
 }
 
 /* Hide placeholder when content is present */

@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputReader = new InputReader(domCache);
         
         // Main UI controller (clean, single-responsibility design)
-        const uiController = new UIController(eventBus, window.AppConfig, inputReader, inputValidator);
+        const uiController = new UIController(eventBus, window.AppConfig, inputReader, inputValidator, outputPanel);
         
         // Button interactions
         const buttonController = new ButtonController(eventBus);
