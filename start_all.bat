@@ -5,6 +5,25 @@ REM Web App: 3000
 REM Proxy: 8001
 
 echo.
+echo 🧹 CLEANUP: Killing old processes...
+echo =========================================
+echo.
+
+REM Kill all old Python processes
+taskkill /F /IM python.exe 2>nul
+echo ✅ Old Python processes stopped
+
+REM Stop Docker container if running
+docker stop open-webui 2>nul
+docker rm open-webui 2>nul
+echo ✅ Old Docker containers cleaned up
+
+REM Wait for ports to be released
+echo.
+echo ⏳ Waiting 3 seconds for ports to be released...
+timeout /t 3 /nobreak
+
+echo.
 echo 🚀 ASCII Art Generator - Complete Setup
 echo =========================================
 echo.
@@ -21,14 +40,12 @@ docker run -d -p 8000:8000 --name open-webui ghcr.io/open-webui/open-webui:lates
 if %errorlevel% equ 0 (
     echo ✅ OpenWebUI starting on port 8000
 ) else (
-    echo ⚠️  OpenWebUI may already be running or port conflict
-    echo   To check: docker ps
-    echo   To stop: docker stop open-webui
+    echo ⚠️  OpenWebUI may have failed - check Docker
 )
 
 echo.
-echo ⏳ Waiting 5 seconds for OpenWebUI to initialize...
-timeout /t 5 /nobreak
+echo ⏳ Waiting 10 seconds for OpenWebUI to fully start...
+timeout /t 10 /nobreak
 
 echo.
 echo 🔌 Starting Proxy Server on port 8001...
